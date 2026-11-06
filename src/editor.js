@@ -381,6 +381,10 @@ export class OutlanderPhevCardEditor extends HTMLElement {
             </div>
 
             <label class="toggle-row">
+              <span class="field-label">${localize(lang, 'ed_show_card_frame')}</span>
+              <input type="checkbox" id="chk-card-frame" ${cfg.show_card_frame !== false && cfg.frameless !== true ? 'checked' : ''} />
+            </label>
+            <label class="toggle-row">
               <span class="field-label">${localize(lang, 'ed_show_sunroof')}</span>
               <input type="checkbox" id="chk-sunroof" ${cfg.show_sunroof !== false ? 'checked' : ''} />
             </label>
@@ -550,6 +554,10 @@ export class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ max_ev_range: Number(e.target.value) || 0 });
     });
 
+    sr.getElementById('chk-card-frame')?.addEventListener('change', (e) => {
+      this._emitConfig({ show_card_frame: e.target.checked, frameless: undefined });
+    });
+
     sr.getElementById('chk-sunroof')?.addEventListener('change', (e) => {
       this._emitConfig({ show_sunroof: e.target.checked });
     });
@@ -586,6 +594,11 @@ export class OutlanderPhevCardEditor extends HTMLElement {
     const dailyPosVal = this._config.daily_charge_position || 'header';
     if (dailyPosSel && dailyPosSel.value !== dailyPosVal) {
       dailyPosSel.value = dailyPosVal;
+    }
+
+    const frameChk = sr.getElementById('chk-card-frame');
+    if (frameChk) {
+      frameChk.checked = this._config.show_card_frame !== false && this._config.frameless !== true;
     }
 
     for (const [key, entry] of this._selectors.entries()) {

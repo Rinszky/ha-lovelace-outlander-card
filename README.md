@@ -36,7 +36,7 @@ Egyedi, fotorealisztikus felülnézeti **Home Assistant Lovelace kártya** a **M
 1. Másold a gyökérkönyvtárban található [`outlander-phev-card.js`](./outlander-phev-card.js) fájlt a Home Assistant `/config/www/` mappájába.
 2. A Home Assistantban menj ide: **Beállítások -> Irányítópultok -> `⋮` (jobb felül) -> Erőforrások (Resources)**.
 3. Kattints az **Erőforrás hozzáadása** gombra:
-   - **URL:** `/local/outlander-phev-card.js?v=1.1.0`
+   - **URL:** `/local/outlander-phev-card.js?v=1.2.0`
    - **Típus:** `JavaScript modul (JavaScript Module)`
 4. Frissítsd a böngészőt (`Ctrl+F5` / `Cmd+Shift+R`), majd add hozzá a **Mitsubishi Outlander PHEV Card** kártyát bármelyik irányítópulthoz!
 
@@ -57,6 +57,7 @@ battery_fill_opacity: 36       # 15..75 (%)
 layout_mode: auto              # auto | wide | compact
 daily_charge_position: header  # header | panel | both
 max_ev_range: 45               # Becsült max EV hatótáv km-ben (0 = elrejtve)
+show_card_frame: true          # false = külső keret/háttér elrejtése, csak a belső blokkok háttere marad
 show_sunroof: true
 interactive_car: true
 confirm_wifi_restart: true

@@ -1,6 +1,6 @@
 /**
  * Mitsubishi Outlander PHEV Lovelace Card (phev2mqtt)
- * Version: 1.1.0
+ * Version: 1.2.0
  * Interactive top-down animated Home Assistant custom card for Mitsubishi Outlander PHEV
  * Zero external runtime dependencies — HACS & Lovelace ready.
  */
@@ -128,6 +128,7 @@ const TRANSLATIONS = {
     ed_daily_pos_panel: 'Töltés panelen kiemelt kártyaként',
     ed_daily_pos_both: 'Mindkét helyen (Fejléc + Töltés panel)',
     ed_max_ev_range: 'Becsült max. EV hatótáv 100%-nál (km, 0 = elrejtve)',
+    ed_show_card_frame: 'Külső keret és háttér megjelenítése (kikapcsolva csak a blokkok háttere marad)',
     ed_show_sunroof: 'Napfénytető megjelenítése az autón',
     ed_interactive_car: 'Interaktív érintési zónák engedélyezése az autón',
     ed_confirm_wifi: 'Megerősítés kérése Wi-Fi újraindítás előtt',
@@ -244,6 +245,7 @@ const TRANSLATIONS = {
     ed_daily_pos_panel: 'Battery & Charging Panel (Highlighted tiles)',
     ed_daily_pos_both: 'Both (Header + Charging Panel)',
     ed_max_ev_range: 'Est. max EV range at 100% (km, 0 = hidden)',
+    ed_show_card_frame: 'Show outer card frame & background (when off, only inner blocks keep their backgrounds)',
     ed_show_sunroof: 'Show sunroof on car',
     ed_interactive_car: 'Enable interactive touch zones on car',
     ed_confirm_wifi: 'Require confirmation before Restart Wi-Fi',
@@ -1453,6 +1455,54 @@ const CARD_STYLES = `
     pointer-events: none;
     z-index: 0;
     transition: background 0.6s ease;
+  }
+
+  /* Frameless mode: hide outer card border/background/shadow, keep only inner block backgrounds */
+  ha-card.ophev-card.frameless {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible;
+    --ha-card-background: transparent;
+    --card-background-color: transparent;
+    --ha-card-border-width: 0px;
+    --ha-card-border-color: transparent;
+    --ha-card-box-shadow: none;
+  }
+
+  ha-card.ophev-card.frameless::before {
+    display: none;
+  }
+
+  ha-card.ophev-card.frameless .card-title {
+    color: var(--primary-text-color, #f8fafc);
+  }
+
+  ha-card.ophev-card.frameless .mitsu-badge {
+    background: rgba(20, 29, 45, 0.92);
+  }
+
+  ha-card.ophev-card.frameless .status-pill:not(.ok):not(.warn):not(.danger) {
+    background: rgba(20, 29, 45, 0.9);
+  }
+
+  ha-card.ophev-card.frameless .car-stage-card {
+    background: radial-gradient(ellipse at 50% 48%, rgba(28, 39, 58, 0.94) 0%, rgba(10, 14, 22, 0.98) 80%);
+    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.55);
+  }
+
+  ha-card.ophev-card.frameless .hud-panel {
+    background: linear-gradient(155deg, rgba(19, 26, 39, 0.95) 0%, rgba(13, 18, 28, 0.97) 100%);
+    box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  ha-card.ophev-card.frameless .sensors-drawer.open {
+    background: linear-gradient(155deg, rgba(19, 26, 39, 0.95) 0%, rgba(13, 18, 28, 0.97) 100%);
+    border: 1px solid var(--ophev-border);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.5);
   }
 
   .ophev-shell {
@@ -3010,6 +3060,10 @@ class OutlanderPhevCardEditor extends HTMLElement {
             </div>
 
             <label class="toggle-row">
+              <span class="field-label">${localize(lang, 'ed_show_card_frame')}</span>
+              <input type="checkbox" id="chk-card-frame" ${cfg.show_card_frame !== false && cfg.frameless !== true ? 'checked' : ''} />
+            </label>
+            <label class="toggle-row">
               <span class="field-label">${localize(lang, 'ed_show_sunroof')}</span>
               <input type="checkbox" id="chk-sunroof" ${cfg.show_sunroof !== false ? 'checked' : ''} />
             </label>
@@ -3179,6 +3233,10 @@ class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ max_ev_range: Number(e.target.value) || 0 });
     });
 
+    sr.getElementById('chk-card-frame')?.addEventListener('change', (e) => {
+      this._emitConfig({ show_card_frame: e.target.checked, frameless: undefined });
+    });
+
     sr.getElementById('chk-sunroof')?.addEventListener('change', (e) => {
       this._emitConfig({ show_sunroof: e.target.checked });
     });
@@ -3215,6 +3273,11 @@ class OutlanderPhevCardEditor extends HTMLElement {
     const dailyPosVal = this._config.daily_charge_position || 'header';
     if (dailyPosSel && dailyPosSel.value !== dailyPosVal) {
       dailyPosSel.value = dailyPosVal;
+    }
+
+    const frameChk = sr.getElementById('chk-card-frame');
+    if (frameChk) {
+      frameChk.checked = this._config.show_card_frame !== false && this._config.frameless !== true;
     }
 
     for (const [key, entry] of this._selectors.entries()) {
@@ -3269,6 +3332,7 @@ class OutlanderPhevCard extends HTMLElement {
       layout_mode: 'auto',
       daily_charge_position: 'header',
       max_ev_range: 45,
+      show_card_frame: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -3314,6 +3378,7 @@ class OutlanderPhevCard extends HTMLElement {
       layout_mode: 'auto',
       daily_charge_position: 'header',
       max_ev_range: 45,
+      show_card_frame: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -4012,6 +4077,8 @@ class OutlanderPhevCard extends HTMLElement {
 
     // 1. Paint & Layout Config
     $.hdrTitle.textContent = cfg.title || localize(lang, 'card_title_default');
+    const isFrameless = cfg.show_card_frame === false || cfg.frameless === true;
+    $.card.classList.toggle('frameless', isFrameless);
     $.bodyGrid.className = `ophev-body layout-${cfg.layout_mode || 'auto'}`;
 
     const palette = computeCarPaintPalette(cfg.car_color || '#2b2f36');
@@ -4415,7 +4482,7 @@ if (!window.customCards.some((c) => c.type === 'outlander-phev-card')) {
 }
 
 console.info(
-  '%c OUTLANDER-PHEV-CARD %c v1.1.0 ',
+  '%c OUTLANDER-PHEV-CARD %c v1.2.0 ',
   'background:#0ea5e9;color:#fff;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;',
   'background:#1e293b;color:#38bdf8;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;'
 );

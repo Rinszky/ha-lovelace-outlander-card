@@ -62,6 +62,7 @@ export class OutlanderPhevCard extends HTMLElement {
       layout_mode: 'auto',
       daily_charge_position: 'header',
       max_ev_range: 45,
+      show_card_frame: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -107,6 +108,7 @@ export class OutlanderPhevCard extends HTMLElement {
       layout_mode: 'auto',
       daily_charge_position: 'header',
       max_ev_range: 45,
+      show_card_frame: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -805,6 +807,8 @@ export class OutlanderPhevCard extends HTMLElement {
 
     // 1. Paint & Layout Config
     $.hdrTitle.textContent = cfg.title || localize(lang, 'card_title_default');
+    const isFrameless = cfg.show_card_frame === false || cfg.frameless === true;
+    $.card.classList.toggle('frameless', isFrameless);
     $.bodyGrid.className = `ophev-body layout-${cfg.layout_mode || 'auto'}`;
 
     const palette = computeCarPaintPalette(cfg.car_color || '#2b2f36');
@@ -1208,7 +1212,7 @@ if (!window.customCards.some((c) => c.type === 'outlander-phev-card')) {
 }
 
 console.info(
-  '%c OUTLANDER-PHEV-CARD %c v1.1.0 ',
+  '%c OUTLANDER-PHEV-CARD %c v1.2.0 ',
   'background:#0ea5e9;color:#fff;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;',
   'background:#1e293b;color:#38bdf8;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;'
 );

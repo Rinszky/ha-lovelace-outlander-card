@@ -17,7 +17,7 @@ const filesInOrder = [
 const chunks = [
   `/**
  * Mitsubishi Outlander PHEV Lovelace Card (phev2mqtt)
- * Version: 1.1.0
+ * Version: 1.2.0
  * Interactive top-down animated Home Assistant custom card for Mitsubishi Outlander PHEV
  * Zero external runtime dependencies — HACS & Lovelace ready.
  */

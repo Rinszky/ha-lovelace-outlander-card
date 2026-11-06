@@ -46,6 +46,54 @@ export const CARD_STYLES = `
     transition: background 0.6s ease;
   }
 
+  /* Frameless mode: hide outer card border/background/shadow, keep only inner block backgrounds */
+  ha-card.ophev-card.frameless {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    overflow: visible;
+    --ha-card-background: transparent;
+    --card-background-color: transparent;
+    --ha-card-border-width: 0px;
+    --ha-card-border-color: transparent;
+    --ha-card-box-shadow: none;
+  }
+
+  ha-card.ophev-card.frameless::before {
+    display: none;
+  }
+
+  ha-card.ophev-card.frameless .card-title {
+    color: var(--primary-text-color, #f8fafc);
+  }
+
+  ha-card.ophev-card.frameless .mitsu-badge {
+    background: rgba(20, 29, 45, 0.92);
+  }
+
+  ha-card.ophev-card.frameless .status-pill:not(.ok):not(.warn):not(.danger) {
+    background: rgba(20, 29, 45, 0.9);
+  }
+
+  ha-card.ophev-card.frameless .car-stage-card {
+    background: radial-gradient(ellipse at 50% 48%, rgba(28, 39, 58, 0.94) 0%, rgba(10, 14, 22, 0.98) 80%);
+    box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.55);
+  }
+
+  ha-card.ophev-card.frameless .hud-panel {
+    background: linear-gradient(155deg, rgba(19, 26, 39, 0.95) 0%, rgba(13, 18, 28, 0.97) 100%);
+    box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  ha-card.ophev-card.frameless .sensors-drawer.open {
+    background: linear-gradient(155deg, rgba(19, 26, 39, 0.95) 0%, rgba(13, 18, 28, 0.97) 100%);
+    border: 1px solid var(--ophev-border);
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.5);
+  }
+
   .ophev-shell {
     position: relative;
     z-index: 1;
