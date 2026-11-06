@@ -103,7 +103,7 @@ restart_wifi_entity: button.phev_restart_wifi_connetion
 
 ## Helyi Interaktív Demó kipróbálása
 
-A projekt tartalmaz egy önálló böngészős szimulátort a [`https://rinszky.github.io/ha-lovelace-outlander-card/demo/`](./demo/index.html) fájlban, amellyel Home Assistant nélkül is azonnal kipróbálhatod az összes ajtó-, lámpa-, töltés- és klíma-animációt, valamint a vizuális szerkesztőt.
+A projekt tartalmaz egy önálló böngészős szimulátort a [`./demo/index.html`](https://rinszky.github.io/ha-lovelace-outlander-card/demo/) fájlban, amellyel Home Assistant nélkül is azonnal kipróbálhatod az összes ajtó-, lámpa-, töltés- és klíma-animációt, valamint a vizuális szerkesztőt.
 
 Ha módosítod a `src/` mappában lévő fájlokat, az egyfájlos `outlander-phev-card.js` csomag újraépítéséhez futtasd:
 
