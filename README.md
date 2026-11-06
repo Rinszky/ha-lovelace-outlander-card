@@ -7,6 +7,7 @@
 [![Verzió](https://img.shields.io/badge/verzi%C3%B3-v1.3.0-0ea5e9?style=for-the-badge)](./package.json)
 [![HACS](https://img.shields.io/badge/HACS-Custom-10b981?style=for-the-badge)](https://hacs.xyz)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Lovelace-38bdf8?style=for-the-badge&logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
+[![phev2mqtt](https://img.shields.io/badge/Gateway-buxtronix%2Fphev2mqtt-6366f1?style=for-the-badge&logo=github)](https://github.com/buxtronix/phev2mqtt)
 [![Élő Demó](https://img.shields.io/badge/%F0%9F%8E%AE_%C3%89l%C5%91_Dem%C3%B3-Kipr%C3%B3b%C3%A1l%C3%A1s-f59e0b?style=for-the-badge)](https://rinszky.github.io/ha-lovelace-outlander-card/demo/)
 
 <br />
@@ -79,7 +80,25 @@
 
 ---
 
-## Telepítés
+## 🔌 Előfeltételek és Szükséges Eszközök (`phev2mqtt`)
+
+A Lovelace kártya működésének előfeltétele a [**buxtronix/phev2mqtt**](https://github.com/buxtronix/phev2mqtt) átjáró futtatása, amely összeköti az autó gyári Wi-Fi vezérlőmodulját a Home Assistant **MQTT** brókerével (pl. *Mosquitto*).
+
+### Miért kell hozzá külön eszköz (pl. Raspberry Pi), és hogyan csatlakozik?
+
+A Mitsubishi Outlander PHEV nem csatlakozik fel az otthoni Wi-Fi hálózatra és nem használ felhős API-t, hanem **saját, zárt 2.4 GHz-es Wi-Fi hotspotot** (`REMOTE...` SSID, internetkapcsolat nélkül) sugároz. Emiatt egy két hálózati interfésszel rendelkező kis híd-eszközre van szükség a garázsban vagy a parkolóhely Wi-Fi hatótávján belül:
+
+- **🍓 Raspberry Pi (3B / 3B+ / 4 / 5, vagy Zero 2 W + LAN adapter):**
+  - **LAN kábelen (`eth0`)** csatlakozik az **otthoni routerhez/switchhez** — ezen keresztül kommunikál a Home Assistant MQTT szerverével és éri el az internetet.
+  - **Beépített Wi-Fi-n (`wlan0`)** közvetlenül az **autó saját `REMOTE...` Wi-Fi hotspotjára** csatlakozik automatikusan, amint hazaérsz az autóval.
+- **🏠 Home Assistant + MQTT bróker (*Mosquitto*):** A `phev2mqtt` a beépített *MQTT Auto-Discovery* segítségével automatikusan létrehozza az összes érzékelőt és kapcsolót a Home Assistantban.
+
+> 👉 **Részletes telepítési leírás:** A Raspberry Pi hálózati beállítását (LAN + Wi-Fi útválasztás), a `phev2mqtt` lefordítását, az autó kulcsos regisztrációs módját és az automatikus `systemd` indítást lépésről lépésre megtalálod itt:
+> **[📖 `phev2mqtt` telepítése és összekötése a Home Assistanttal (`docs/phev2mqtt-telepites.md`)](./docs/phev2mqtt-telepites.md)**
+
+---
+
+## 📦 Telepítés (Lovelace Kártya)
 
 ### A) HACS (Egyéni tárolóként / Custom Repository)
 1. Nyisd meg a **HACS** felületet a Home Assistantban.
