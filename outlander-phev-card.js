@@ -1,6 +1,6 @@
 /**
  * Mitsubishi Outlander PHEV Lovelace Card (phev2mqtt)
- * Version: 1.2.0
+ * Version: 1.3.0
  * Interactive top-down animated Home Assistant custom card for Mitsubishi Outlander PHEV
  * Zero external runtime dependencies — HACS & Lovelace ready.
  */
@@ -13,6 +13,13 @@ const TRANSLATIONS = {
     card_title_default: 'Outlander PHEV',
     connected: 'Kapcsolódva',
     disconnected: 'Nincs kapcsolat',
+    offline_badge: 'Offline',
+    offline_hud_title: 'Nincs kapcsolat az autóval',
+    offline_hud_desc: 'Wi-Fi hatókörön kívül vagy alvó módban',
+    offline_last_seen_today: 'Utoljára elérhető: ma {time}',
+    offline_last_seen_date: 'Utoljára elérhető: {date}',
+    offline_reconnect_btn: 'Wi-Fi újracsatlakozás',
+    offline_stale_hint: 'Utolsó ismert állapot • Offline',
     locked: 'Zárolt',
     unlocked: 'Feloldva',
     doors_all_closed: 'Minden zárva',
@@ -129,6 +136,7 @@ const TRANSLATIONS = {
     ed_daily_pos_both: 'Mindkét helyen (Fejléc + Töltés panel)',
     ed_max_ev_range: 'Becsült max. EV hatótáv 100%-nál (km, 0 = elrejtve)',
     ed_show_card_frame: 'Külső keret és háttér megjelenítése (kikapcsolva csak a blokkok háttere marad)',
+    ed_offline_dimming: 'Offline állapot látványos kiemelése (autó és vezérlők elszürkítése)',
     ed_show_sunroof: 'Napfénytető megjelenítése az autón',
     ed_interactive_car: 'Interaktív érintési zónák engedélyezése az autón',
     ed_confirm_wifi: 'Megerősítés kérése Wi-Fi újraindítás előtt',
@@ -138,6 +146,13 @@ const TRANSLATIONS = {
     card_title_default: 'Outlander PHEV',
     connected: 'Connected',
     disconnected: 'Disconnected',
+    offline_badge: 'Offline',
+    offline_hud_title: 'Vehicle Disconnected',
+    offline_hud_desc: 'Out of Wi-Fi range or in sleep mode',
+    offline_last_seen_today: 'Last online: today {time}',
+    offline_last_seen_date: 'Last online: {date}',
+    offline_reconnect_btn: 'Reconnect Wi-Fi',
+    offline_stale_hint: 'Last known state • Offline',
     locked: 'Locked',
     unlocked: 'Unlocked',
     doors_all_closed: 'All closed',
@@ -246,6 +261,7 @@ const TRANSLATIONS = {
     ed_daily_pos_both: 'Both (Header + Charging Panel)',
     ed_max_ev_range: 'Est. max EV range at 100% (km, 0 = hidden)',
     ed_show_card_frame: 'Show outer card frame & background (when off, only inner blocks keep their backgrounds)',
+    ed_offline_dimming: 'Highlight offline state (dim car & unreachable controls)',
     ed_show_sunroof: 'Show sunroof on car',
     ed_interactive_car: 'Enable interactive touch zones on car',
     ed_confirm_wifi: 'Require confirmation before Restart Wi-Fi',
@@ -532,6 +548,32 @@ function formatDailyDuration(stateObj, hass, lang = 'hu') {
     return `${h} ${localize(lang, 'hr_short')} ${localize(lang, 'and_word')} ${m} ${localize(lang, 'min_tiny')}`;
   }
   return `${h}${localize(lang, 'hr_short')} ${m}${localize(lang, 'min_tiny')}`;
+}
+function formatLastSeen(stateObj, lang = 'hu') {
+  const rawTs = stateObj?.last_changed || stateObj?.last_updated;
+  if (rawTs) {
+    const dt = new Date(rawTs);
+    if (!Number.isNaN(dt.getTime())) {
+      const now = new Date();
+      const sameDay =
+        dt.getFullYear() === now.getFullYear() &&
+        dt.getMonth() === now.getMonth() &&
+        dt.getDate() === now.getDate();
+      const locale = lang === 'hu' ? 'hu-HU' : 'en-GB';
+      if (sameDay) {
+        const time = dt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        return localize(lang, 'offline_last_seen_today', { time });
+      }
+      const date = dt.toLocaleString(locale, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return localize(lang, 'offline_last_seen_date', { date });
+    }
+  }
+  return localize(lang, 'offline_hud_desc');
 }
 
 /**
@@ -1550,13 +1592,17 @@ const CARD_STYLES = `
     filter: drop-shadow(0 0 6px rgba(225, 29, 72, 0.45));
   }
 
-  .title-wrap {
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
     min-width: 0;
   }
 
   .card-title {
     margin: 0;
-    font-size: 1.08rem;
+    font-size: 1.12rem;
     font-weight: 700;
     letter-spacing: -0.01em;
     color: #f8fafc;
@@ -1565,31 +1611,93 @@ const CARD_STYLES = `
     text-overflow: ellipsis;
   }
 
-  .card-subtitle {
-    display: flex;
+  /* Modern Telemetry Connection Pill (Online vs Offline) */
+  .conn-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
+    gap: 7px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+    background: rgba(30, 41, 59, 0.78);
+    border: 1px solid var(--ophev-border-strong);
     color: var(--ophev-muted);
-    margin-top: 2px;
+  }
+
+  .conn-pill:hover {
+    transform: translateY(-1px);
+  }
+
+  .conn-pill.online {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 78, 59, 0.32));
+    border-color: rgba(16, 185, 129, 0.48);
+    color: #34d399;
+    box-shadow: 0 0 18px -4px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .conn-pill.offline {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.24), rgba(127, 29, 29, 0.38));
+    border-color: rgba(248, 113, 113, 0.6);
+    color: #fca5a5;
+    animation: connOfflineGlow 2.2s ease-in-out infinite;
+  }
+
+  @keyframes connOfflineGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    50% { box-shadow: 0 0 16px 1px rgba(239, 68, 68, 0.36); }
+  }
+
+  .conn-pill-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .conn-pill-icon svg {
+    width: 14px;
+    height: 14px;
   }
 
   .conn-dot {
+    position: relative;
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: #64748b;
+    flex-shrink: 0;
     transition: all 0.3s ease;
   }
 
   .conn-dot.online {
-    background: var(--ophev-emerald);
-    box-shadow: 0 0 8px var(--ophev-emerald);
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+  }
+
+  .conn-dot.online::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1.5px solid #10b981;
+    animation: connSonar 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes connSonar {
+    0% { transform: scale(0.75); opacity: 0.9; }
+    100% { transform: scale(2.1); opacity: 0; }
   }
 
   .conn-dot.offline {
-    background: var(--ophev-red);
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
   }
 
   .header-pills {
@@ -2678,6 +2786,201 @@ const CARD_STYLES = `
     color: #e2e8f0;
     white-space: nowrap;
   }
+
+  /* =========================================================
+     VEHICLE OFFLINE / SLEEP MODE HUD & SELECTIVE DIMMING
+     ========================================================= */
+  .car-svg-wrap {
+    transition: filter 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mitsu-badge svg {
+    transition: filter 0.5s ease, opacity 0.5s ease;
+  }
+
+  ha-card.ophev-card.is-offline .mitsu-badge svg {
+    filter: grayscale(0.55);
+    opacity: 0.65;
+  }
+
+  .car-stage-card.is-offline {
+    border-color: rgba(148, 163, 184, 0.16);
+  }
+
+  .car-stage-card.is-offline .car-svg-wrap {
+    filter: grayscale(0.9) brightness(0.46) contrast(0.92);
+    opacity: 0.62;
+    transform: scale(0.982);
+    pointer-events: none;
+  }
+
+  .car-stage-card.is-offline .door-chips-row {
+    opacity: 0.38;
+    filter: grayscale(0.8);
+    transition: opacity 0.4s ease;
+  }
+
+  /* Floating Glassmorphic Offline HUD Card on Car Stage */
+  .offline-hud-card {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -44%) scale(0.94);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 15;
+    width: calc(100% - 34px);
+    max-width: 256px;
+    padding: 16px 16px 15px;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(15, 23, 42, 0.88), rgba(9, 13, 22, 0.94));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(248, 113, 113, 0.36);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.72), 0 0 28px -8px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .car-stage-card.is-offline .offline-hud-card {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+  }
+
+  .offline-radar-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.24) 0%, rgba(239, 68, 68, 0.06) 72%);
+    border: 1px solid rgba(248, 113, 113, 0.45);
+    color: #f87171;
+    display: grid;
+    place-items: center;
+    margin-bottom: 2px;
+  }
+
+  .offline-radar-wrap svg {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .offline-radar-ring {
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(248, 113, 113, 0.5);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .car-stage-card.is-offline .offline-radar-ring.r1 {
+    animation: offlineRadarExpand 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  .car-stage-card.is-offline .offline-radar-ring.r2 {
+    animation: offlineRadarExpand 2.8s cubic-bezier(0.16, 1, 0.3, 1) 1.4s infinite;
+  }
+
+  @keyframes offlineRadarExpand {
+    0% { transform: scale(0.85); opacity: 0.75; }
+    100% { transform: scale(1.75); opacity: 0; }
+  }
+
+  .offline-hud-title {
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #f8fafc;
+    line-height: 1.25;
+  }
+
+  .offline-hud-sub {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #94a3b8;
+    line-height: 1.35;
+  }
+
+  .offline-reconnect-btn {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 11px;
+    border: 1px solid rgba(56, 189, 248, 0.42);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(30, 41, 59, 0.85));
+    color: #e0f2fe;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .offline-reconnect-btn:hover {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(30, 41, 59, 0.95));
+    border-color: rgba(56, 189, 248, 0.7);
+    transform: translateY(-1px);
+  }
+
+  .offline-reconnect-btn.confirming {
+    border-color: rgba(245, 158, 11, 0.65);
+    background: rgba(245, 158, 11, 0.22);
+    color: #fef3c7;
+  }
+
+  .offline-reconnect-btn.sent-ok {
+    border-color: rgba(16, 185, 129, 0.65);
+    background: rgba(16, 185, 129, 0.22);
+    color: #d1fae5;
+  }
+
+  .offline-reconnect-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* Selective dimming of phev2mqtt-dependent readouts & controls when offline
+     (External wallbox W/kWh sparklines, Daily Charge helpers & Wi-Fi Restart stay 100% live!) */
+  .phev-dep {
+    transition: opacity 0.45s ease, filter 0.45s ease;
+  }
+
+  ha-card.ophev-card.is-offline .phev-dep {
+    opacity: 0.46;
+    filter: grayscale(0.72);
+  }
+
+  ha-card.ophev-card.is-offline #pill-lock,
+  ha-card.ophev-card.is-offline #pill-doors {
+    opacity: 0.46;
+    filter: grayscale(0.75);
+    animation: none !important;
+  }
+
+  .climate-badge.offline {
+    color: #fca5a5;
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(239, 68, 68, 0.14);
+  }
+
+  ha-card.ophev-card.is-offline #btn-restart-wifi:not(:disabled) {
+    border-color: rgba(56, 189, 248, 0.48);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(30, 41, 59, 0.82));
+    box-shadow: 0 0 16px -4px rgba(14, 165, 233, 0.3);
+  }
 `;
 
   // --- src/editor.js ---
@@ -3064,6 +3367,10 @@ class OutlanderPhevCardEditor extends HTMLElement {
               <input type="checkbox" id="chk-card-frame" ${cfg.show_card_frame !== false && cfg.frameless !== true ? 'checked' : ''} />
             </label>
             <label class="toggle-row">
+              <span class="field-label">${localize(lang, 'ed_offline_dimming')}</span>
+              <input type="checkbox" id="chk-offline-dim" ${cfg.offline_dimming !== false ? 'checked' : ''} />
+            </label>
+            <label class="toggle-row">
               <span class="field-label">${localize(lang, 'ed_show_sunroof')}</span>
               <input type="checkbox" id="chk-sunroof" ${cfg.show_sunroof !== false ? 'checked' : ''} />
             </label>
@@ -3237,6 +3544,10 @@ class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ show_card_frame: e.target.checked, frameless: undefined });
     });
 
+    sr.getElementById('chk-offline-dim')?.addEventListener('change', (e) => {
+      this._emitConfig({ offline_dimming: e.target.checked });
+    });
+
     sr.getElementById('chk-sunroof')?.addEventListener('change', (e) => {
       this._emitConfig({ show_sunroof: e.target.checked });
     });
@@ -3280,6 +3591,11 @@ class OutlanderPhevCardEditor extends HTMLElement {
       frameChk.checked = this._config.show_card_frame !== false && this._config.frameless !== true;
     }
 
+    const offDimChk = sr.getElementById('chk-offline-dim');
+    if (offDimChk) {
+      offDimChk.checked = this._config.offline_dimming !== false;
+    }
+
     for (const [key, entry] of this._selectors.entries()) {
       const nextVal = this._config[key] || '';
       if (entry.el && entry.el.value !== nextVal) {
@@ -3305,6 +3621,7 @@ const ICONS = {
   parklight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8c-3 0-5 1.8-5 4s2 4 5 4V8z"/><path d="M15 8c3 0 5 1.8 5 4s-2 4-5 4V8z"/><path d="M1 9l1.5 1"/><path d="M1 15l1.5-1"/><path d="M23 9l-1.5 1"/><path d="M23 15l-1.5-1"/></svg>`,
   timerOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="13" r="8"/><path d="M3 3l18 18"/></svg>`,
   wifiSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`,
+  wifiOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 12.86a10 10 0 0 1 5.17-2.89"/><circle cx="12" cy="20" r="1"/></svg>`,
   hazard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9l-4.5 8h9L12 9z"/></svg>`,
   bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.6 1 1.4 1 2.3h6c0-.9.4-1.7 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
   counter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><line x1="12" y1="5" x2="12" y2="19"/><path d="M6.3 10.2 7.8 9v6"/><path d="M15.2 10.2a1.8 1.8 0 0 1 3.4.8c0 1.4-3.4 2.8-3.4 4h3.6"/></svg>`,
@@ -3333,6 +3650,7 @@ class OutlanderPhevCard extends HTMLElement {
       daily_charge_position: 'header',
       max_ev_range: 45,
       show_card_frame: true,
+      offline_dimming: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -3379,6 +3697,7 @@ class OutlanderPhevCard extends HTMLElement {
       daily_charge_position: 'header',
       max_ev_range: 45,
       show_card_frame: true,
+      offline_dimming: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -3652,10 +3971,11 @@ class OutlanderPhevCard extends HTMLElement {
           <div class="ophev-header">
             <div class="brand-block">
               <div class="mitsu-badge">${ICONS.mitsubishi}</div>
-              <div class="title-wrap">
+              <div class="title-row">
                 <h2 class="card-title" id="hdr-title">Outlander PHEV</h2>
-                <div class="card-subtitle" id="hdr-conn-wrap" style="cursor:pointer">
-                  <span class="conn-dot" id="hdr-conn-dot"></span>
+                <div class="conn-pill online" id="hdr-conn-wrap">
+                  <span class="conn-dot online" id="hdr-conn-dot"></span>
+                  <span class="conn-pill-icon" id="hdr-conn-icon">${ICONS.wifiSync}</span>
                   <span id="hdr-conn-text">${localize(lang, 'connected')}</span>
                 </div>
               </div>
@@ -3697,6 +4017,21 @@ class OutlanderPhevCard extends HTMLElement {
                 ${renderOutlanderSvg(uid)}
               </div>
 
+              <!-- Floating Glassmorphic Sleep / Offline HUD Card -->
+              <div class="offline-hud-card" id="offline-hud-card">
+                <div class="offline-radar-wrap">
+                  <span class="offline-radar-ring r1"></span>
+                  <span class="offline-radar-ring r2"></span>
+                  ${ICONS.wifiOff}
+                </div>
+                <div class="offline-hud-title">${localize(lang, 'offline_hud_title')}</div>
+                <div class="offline-hud-sub" id="offline-hud-sub">${localize(lang, 'offline_hud_desc')}</div>
+                <button type="button" class="offline-reconnect-btn" id="btn-offline-reconnect">
+                  ${ICONS.wifiSync}
+                  <span id="txt-offline-reconnect">${localize(lang, 'offline_reconnect_btn')}</span>
+                </button>
+              </div>
+
               <div class="door-chips-row" id="door-chips">
                 <span class="door-chip" data-door="bonnet" id="chip-bonnet">${localize(lang, 'bonnet_short')}</span>
                 <span class="door-chip" data-door="fl" id="chip-fl">${localize(lang, 'fl_short')}</span>
@@ -3713,10 +4048,10 @@ class OutlanderPhevCard extends HTMLElement {
               <div class="hud-panel">
                 <div class="panel-head">
                   <span class="panel-label">${localize(lang, 'battery_title')}</span>
-                  <span class="ev-range-pill" id="ev-range-badge">~40 km EV</span>
+                  <span class="ev-range-pill phev-dep" id="ev-range-badge">~40 km EV</span>
                 </div>
 
-                <div class="battery-hero">
+                <div class="battery-hero phev-dep">
                   <div class="soc-big" id="soc-hero"><span id="soc-num">88</span><span class="unit">%</span></div>
                   <div style="text-align:right" id="charge-eta-box">
                     <div style="font-size:0.72rem;color:var(--ophev-muted)" id="eta-label">${localize(lang, 'remaining_time')}</div>
@@ -3724,11 +4059,11 @@ class OutlanderPhevCard extends HTMLElement {
                   </div>
                 </div>
 
-                <div class="soc-bar-track" id="soc-bar-track">
+                <div class="soc-bar-track phev-dep" id="soc-bar-track">
                   <div class="soc-bar-fill" id="soc-bar-fill" style="width:88%"></div>
                 </div>
 
-                <div class="charge-banner" id="charge-banner" style="cursor:pointer">
+                <div class="charge-banner phev-dep" id="charge-banner" style="cursor:pointer">
                   <div class="charge-state-left">
                     <div class="charge-icon-box" id="charge-icon-box">${ICONS.plugOff}</div>
                     <div>
@@ -3803,7 +4138,7 @@ class OutlanderPhevCard extends HTMLElement {
                   <span class="climate-badge" id="climate-badge">${localize(lang, 'climate_off')}</span>
                 </div>
 
-                <div class="btn-grid-3">
+                <div class="btn-grid-3 phev-dep">
                   <button type="button" class="ctrl-btn" id="btn-cool">
                     ${ICONS.cool}
                     <span class="ctrl-btn-text">${localize(lang, 'cool_btn')}</span>
@@ -3818,7 +4153,7 @@ class OutlanderPhevCard extends HTMLElement {
                   </button>
                 </div>
 
-                <div class="climate-select-row" id="climate-select-wrap" style="display:none">
+                <div class="climate-select-row phev-dep" id="climate-select-wrap" style="display:none">
                   <select class="climate-select" id="sel-climate-mode"></select>
                 </div>
               </div>
@@ -3830,7 +4165,7 @@ class OutlanderPhevCard extends HTMLElement {
                 </div>
 
                 <div class="btn-grid-2">
-                  <button type="button" class="ctrl-btn row-btn" id="btn-headlights">
+                  <button type="button" class="ctrl-btn row-btn phev-dep" id="btn-headlights">
                     ${ICONS.headlight}
                     <div>
                       <div class="ctrl-btn-text">${localize(lang, 'head_lights')}</div>
@@ -3838,7 +4173,7 @@ class OutlanderPhevCard extends HTMLElement {
                     </div>
                   </button>
 
-                  <button type="button" class="ctrl-btn row-btn" id="btn-parklights">
+                  <button type="button" class="ctrl-btn row-btn phev-dep" id="btn-parklights">
                     ${ICONS.parklight}
                     <div>
                       <div class="ctrl-btn-text">${localize(lang, 'park_lights')}</div>
@@ -3846,7 +4181,7 @@ class OutlanderPhevCard extends HTMLElement {
                     </div>
                   </button>
 
-                  <button type="button" class="ctrl-btn row-btn" id="btn-disable-timer">
+                  <button type="button" class="ctrl-btn row-btn phev-dep" id="btn-disable-timer">
                     ${ICONS.timerOff}
                     <div>
                       <div class="ctrl-btn-text" id="txt-disable-timer">${localize(lang, 'disable_timer')}</div>
@@ -3864,11 +4199,11 @@ class OutlanderPhevCard extends HTMLElement {
                 </div>
 
                 <div class="aux-sensors-row">
-                  <div class="mini-ind" id="ind-hazard">
+                  <div class="mini-ind phev-dep" id="ind-hazard">
                     ${ICONS.hazard}
                     <span>${localize(lang, 'hazard_lights')}: <strong id="val-hazard">${localize(lang, 'inactive')}</strong></span>
                   </div>
-                  <div class="mini-ind" id="ind-interior">
+                  <div class="mini-ind phev-dep" id="ind-interior">
                     ${ICONS.bulb}
                     <span>${localize(lang, 'interior_lights')}: <strong id="val-interior">${localize(lang, 'inactive')}</strong></span>
                   </div>
@@ -3892,6 +4227,7 @@ class OutlanderPhevCard extends HTMLElement {
       hdrTitle: q('hdr-title'),
       hdrConnWrap: q('hdr-conn-wrap'),
       hdrConnDot: q('hdr-conn-dot'),
+      hdrConnIcon: q('hdr-conn-icon'),
       hdrConnText: q('hdr-conn-text'),
       hdrDailyWrap: q('hdr-daily-wrap'),
       hdrDailyEnergy: q('hdr-daily-energy'),
@@ -3907,6 +4243,10 @@ class OutlanderPhevCard extends HTMLElement {
       pillDoorsText: q('pill-doors-text'),
       bodyGrid: q('body-grid'),
       carStage: q('car-stage'),
+      offlineHudCard: q('offline-hud-card'),
+      offlineHudSub: q('offline-hud-sub'),
+      btnOfflineReconnect: q('btn-offline-reconnect'),
+      txtOfflineReconnect: q('txt-offline-reconnect'),
       svgBattClipRect: this.shadowRoot.querySelector('.svg-batt-clip-rect'),
       svgBattHorizon: this.shadowRoot.querySelector('.svg-batt-horizon-group'),
       svgBattMarker: this.shadowRoot.querySelector('.svg-batt-marker'),
@@ -4023,6 +4363,10 @@ class OutlanderPhevCard extends HTMLElement {
     $.btnParklights.addEventListener('click', () => this._toggleEntity(ents().park_lights_entity));
     $.btnDisableTimer.addEventListener('click', () => this._handleDisableTimer());
     $.btnRestartWifi.addEventListener('click', () => this._handleRestartWifi());
+    $.btnOfflineReconnect.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      this._handleRestartWifi();
+    });
 
     $.indHazard.addEventListener('click', () => {
       const hEnt = ents().hazard_lights_entity;
@@ -4108,15 +4452,36 @@ class OutlanderPhevCard extends HTMLElement {
     $.card.style.setProperty('--batt-glow', battColors.glow);
     stg.style.setProperty('--batt-fill-opacity', String((cfg.battery_fill_opacity ?? 36) / 100));
 
-    // Connection state
+    // Connection state & Offline Dimming
     const connObj = this._getState(ents.connected_entity);
-    const isOnline = connObj ? isBinaryOn(connObj) : true;
-    $.hdrConnDot.className = `conn-dot ${connObj ? (isOnline ? 'online' : 'offline') : 'online'}`;
-    $.hdrConnText.textContent = connObj
-      ? isOnline
-        ? localize(lang, 'connected')
-        : localize(lang, 'disconnected')
-      : 'phev2mqtt';
+    const battRawState = String(battObj?.state || '').toLowerCase();
+    const isOnline = connObj
+      ? isBinaryOn(connObj)
+      : battObj
+        ? battRawState !== 'unavailable' && battRawState !== 'unknown'
+        : true;
+    const showOfflineDim = !isOnline && cfg.offline_dimming !== false;
+    const lastSeenStr = formatLastSeen(connObj || battObj, lang);
+
+    $.hdrConnWrap.className = `conn-pill ${isOnline ? 'online' : 'offline'}`;
+    $.hdrConnDot.className = `conn-dot ${isOnline ? 'online' : 'offline'}`;
+    $.hdrConnIcon.innerHTML = isOnline ? ICONS.wifiSync : ICONS.wifiOff;
+    $.hdrConnText.textContent = isOnline ? localize(lang, 'connected') : localize(lang, 'disconnected');
+    $.hdrConnWrap.title = isOnline ? localize(lang, 'connected') : lastSeenStr;
+
+    $.card.classList.toggle('is-offline', showOfflineDim);
+    stg.classList.toggle('is-offline', showOfflineDim);
+    $.offlineHudSub.textContent = lastSeenStr;
+    $.btnOfflineReconnect.style.display = ents.restart_wifi_entity ? 'inline-flex' : 'none';
+    $.btnOfflineReconnect.classList.toggle('confirming', Boolean(this._wifiConfirming));
+    $.btnOfflineReconnect.classList.toggle('sent-ok', Boolean(this._wifiSent));
+    if (this._wifiConfirming) {
+      $.txtOfflineReconnect.textContent = localize(lang, 'restart_wifi_confirm');
+    } else if (this._wifiSent) {
+      $.txtOfflineReconnect.textContent = localize(lang, 'restart_wifi_sent');
+    } else {
+      $.txtOfflineReconnect.textContent = localize(lang, 'offline_reconnect_btn');
+    }
 
     // Lock & Doors
     const isLocked = isCarLocked(this._getState(ents.locked_entity), cfg.invert_lock);
@@ -4167,23 +4532,23 @@ class OutlanderPhevCard extends HTMLElement {
     // Car Stage Classes
     stg.classList.toggle('rhd', isRhd);
     stg.classList.toggle('hide-sunroof', cfg.show_sunroof === false);
-    stg.classList.toggle('interactive', cfg.interactive_car !== false);
+    stg.classList.toggle('interactive', cfg.interactive_car !== false && !showOfflineDim);
     stg.classList.toggle('is-locked', isLocked);
     stg.classList.toggle('is-plugged', isPlugged);
-    stg.classList.toggle('is-charging', isCharging);
+    stg.classList.toggle('is-charging', isCharging && !showOfflineDim);
     stg.classList.toggle('open-fl', openFl);
     stg.classList.toggle('open-fr', openFr);
     stg.classList.toggle('open-rl', openRl);
     stg.classList.toggle('open-rr', openRr);
     stg.classList.toggle('open-bonnet', openBonnet);
     stg.classList.toggle('open-boot', openBoot);
-    stg.classList.toggle('lights-head', headOn);
-    stg.classList.toggle('lights-park', parkOn);
-    stg.classList.toggle('lights-hazard', hazardOn);
-    stg.classList.toggle('lights-interior', interiorOn);
-    stg.classList.toggle('climate-cool', coolOn);
-    stg.classList.toggle('climate-heat', heatOn);
-    stg.classList.toggle('climate-windscreen', windscreenOn);
+    stg.classList.toggle('lights-head', headOn && !showOfflineDim);
+    stg.classList.toggle('lights-park', parkOn && !showOfflineDim);
+    stg.classList.toggle('lights-hazard', hazardOn && !showOfflineDim);
+    stg.classList.toggle('lights-interior', interiorOn && !showOfflineDim);
+    stg.classList.toggle('climate-cool', coolOn && !showOfflineDim);
+    stg.classList.toggle('climate-heat', heatOn && !showOfflineDim);
+    stg.classList.toggle('climate-windscreen', windscreenOn && !showOfflineDim);
 
     const fillMode = cfg.battery_fill_mode || 'always';
     const hideFill = fillMode === 'off' || (fillMode === 'charging' && !isPlugged);
@@ -4193,7 +4558,10 @@ class OutlanderPhevCard extends HTMLElement {
     // Dynamic Ambient Aura Color
     let aura = 'transparent';
     let topGlow = 'rgba(14, 165, 233, 0.1)';
-    if (openCount > 0) {
+    if (showOfflineDim) {
+      aura = 'transparent';
+      topGlow = 'rgba(100, 116, 139, 0.06)';
+    } else if (openCount > 0) {
       aura = '#ef4444';
       topGlow = 'rgba(239, 68, 68, 0.14)';
     } else if (isCharging) {
@@ -4234,7 +4602,7 @@ class OutlanderPhevCard extends HTMLElement {
     // 4. Battery & Charging Panel Readouts
     $.socNum.textContent = socParsed !== null || battObj === null ? String(soc) : '--';
     $.socBarFill.style.width = `${soc}%`;
-    $.socBarFill.classList.toggle('charging', isCharging);
+    $.socBarFill.classList.toggle('charging', isCharging && !showOfflineDim);
 
     const maxRange = Number(cfg.max_ev_range) || 0;
     if (maxRange > 0) {
@@ -4252,21 +4620,29 @@ class OutlanderPhevCard extends HTMLElement {
     $.etaValue.textContent = formatRemainingTime(remObj, remHrsObj, lang);
     const finishStr = formatEstimatedCompletion(estCompObj, remObj, isCharging, lang);
 
-    if (isCharging) {
-      $.chargeBanner.className = 'charge-banner active';
+    if (isCharging && !showOfflineDim) {
+      $.chargeBanner.className = 'charge-banner phev-dep active';
       $.chargeIconBox.innerHTML = ICONS.bolt;
       $.chargeTitle.textContent = localize(lang, 'charging_active');
       $.chargeSub.textContent = `${localize(lang, 'estimated_finish')}: ${finishStr}`;
-    } else if (isPlugged) {
-      $.chargeBanner.className = 'charge-banner standby';
+    } else if (isPlugged && !showOfflineDim) {
+      $.chargeBanner.className = 'charge-banner phev-dep standby';
       $.chargeIconBox.innerHTML = ICONS.plugOn;
       $.chargeTitle.textContent = soc >= 99 ? localize(lang, 'charger_full') : localize(lang, 'charger_standby');
       $.chargeSub.textContent = `${localize(lang, 'estimated_finish')}: ${finishStr}`;
     } else {
-      $.chargeBanner.className = 'charge-banner';
-      $.chargeIconBox.innerHTML = ICONS.plugOff;
-      $.chargeTitle.textContent = localize(lang, 'charger_unplugged');
-      $.chargeSub.textContent = `${localize(lang, 'remaining_time')}: 0 ${localize(lang, 'min_short')}`;
+      $.chargeBanner.className = 'charge-banner phev-dep';
+      $.chargeIconBox.innerHTML = showOfflineDim ? ICONS.wifiOff : ICONS.plugOff;
+      $.chargeTitle.textContent = isCharging
+        ? localize(lang, 'charging_active')
+        : isPlugged
+          ? soc >= 99
+            ? localize(lang, 'charger_full')
+            : localize(lang, 'charger_standby')
+          : localize(lang, 'charger_unplugged');
+      $.chargeSub.textContent = showOfflineDim
+        ? localize(lang, 'offline_stale_hint')
+        : `${localize(lang, 'remaining_time')}: 0 ${localize(lang, 'min_short')}`;
     }
 
     // Daily Charge Energy (kWh / kW) & Duration (h / min) Helpers
@@ -4344,7 +4720,10 @@ class OutlanderPhevCard extends HTMLElement {
     // 5. Climate Panel
     let climBadgeClass = 'climate-badge';
     let climBadgeText = localize(lang, 'climate_off');
-    if (coolOn) {
+    if (showOfflineDim) {
+      climBadgeClass = 'climate-badge offline';
+      climBadgeText = localize(lang, 'offline_badge');
+    } else if (coolOn) {
       climBadgeClass = 'climate-badge cool';
       climBadgeText = localize(lang, 'climate_cool');
     } else if (heatOn) {
@@ -4359,18 +4738,19 @@ class OutlanderPhevCard extends HTMLElement {
     $.climateBadge.className = climBadgeClass;
     $.climateBadge.textContent = climBadgeText;
 
-    $.btnCool.disabled = !ents.cool_entity;
-    $.btnCool.classList.toggle('active-cool', coolOn);
+    $.btnCool.disabled = !ents.cool_entity || showOfflineDim;
+    $.btnCool.classList.toggle('active-cool', coolOn && !showOfflineDim);
 
-    $.btnHeat.disabled = !ents.heat_entity;
-    $.btnHeat.classList.toggle('active-heat', heatOn);
+    $.btnHeat.disabled = !ents.heat_entity || showOfflineDim;
+    $.btnHeat.classList.toggle('active-heat', heatOn && !showOfflineDim);
 
-    $.btnWindscreen.disabled = !ents.windscreen_entity;
-    $.btnWindscreen.classList.toggle('active-windscreen', windscreenOn);
+    $.btnWindscreen.disabled = !ents.windscreen_entity || showOfflineDim;
+    $.btnWindscreen.classList.toggle('active-windscreen', windscreenOn && !showOfflineDim);
 
     const options = climateSelObj?.attributes?.options;
     if (climateSelObj && Array.isArray(options) && options.length > 0) {
       $.climateSelectWrap.style.display = 'flex';
+      $.selClimateMode.disabled = showOfflineDim;
       const sig = options.join('|');
       if ($.selClimateMode.dataset.sig !== sig) {
         $.selClimateMode.dataset.sig = sig;
@@ -4392,15 +4772,15 @@ class OutlanderPhevCard extends HTMLElement {
     }
 
     // 6. Lights & System Controls
-    $.btnHeadlights.disabled = !ents.head_lights_entity;
-    $.btnHeadlights.classList.toggle('active-light', headOn);
+    $.btnHeadlights.disabled = !ents.head_lights_entity || showOfflineDim;
+    $.btnHeadlights.classList.toggle('active-light', headOn && !showOfflineDim);
     $.subHeadlights.textContent = localize(lang, headOn ? 'light_on' : 'light_off');
 
-    $.btnParklights.disabled = !ents.park_lights_entity;
-    $.btnParklights.classList.toggle('active-park', parkOn);
+    $.btnParklights.disabled = !ents.park_lights_entity || showOfflineDim;
+    $.btnParklights.classList.toggle('active-park', parkOn && !showOfflineDim);
     $.subParklights.textContent = localize(lang, parkOn ? 'light_on' : 'light_off');
 
-    $.btnDisableTimer.disabled = !ents.disable_charge_timer_entity;
+    $.btnDisableTimer.disabled = !ents.disable_charge_timer_entity || showOfflineDim;
     $.btnDisableTimer.classList.toggle('sent-ok', Boolean(this._timerSent));
     $.txtDisableTimer.textContent = this._timerSent
       ? localize(lang, 'timer_sent')
@@ -4418,10 +4798,10 @@ class OutlanderPhevCard extends HTMLElement {
     }
     $.subRestartWifi.textContent = isOnline ? localize(lang, 'connected') : localize(lang, 'disconnected');
 
-    $.indHazard.classList.toggle('on-amber', hazardOn);
+    $.indHazard.classList.toggle('on-amber', hazardOn && !showOfflineDim);
     $.valHazard.textContent = localize(lang, hazardOn ? 'active' : 'inactive');
 
-    $.indInterior.classList.toggle('on-amber', interiorOn);
+    $.indInterior.classList.toggle('on-amber', interiorOn && !showOfflineDim);
     $.valInterior.textContent = localize(lang, interiorOn ? 'light_on' : 'inactive');
 
     // 7. Collapsible Sensors Drawer
@@ -4482,7 +4862,7 @@ if (!window.customCards.some((c) => c.type === 'outlander-phev-card')) {
 }
 
 console.info(
-  '%c OUTLANDER-PHEV-CARD %c v1.2.0 ',
+  '%c OUTLANDER-PHEV-CARD %c v1.3.0 ',
   'background:#0ea5e9;color:#fff;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;',
   'background:#1e293b;color:#38bdf8;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;'
 );

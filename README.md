@@ -20,6 +20,9 @@ Egyedi, fotorealisztikus felülnézeti **Home Assistant Lovelace kártya** a **M
 - **Külső és Napi töltésmérő segéd-entitások támogatása**
   - Opcionálisan beköthető **Napi töltés energiában (`kWh` / `kW`)** és **Napi töltési idő órában (`h` / `perc` / `history_stats`)** segéd-entitás, amely választhatóan a kártya felső fejlécében (jelvényként), a töltési panelen kiemelt kártyaként, vagy mindkét helyen megjeleníthető.
   - Opcionálisan beköthető külső fali töltő / okoskonnektor **Teljesítmény (`W` / `kW`)** és **Elfogyasztott energia (`kWh`)** szenzor 24 órás Home Assistant előzmény-grafikonnal (sparkline).
+- **Látványos Kapcsolati / Offline (Alvó) Állapotjelzés**
+  - Fejlécben pulzáló telemetria-kapszula (`Kapcsolódva` / `Nincs kapcsolat`).
+  - Ha megszakad a Wi-Fi kapcsolat az autóval (`phev2mqtt`), az autó elszürkül és egy üveghatású **Offline HUD kártya** jelenik meg rajta hullámzó radar-animációval, az utolsó elérhetőség idejével és közvetlen **Wi-Fi újracsatlakozás** gombbal; az elérhetetlen autó-vezérlők elhalványulnak, miközben a külső töltő- és napi mérők aktívak maradnak.
 - **✨ 1-kattintásos `phev2mqtt` automatikus felismerés és Vizuális Szerkesztő**
   - Nincs szükség kézi YAML írásra: a kártya hozzáadásakor vagy a szerkesztőben lévő gombbal automatikusan megkeresi a Mitsubishi Outlander PHEV eszközt és beállítja az összes entitást.
 
@@ -36,7 +39,7 @@ Egyedi, fotorealisztikus felülnézeti **Home Assistant Lovelace kártya** a **M
 1. Másold a gyökérkönyvtárban található [`outlander-phev-card.js`](./outlander-phev-card.js) fájlt a Home Assistant `/config/www/` mappájába.
 2. A Home Assistantban menj ide: **Beállítások -> Irányítópultok -> `⋮` (jobb felül) -> Erőforrások (Resources)**.
 3. Kattints az **Erőforrás hozzáadása** gombra:
-   - **URL:** `/local/outlander-phev-card.js?v=1.2.0`
+   - **URL:** `/local/outlander-phev-card.js?v=1.3.0`
    - **Típus:** `JavaScript modul (JavaScript Module)`
 4. Frissítsd a böngészőt (`Ctrl+F5` / `Cmd+Shift+R`), majd add hozzá a **Mitsubishi Outlander PHEV Card** kártyát bármelyik irányítópulthoz!
 
@@ -58,6 +61,7 @@ layout_mode: auto              # auto | wide | compact
 daily_charge_position: header  # header | panel | both
 max_ev_range: 45               # Becsült max EV hatótáv km-ben (0 = elrejtve)
 show_card_frame: true          # false = külső keret/háttér elrejtése, csak a belső blokkok háttere marad
+offline_dimming: true          # Autó és elérhetetlen vezérlők elszürkítése offline állapotban
 show_sunroof: true
 interactive_car: true
 confirm_wifi_restart: true

@@ -311,6 +311,12 @@
             stateStore['switch.phev_cool'].state = opt === 'cool' ? 'on' : 'off';
             stateStore['switch.phev_heat'].state = opt === 'heat' ? 'on' : 'off';
             stateStore['switch.phev_windscreen'].state = opt === 'windscreen' ? 'on' : 'off';
+          } else if (service === 'press' && ent === 'button.phev_restart_wifi_connetion') {
+            setTimeout(() => {
+              stateStore['binary_sensor.phev_connected'].state = 'on';
+              stateStore['binary_sensor.phev_connected'].last_changed = new Date().toISOString();
+              refreshAll();
+            }, 900);
           }
           refreshAll();
         },
@@ -404,7 +410,10 @@
       document.getElementById('sim-cool').classList.toggle('on', s('switch.phev_cool'));
       document.getElementById('sim-heat').classList.toggle('on', s('switch.phev_heat'));
       document.getElementById('sim-wind').classList.toggle('on', s('switch.phev_windscreen'));
-      document.getElementById('sim-wifi').classList.toggle('on', s('binary_sensor.phev_connected'));
+      const isWifiOn = s('binary_sensor.phev_connected');
+      const wifiBtn = document.getElementById('sim-wifi');
+      wifiBtn.className = `sim-chip ${isWifiOn ? 'on' : 'warn'}`;
+      wifiBtn.textContent = isWifiOn ? '📶 Wi-Fi Online' : '📵 Wi-Fi Offline (Alvó mód)';
     }
 
     // Bind Simulator Controls
@@ -470,7 +479,12 @@
       refreshAll();
     });
     document.getElementById('sim-wind').addEventListener('click', () => toggleBin('switch.phev_windscreen'));
-    document.getElementById('sim-wifi').addEventListener('click', () => toggleBin('binary_sensor.phev_connected'));
+    document.getElementById('sim-wifi').addEventListener('click', () => {
+      const next = stateStore['binary_sensor.phev_connected'].state !== 'on';
+      stateStore['binary_sensor.phev_connected'].state = next ? 'on' : 'off';
+      stateStore['binary_sensor.phev_connected'].last_changed = new Date().toISOString();
+      refreshAll();
+    });
 
     // Tabs
     document.getElementById('tab-sim').addEventListener('click', () => {
