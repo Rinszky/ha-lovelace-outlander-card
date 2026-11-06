@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mitsubishi Outlander PHEV Lovelace Card — Interaktív Demó</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --primary-text-color: #f1f5f9;
+      --secondary-background-color: rgba(15, 23, 42, 0.72);
+      --card-background-color: rgba(15, 23, 42, 0.55);
+      --divider-color: rgba(148, 163, 184, 0.2);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 0%, #172033 0%, #090d16 65%);
+      color: #f1f5f9;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 24px;
+    }
+    .page-header {
+      max-width: 1360px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .page-header h1 {
+      margin: 0;
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .page-header p {
+      margin: 4px 0 0;
+      font-size: 0.86rem;
+      color: #94a3b8;
+    }
+    .demo-layout {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: minmax(340px, 820px) minmax(320px, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .demo-layout { grid-template-columns: 1fr; }
+    }
+    .sim-panel {
+      background: rgba(18, 25, 38, 0.88);
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      border-radius: 20px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(9, 13, 22, 0.7);
+      padding: 4px;
+      border-radius: 12px;
+    }
+    .tab-btn {
+      padding: 9px 12px;
+      border-radius: 9px;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-weight: 700;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+    .tab-btn.active {
+      background: rgba(14, 165, 233, 0.22);
+      color: #e0f2fe;
+    }
+    .sim-group {
+      border-top: 1px solid rgba(148, 163, 184, 0.12);
+      padding-top: 12px;
+    }
+    .sim-group h3 {
+      margin: 0 0 10px;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #94a3b8;
+    }
+    .sim-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .sim-chip {
+      padding: 7px 11px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      background: rgba(15, 23, 42, 0.75);
+      color: #cbd5e1;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .sim-chip.on {
+      background: rgba(16, 185, 129, 0.22);
+      border-color: rgba(52, 211, 153, 0.65);
+      color: #a7f3d0;
+    }
+    .sim-chip.warn {
+      background: rgba(239, 68, 68, 0.22);
+      border-color: rgba(248, 113, 113, 0.65);
+      color: #fecaca;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      accent-color: #10b981;
+    }
+    .toast-log {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.74rem;
+      background: rgba(9, 13, 22, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.14);
+      border-radius: 10px;
+      padding: 10px;
+      color: #7dd3fc;
+      min-height: 38px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-header">
+    <div>
+      <h1>Mitsubishi Outlander PHEV — Lovelace Card Demó</h1>
+      <p>Próbáld ki élőben az ajtónyitásokat, lámpákat, töltés-színezést, klímát és a vizuális szerkesztőt!</p>
+    </div>
+  </div>
+
+  <div class="demo-layout">
+    <!-- CARD HOST -->
+    <div id="card-mount">
+      <outlander-phev-card id="phev-card"></outlander-phev-card>
+    </div>
+
+    <!-- SIMULATOR & VISUAL EDITOR SIDEBAR -->
+    <div class="sim-panel">
+      <div class="tabs">
+        <button class="tab-btn active" id="tab-sim">🎮 Szenzor Szimulátor</button>
+        <button class="tab-btn" id="tab-editor">⚙️ Vizuális Szerkesztő</button>
+      </div>
+
+      <div id="pane-sim">
+        <div class="sim-group" style="border-top:none;padding-top:0">
+          <h3>Akkumulátor és Töltés (<span id="lbl-soc">88%</span>)</h3>
+          <div class="slider-row" style="margin-bottom:10px">
+            <span style="font-size:0.76rem;color:#94a3b8">0%</span>
+            <input type="range" id="sim-soc" min="0" max="100" value="88" />
+            <span style="font-size:0.76rem;color:#94a3b8">100%</span>
+          </div>
+          <div class="sim-btns">
+            <button class="sim-chip" id="sim-plug">🔌 Töltőkábel bedugva</button>
+            <button class="sim-chip" id="sim-charging">⚡ Aktív töltés (3.6 kW)</button>
+          </div>
+        </div>
+
+        <div class="sim-group">
+          <h3>Ajtók, Motorháztető és Zár (Animált nyitás)</h3>
+          <div class="sim-btns">
+            <button class="sim-chip on" id="sim-lock">🔒 Központi zár: Zárolt</button>
+            <button class="sim-chip" id="sim-bonnet">Motorháztető</button>
+            <button class="sim-chip" id="sim-fl">Vezető ajtó (Bal 1)</button>
+            <button class="sim-chip" id="sim-fr">Utas ajtó (Jobb 1)</button>
+            <button class="sim-chip" id="sim-rl">Bal hátsó ajtó</button>
+            <button class="sim-chip" id="sim-rr">Jobb hátsó ajtó</button>
+            <button class="sim-chip" id="sim-boot">Csomagtartó</button>
+            <button class="sim-chip" id="sim-all-doors">🚪 Összes nyit / zár</button>
+          </div>
+        </div>
+
+        <div class="sim-group">
+          <h3>Világítás, Elakadásjelző & Klíma</h3>
+          <div class="sim-btns">
+            <button class="sim-chip" id="sim-head">💡 Tompított</button>
+            <button class="sim-chip" id="sim-park">🔆 Helyzetjelző</button>
+            <button class="sim-chip" id="sim-hazard">⚠️ Elakadásjelző</button>
+            <button class="sim-chip" id="sim-interior">🛋️ Belső világítás</button>
+            <button class="sim-chip" id="sim-cool">❄️ Hűtés</button>
+            <button class="sim-chip" id="sim-heat">☀️ Fűtés</button>
+            <button class="sim-chip" id="sim-wind">♨️ Szélvédő</button>
+            <button class="sim-chip on" id="sim-wifi">📶 Wi-Fi Online</button>
+          </div>
+        </div>
+
+        <div class="sim-group">
+          <h3>Utolsó Home Assistant esemény / szolgáltatáshívás</h3>
+          <div class="toast-log" id="event-log">Készen áll — kattints a kártya gombjaira vagy közvetlenül az autóra!</div>
+        </div>
+      </div>
+
+      <div id="pane-editor" style="display:none">
+        <outlander-phev-card-editor id="phev-editor"></outlander-phev-card-editor>
+      </div>
+    </div>
+  </div>
+
+  <script src="../outlander-phev-card.js"></script>
+  <script>
+    const powerHistoryIdle = [2, 2, 18, 42, 8, 2, 55, 62, 14, 2, 2, 2, 28, 2];
+    const powerHistoryCharging = [2, 120, 3450, 3580, 3610, 3590, 3605, 3580, 3620, 3595, 3600, 3585];
+    const energyHistory = [104.2, 104.2, 105.1, 106.8, 108.4, 109.9, 110.8, 111.1, 111.29, 111.29, 111.29];
+
+    const stateStore = {
+      'sensor.phev_battery': { state: '88', attributes: { friendly_name: 'PHEV Battery', unit_of_measurement: '%', device_class: 'battery' } },
+      'binary_sensor.phev_charging': { state: 'off', attributes: { friendly_name: 'PHEV Charging', device_class: 'battery_charging' } },
+      'binary_sensor.phev_charger_connected': { state: 'off', attributes: { friendly_name: 'PHEV Charger Connected', device_class: 'plug' } },
+      'sensor.phev_charge_remaining': { state: '0', attributes: { friendly_name: 'PHEV Charge Remaining', unit_of_measurement: 'min' } },
+      'sensor.phev_estimated_charge_completion': { state: 'Nem tölt', attributes: { friendly_name: 'Estimated charge completion' } },
+      'switch.phev_disable_charge_timer': { state: 'unknown', attributes: { friendly_name: 'PHEV Disable Charge Timer' } },
+      'sensor.charger_power': { state: '2', attributes: { friendly_name: 'Töltés', unit_of_measurement: 'W', demo_history: powerHistoryIdle } },
+      'sensor.charger_energy': { state: '111.29', attributes: { friendly_name: 'Elfogyasztott energia', unit_of_measurement: 'kWh', demo_history: energyHistory } },
+      'binary_sensor.phev_locked': { state: 'off', attributes: { friendly_name: 'PHEV Locked', device_class: 'lock' } }, // 'off' = Zárolt in HA device_class: lock!
+      'binary_sensor.phev_driver_door': { state: 'off', attributes: { friendly_name: 'PHEV Driver Door', device_class: 'door' } },
+      'binary_sensor.phev_front_passenger_door': { state: 'off', attributes: { friendly_name: 'PHEV Front Passenger Door', device_class: 'door' } },
+      'binary_sensor.phev_rear_left_door': { state: 'off', attributes: { friendly_name: 'PHEV Rear Left Door', device_class: 'door' } },
+      'binary_sensor.phev_rear_right_door': { state: 'off', attributes: { friendly_name: 'PHEV Rear Right Door', device_class: 'door' } },
+      'binary_sensor.phev_bonnet': { state: 'off', attributes: { friendly_name: 'PHEV Bonnet', device_class: 'door' } },
+      'binary_sensor.phev_boot': { state: 'off', attributes: { friendly_name: 'PHEV Boot', device_class: 'door' } },
+      'select.phev_climate_state': { state: 'off', attributes: { friendly_name: 'PHEV Climate state', options: ['off', 'cool', 'heat', 'windscreen'] } },
+      'switch.phev_cool': { state: 'off', attributes: { friendly_name: 'PHEV Cool' } },
+      'switch.phev_heat': { state: 'off', attributes: { friendly_name: 'PHEV Heat' } },
+      'switch.phev_windscreen': { state: 'off', attributes: { friendly_name: 'PHEV Windscreen' } },
+      'light.phev_head_lights': { state: 'off', attributes: { friendly_name: 'PHEV Head Lights' } },
+      'light.phev_park_lights': { state: 'off', attributes: { friendly_name: 'PHEV Park Lights' } },
+      'binary_sensor.phev_hazard_lights': { state: 'off', attributes: { friendly_name: 'PHEV Hazard Lights', device_class: 'light' } },
+      'binary_sensor.phev_interior_lights': { state: 'off', attributes: { friendly_name: 'PHEV Interior Lights', device_class: 'light' } },
+      'binary_sensor.phev_connected': { state: 'on', attributes: { friendly_name: 'PHEV Connected', device_class: 'connectivity' } },
+      'button.phev_restart_wifi_connetion': { state: 'unknown', attributes: { friendly_name: 'PHEV Restart Wifi connetion' } },
+    };
+
+    const logEl = document.getElementById('event-log');
+    function logMsg(msg) {
+      logEl.textContent = `[${new Date().toLocaleTimeString('hu-HU')}] ${msg}`;
+    }
+
+    function buildHass() {
+      const states = {};
+      for (const [entity_id, obj] of Object.entries(stateStore)) {
+        states[entity_id] = { entity_id, ...obj };
+      }
+      return {
+        states,
+        devices: {
+          dev_phev_1: { manufacturer: 'Mitsubishi', model: 'Outlander PHEV', name: 'PHEV Outlander' },
+        },
+        entities: Object.fromEntries(
+          Object.keys(states).map((id) => [id, { entity_id: id, device_id: id.includes('phev') ? 'dev_phev_1' : 'dev_meter' }])
+        ),
+        callService(domain, service, data) {
+          const ent = data?.entity_id;
+          logMsg(`hass.callService("${domain}", "${service}", ${JSON.stringify(data)})`);
+          if (!ent || !stateStore[ent]) return;
+
+          if (service === 'turn_on') {
+            if (ent === 'switch.phev_cool') {
+              stateStore['switch.phev_cool'].state = 'on';
+              stateStore['switch.phev_heat'].state = 'off';
+              stateStore['select.phev_climate_state'].state = 'cool';
+            } else if (ent === 'switch.phev_heat') {
+              stateStore['switch.phev_heat'].state = 'on';
+              stateStore['switch.phev_cool'].state = 'off';
+              stateStore['select.phev_climate_state'].state = 'heat';
+            } else if (ent === 'switch.phev_windscreen') {
+              stateStore['switch.phev_windscreen'].state = 'on';
+              stateStore['select.phev_climate_state'].state = 'windscreen';
+            } else if (ent === 'switch.phev_disable_charge_timer') {
+              // Start charging if plugged in!
+              stateStore['binary_sensor.phev_charger_connected'].state = 'on';
+              setChargingSim(true);
+            } else {
+              stateStore[ent].state = 'on';
+            }
+          } else if (service === 'turn_off') {
+            stateStore[ent].state = 'off';
+            if (ent.includes('cool') || ent.includes('heat') || ent.includes('windscreen')) {
+              if (
+                stateStore['switch.phev_cool'].state === 'off' &&
+                stateStore['switch.phev_heat'].state === 'off' &&
+                stateStore['switch.phev_windscreen'].state === 'off'
+              ) {
+                stateStore['select.phev_climate_state'].state = 'off';
+              }
+            }
+          } else if (service === 'select_option') {
+            const opt = data.option;
+            stateStore[ent].state = opt;
+            stateStore['switch.phev_cool'].state = opt === 'cool' ? 'on' : 'off';
+            stateStore['switch.phev_heat'].state = opt === 'heat' ? 'on' : 'off';
+            stateStore['switch.phev_windscreen'].state = opt === 'windscreen' ? 'on' : 'off';
+          }
+          refreshAll();
+        },
+      };
+    }
+
+    const cardEl = document.getElementById('phev-card');
+    const editorEl = document.getElementById('phev-editor');
+
+    let currentConfig = {
+      title: 'Outlander PHEV',
+      language: 'hu',
+      steering_side: 'left',
+      car_color: '#2b2f36',
+      battery_fill_mode: 'always',
+      battery_fill_opacity: 36,
+      max_ev_range: 45,
+      charger_power_entity: 'sensor.charger_power',
+      charger_energy_entity: 'sensor.charger_energy',
+      ...customElements.get('outlander-phev-card').getStubConfig(buildHass()),
+    };
+    currentConfig.charger_power_entity = 'sensor.charger_power';
+    currentConfig.charger_energy_entity = 'sensor.charger_energy';
+
+    cardEl.setConfig(currentConfig);
+    editorEl.setConfig(currentConfig);
+
+    editorEl.addEventListener('config-changed', (ev) => {
+      currentConfig = ev.detail.config;
+      cardEl.setConfig(currentConfig);
+      refreshAll();
+    });
+
+    cardEl.addEventListener('hass-more-info', (ev) => {
+      logMsg(`hass-more-info megnyitva: ${ev.detail.entityId}`);
+    });
+
+    function setChargingSim(active) {
+      stateStore['binary_sensor.phev_charging'].state = active ? 'on' : 'off';
+      if (active) {
+        stateStore['binary_sensor.phev_charger_connected'].state = 'on';
+        const soc = Number(stateStore['sensor.phev_battery'].state);
+        const mins = Math.max(5, Math.round((100 - soc) * 2.4));
+        stateStore['sensor.phev_charge_remaining'].state = String(mins);
+        stateStore['sensor.phev_estimated_charge_completion'].state = '';
+        stateStore['sensor.charger_power'].state = '3580';
+        stateStore['sensor.charger_power'].attributes.demo_history = powerHistoryCharging;
+      } else {
+        stateStore['sensor.phev_charge_remaining'].state = '0';
+        stateStore['sensor.phev_estimated_charge_completion'].state = 'Nem tölt';
+        stateStore['sensor.charger_power'].state = '2';
+        stateStore['sensor.charger_power'].attributes.demo_history = powerHistoryIdle;
+      }
+    }
+
+    function refreshAll() {
+      const hass = buildHass();
+      cardEl.hass = hass;
+      editorEl.hass = hass;
+      syncSimButtons();
+    }
+
+    function toggleBin(entId, invert = false) {
+      const cur = stateStore[entId].state === 'on';
+      stateStore[entId].state = cur ? 'off' : 'on';
+      refreshAll();
+    }
+
+    function syncSimButtons() {
+      const s = (id) => stateStore[id].state === 'on';
+      document.getElementById('lbl-soc').textContent = `${stateStore['sensor.phev_battery'].state}%`;
+      document.getElementById('sim-plug').classList.toggle('on', s('binary_sensor.phev_charger_connected'));
+      document.getElementById('sim-charging').classList.toggle('on', s('binary_sensor.phev_charging'));
+
+      const isLocked = stateStore['binary_sensor.phev_locked'].state === 'off';
+      const lockBtn = document.getElementById('sim-lock');
+      lockBtn.className = `sim-chip ${isLocked ? 'on' : 'warn'}`;
+      lockBtn.textContent = isLocked ? '🔒 Központi zár: Zárolt' : '🔓 Központi zár: Nyitva';
+
+      document.getElementById('sim-bonnet').classList.toggle('warn', s('binary_sensor.phev_bonnet'));
+      document.getElementById('sim-fl').classList.toggle('warn', s('binary_sensor.phev_driver_door'));
+      document.getElementById('sim-fr').classList.toggle('warn', s('binary_sensor.phev_front_passenger_door'));
+      document.getElementById('sim-rl').classList.toggle('warn', s('binary_sensor.phev_rear_left_door'));
+      document.getElementById('sim-rr').classList.toggle('warn', s('binary_sensor.phev_rear_right_door'));
+      document.getElementById('sim-boot').classList.toggle('warn', s('binary_sensor.phev_boot'));
+
+      document.getElementById('sim-head').classList.toggle('on', s('light.phev_head_lights'));
+      document.getElementById('sim-park').classList.toggle('on', s('light.phev_park_lights'));
+      document.getElementById('sim-hazard').classList.toggle('warn', s('binary_sensor.phev_hazard_lights'));
+      document.getElementById('sim-interior').classList.toggle('on', s('binary_sensor.phev_interior_lights'));
+      document.getElementById('sim-cool').classList.toggle('on', s('switch.phev_cool'));
+      document.getElementById('sim-heat').classList.toggle('on', s('switch.phev_heat'));
+      document.getElementById('sim-wind').classList.toggle('on', s('switch.phev_windscreen'));
+      document.getElementById('sim-wifi').classList.toggle('on', s('binary_sensor.phev_connected'));
+    }
+
+    // Bind Simulator Controls
+    document.getElementById('sim-soc').addEventListener('input', (e) => {
+      stateStore['sensor.phev_battery'].state = e.target.value;
+      if (stateStore['binary_sensor.phev_charging'].state === 'on') {
+        setChargingSim(true);
+      }
+      refreshAll();
+    });
+
+    document.getElementById('sim-plug').addEventListener('click', () => {
+      const next = stateStore['binary_sensor.phev_charger_connected'].state !== 'on';
+      stateStore['binary_sensor.phev_charger_connected'].state = next ? 'on' : 'off';
+      if (!next) setChargingSim(false);
+      refreshAll();
+    });
+
+    document.getElementById('sim-charging').addEventListener('click', () => {
+      const next = stateStore['binary_sensor.phev_charging'].state !== 'on';
+      setChargingSim(next);
+      refreshAll();
+    });
+
+    document.getElementById('sim-lock').addEventListener('click', () => toggleBin('binary_sensor.phev_locked'));
+    document.getElementById('sim-bonnet').addEventListener('click', () => toggleBin('binary_sensor.phev_bonnet'));
+    document.getElementById('sim-fl').addEventListener('click', () => toggleBin('binary_sensor.phev_driver_door'));
+    document.getElementById('sim-fr').addEventListener('click', () => toggleBin('binary_sensor.phev_front_passenger_door'));
+    document.getElementById('sim-rl').addEventListener('click', () => toggleBin('binary_sensor.phev_rear_left_door'));
+    document.getElementById('sim-rr').addEventListener('click', () => toggleBin('binary_sensor.phev_rear_right_door'));
+    document.getElementById('sim-boot').addEventListener('click', () => toggleBin('binary_sensor.phev_boot'));
+
+    document.getElementById('sim-all-doors').addEventListener('click', () => {
+      const doors = [
+        'binary_sensor.phev_bonnet',
+        'binary_sensor.phev_driver_door',
+        'binary_sensor.phev_front_passenger_door',
+        'binary_sensor.phev_rear_left_door',
+        'binary_sensor.phev_rear_right_door',
+        'binary_sensor.phev_boot',
+      ];
+      const anyOpen = doors.some((d) => stateStore[d].state === 'on');
+      doors.forEach((d) => (stateStore[d].state = anyOpen ? 'off' : 'on'));
+      refreshAll();
+    });
+
+    document.getElementById('sim-head').addEventListener('click', () => toggleBin('light.phev_head_lights'));
+    document.getElementById('sim-park').addEventListener('click', () => toggleBin('light.phev_park_lights'));
+    document.getElementById('sim-hazard').addEventListener('click', () => toggleBin('binary_sensor.phev_hazard_lights'));
+    document.getElementById('sim-interior').addEventListener('click', () => toggleBin('binary_sensor.phev_interior_lights'));
+    document.getElementById('sim-cool').addEventListener('click', () => {
+      const next = stateStore['switch.phev_cool'].state !== 'on';
+      stateStore['switch.phev_cool'].state = next ? 'on' : 'off';
+      if (next) stateStore['switch.phev_heat'].state = 'off';
+      stateStore['select.phev_climate_state'].state = next ? 'cool' : 'off';
+      refreshAll();
+    });
+    document.getElementById('sim-heat').addEventListener('click', () => {
+      const next = stateStore['switch.phev_heat'].state !== 'on';
+      stateStore['switch.phev_heat'].state = next ? 'on' : 'off';
+      if (next) stateStore['switch.phev_cool'].state = 'off';
+      stateStore['select.phev_climate_state'].state = next ? 'heat' : 'off';
+      refreshAll();
+    });
+    document.getElementById('sim-wind').addEventListener('click', () => toggleBin('switch.phev_windscreen'));
+    document.getElementById('sim-wifi').addEventListener('click', () => toggleBin('binary_sensor.phev_connected'));
+
+    // Tabs
+    document.getElementById('tab-sim').addEventListener('click', () => {
+      document.getElementById('tab-sim').classList.add('active');
+      document.getElementById('tab-editor').classList.remove('active');
+      document.getElementById('pane-sim').style.display = '';
+      document.getElementById('pane-editor').style.display = 'none';
+    });
+    document.getElementById('tab-editor').addEventListener('click', () => {
+      document.getElementById('tab-editor').classList.add('active');
+      document.getElementById('tab-sim').classList.remove('active');
+      document.getElementById('pane-editor').style.display = '';
+      document.getElementById('pane-sim').style.display = 'none';
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('preset') === 'action') {
+      stateStore['sensor.phev_battery'].state = '68';
+      document.getElementById('sim-soc').value = '68';
+      setChargingSim(true);
+      stateStore['binary_sensor.phev_locked'].state = 'on'; // Unlocked
+      stateStore['binary_sensor.phev_driver_door'].state = 'on';
+      stateStore['binary_sensor.phev_rear_right_door'].state = 'on';
+      stateStore['binary_sensor.phev_bonnet'].state = 'on';
+      stateStore['light.phev_head_lights'].state = 'on';
+      stateStore['light.phev_park_lights'].state = 'on';
+      stateStore['switch.phev_cool'].state = 'on';
+      stateStore['select.phev_climate_state'].state = 'cool';
+    }
+
+    refreshAll();
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "outlander-phev-card",
+  "version": "1.0.0",
+  "description": "Interactive top-down Home Assistant Lovelace card for Mitsubishi Outlander PHEV (phev2mqtt)",
+  "type": "module",
+  "main": "outlander-phev-card.js",
+  "scripts": {
+    "build": "node scripts/build.mjs"
+  },
+  "keywords": [
+    "home-assistant",
+    "lovelace",
+    "hacs",
+    "mitsubishi",
+    "outlander",
+    "phev",
+    "phev2mqtt"
+  ],
+  "license": "MIT"
+}

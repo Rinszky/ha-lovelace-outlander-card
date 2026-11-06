@@ -1,0 +1,1097 @@
+export const CARD_STYLES = `
+  :host {
+    display: block;
+    --ophev-bg: linear-gradient(155deg, rgba(15, 20, 30, 0.97) 0%, rgba(10, 14, 22, 0.99) 100%);
+    --ophev-panel: rgba(24, 31, 46, 0.68);
+    --ophev-panel-hover: rgba(33, 43, 63, 0.84);
+    --ophev-border: rgba(148, 163, 184, 0.13);
+    --ophev-border-strong: rgba(148, 163, 184, 0.24);
+    --ophev-text: #f1f5f9;
+    --ophev-muted: #94a3b8;
+    --ophev-cyan: #0ea5e9;
+    --ophev-emerald: #10b981;
+    --ophev-amber: #f59e0b;
+    --ophev-red: #ef4444;
+    --ophev-orange: #f97316;
+    font-family: var(--paper-font-body1_-_font-family, 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ha-card.ophev-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--ophev-bg);
+    color: var(--ophev-text);
+    border-radius: var(--ha-card-border-radius, 22px);
+    border: 1px solid var(--ophev-border);
+    box-shadow: 0 18px 42px -14px rgba(0, 0, 0, 0.65);
+    padding: 18px;
+    container-type: inline-size;
+    container-name: ophev;
+  }
+
+  /* Subtle top ambient sheen */
+  ha-card.ophev-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 160px;
+    background: radial-gradient(75% 100% at 50% 0%, var(--card-top-glow, rgba(14, 165, 233, 0.11)), transparent 80%);
+    pointer-events: none;
+    z-index: 0;
+    transition: background 0.6s ease;
+  }
+
+  .ophev-shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* =========================================================
+     HEADER BAR
+     ========================================================= */
+  .ophev-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .brand-block {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    min-width: 0;
+  }
+
+  .mitsu-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 11px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
+    border: 1px solid var(--ophev-border-strong);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  .mitsu-badge svg {
+    width: 21px;
+    height: 21px;
+    fill: #e11d48;
+    filter: drop-shadow(0 0 6px rgba(225, 29, 72, 0.45));
+  }
+
+  .title-wrap {
+    min-width: 0;
+  }
+
+  .card-title {
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-subtitle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: var(--ophev-muted);
+    margin-top: 2px;
+  }
+
+  .conn-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #64748b;
+    transition: all 0.3s ease;
+  }
+
+  .conn-dot.online {
+    background: var(--ophev-emerald);
+    box-shadow: 0 0 8px var(--ophev-emerald);
+  }
+
+  .conn-dot.offline {
+    background: var(--ophev-red);
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  }
+
+  .header-pills {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(30, 41, 59, 0.72);
+    border: 1px solid var(--ophev-border);
+    color: #cbd5e1;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.25s ease;
+  }
+
+  .status-pill:hover {
+    border-color: var(--ophev-border-strong);
+    background: rgba(39, 52, 73, 0.9);
+  }
+
+  .status-pill svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .status-pill.ok {
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.28);
+    background: rgba(14, 165, 233, 0.11);
+  }
+
+  .status-pill.warn {
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.42);
+    background: rgba(245, 158, 11, 0.14);
+    animation: pillPulse 2s ease-in-out infinite;
+  }
+
+  .status-pill.danger {
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.45);
+    background: rgba(239, 68, 68, 0.16);
+    animation: pillPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes pillPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    50% { box-shadow: 0 0 12px 1px rgba(245, 158, 11, 0.28); }
+  }
+
+  /* =========================================================
+     MAIN GRID (RESPONSIVE CONTAINER QUERIES)
+     ========================================================= */
+  .ophev-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    align-items: stretch;
+  }
+
+  @container ophev (min-width: 620px) {
+    .ophev-body.layout-auto,
+    .ophev-body.layout-wide {
+      grid-template-columns: minmax(255px, 43%) 1fr;
+      gap: 18px;
+    }
+  }
+
+  .ophev-body.layout-wide {
+    grid-template-columns: minmax(240px, 43%) 1fr;
+  }
+
+  .ophev-body.layout-compact {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* =========================================================
+     CAR SHOWCASE STAGE
+     ========================================================= */
+  .car-stage-card {
+    position: relative;
+    background: radial-gradient(ellipse at 50% 48%, rgba(30, 41, 59, 0.52) 0%, rgba(9, 13, 21, 0.88) 78%);
+    border: 1px solid var(--ophev-border);
+    border-radius: 18px;
+    padding: 8px 8px 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 410px;
+    overflow: hidden;
+  }
+
+  .car-svg-wrap {
+    width: 100%;
+    max-width: 305px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .outlander-svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  /* Steering wheel LHD vs RHD */
+  .outlander-svg .svg-steering-wheel {
+    transform: translate(160px, 314px);
+    transition: transform 0.35s ease;
+  }
+  .car-stage-card.rhd .outlander-svg .svg-steering-wheel {
+    transform: translate(260px, 314px);
+  }
+
+  /* Sunroof visibility */
+  .car-stage-card.hide-sunroof .svg-sunroof {
+    display: none;
+  }
+
+  /* =========================================================
+     SVG ANIMATIONS: DOORS, BONNET, BOOT
+     ========================================================= */
+  .outlander-svg .svg-door,
+  .outlander-svg .svg-closure {
+    transform-box: view-box;
+    transition: transform 0.68s cubic-bezier(0.22, 1, 0.36, 1), filter 0.4s ease;
+  }
+
+  .outlander-svg .svg-door-fl { transform-origin: 105px 274px; }
+  .outlander-svg .svg-door-fr { transform-origin: 315px 274px; }
+  .outlander-svg .svg-door-rl { transform-origin: 105px 420px; }
+  .outlander-svg .svg-door-rr { transform-origin: 315px 420px; }
+  .outlander-svg .svg-bonnet  { transform-origin: 210px 265px; }
+  .outlander-svg .svg-boot    { transform-origin: 210px 588px; }
+
+  /* Open door states (clockwise +deg swings left doors out, -deg swings right doors out) */
+  .car-stage-card.open-fl .svg-door-fl {
+    transform: rotate(43deg);
+    filter: drop-shadow(-6px 6px 6px rgba(0, 0, 0, 0.65));
+  }
+  .car-stage-card.open-fr .svg-door-fr {
+    transform: rotate(-43deg);
+    filter: drop-shadow(6px 6px 6px rgba(0, 0, 0, 0.65));
+  }
+  .car-stage-card.open-rl .svg-door-rl {
+    transform: rotate(42deg);
+    filter: drop-shadow(-6px 6px 6px rgba(0, 0, 0, 0.65));
+  }
+  .car-stage-card.open-rr .svg-door-rr {
+    transform: rotate(-42deg);
+    filter: drop-shadow(6px 6px 6px rgba(0, 0, 0, 0.65));
+  }
+  .car-stage-card.open-bonnet .svg-bonnet {
+    transform: scaleY(0.58);
+    filter: drop-shadow(0 -8px 8px rgba(0, 0, 0, 0.8));
+  }
+  .car-stage-card.open-boot .svg-boot {
+    transform: scaleY(0.54);
+    filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.8));
+  }
+  .car-stage-card.open-boot .cargo-open-light {
+    opacity: 0.55;
+    transition: opacity 0.4s ease;
+  }
+
+  /* Open-door warning arcs */
+  .outlander-svg .door-warn-arc {
+    fill: rgba(239, 68, 68, 0.15);
+    stroke: rgba(248, 113, 113, 0.62);
+    stroke-width: 1.4;
+    stroke-dasharray: 5 4;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+  }
+  .car-stage-card.open-fl .arc-fl,
+  .car-stage-card.open-fr .arc-fr,
+  .car-stage-card.open-rl .arc-rl,
+  .car-stage-card.open-rr .arc-rr,
+  .car-stage-card.open-bonnet .arc-bonnet,
+  .car-stage-card.open-boot .arc-boot {
+    opacity: 1;
+    animation: warnArcPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes warnArcPulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.95; }
+  }
+
+  /* =========================================================
+     SVG ANIMATIONS: EXTERIOR & INTERIOR LIGHTS
+     ========================================================= */
+  .outlander-svg .svg-fx-headlights,
+  .outlander-svg .svg-lamp-head,
+  .outlander-svg .svg-fx-parklights,
+  .outlander-svg .svg-lamp-park,
+  .outlander-svg .svg-fx-interior {
+    opacity: 0;
+    transition: opacity 0.42s ease;
+    pointer-events: none;
+  }
+
+  .car-stage-card.lights-head .svg-fx-headlights,
+  .car-stage-card.lights-head .svg-lamp-head {
+    opacity: 1;
+    animation: beamShimmer 3.2s ease-in-out infinite;
+  }
+
+  .car-stage-card.lights-park .svg-fx-parklights,
+  .car-stage-card.lights-park .svg-lamp-park,
+  .car-stage-card.lights-head .svg-fx-parklights,
+  .car-stage-card.lights-head .svg-lamp-park {
+    opacity: 1;
+  }
+
+  .car-stage-card.lights-interior .svg-fx-interior {
+    opacity: 1;
+  }
+
+  @keyframes beamShimmer {
+    0%, 100% { opacity: 0.92; }
+    50% { opacity: 1; filter: brightness(1.09); }
+  }
+
+  /* Hazard Lights (4 corners + side mirrors) */
+  .outlander-svg .svg-hazard-blinker {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .car-stage-card.lights-hazard .svg-hazard-blinker {
+    animation: hazardBlink 1.05s steps(1, end) infinite;
+  }
+
+  @keyframes hazardBlink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.06; }
+  }
+
+  /* =========================================================
+     SVG ANIMATIONS: CLIMATE (COOL / HEAT / WINDSCREEN)
+     ========================================================= */
+  .outlander-svg .svg-fx-climate,
+  .outlander-svg .svg-fx-windscreen {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  }
+
+  .car-stage-card.climate-cool .svg-fx-climate {
+    opacity: 1;
+  }
+  .car-stage-card.climate-cool .climate-tint {
+    fill: #0ea5e9;
+  }
+  .car-stage-card.climate-cool .climate-stream {
+    stroke: #7dd3fc;
+    stroke-dasharray: 18 14;
+    animation: airflowFlow 1.6s linear infinite;
+  }
+
+  .car-stage-card.climate-heat .svg-fx-climate {
+    opacity: 1;
+  }
+  .car-stage-card.climate-heat .climate-tint {
+    fill: #f97316;
+  }
+  .car-stage-card.climate-heat .climate-stream {
+    stroke: #fdba74;
+    stroke-dasharray: 18 14;
+    animation: airflowFlow 1.8s linear infinite reverse;
+  }
+
+  .car-stage-card.climate-windscreen .svg-fx-windscreen {
+    opacity: 1;
+  }
+  .car-stage-card.climate-windscreen .defrost-wave {
+    stroke-dasharray: 12 10;
+    animation: defrostRise 1.4s linear infinite;
+  }
+
+  @keyframes airflowFlow {
+    from { stroke-dashoffset: 64; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes defrostRise {
+    from { stroke-dashoffset: 44; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* =========================================================
+     SVG ANIMATIONS: BATTERY FILL, X-RAY & CHARGING CABLE
+     ========================================================= */
+  .outlander-svg .svg-batt-clip-rect {
+    transition: y 0.85s cubic-bezier(0.22, 1, 0.36, 1), height 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .outlander-svg .svg-batt-horizon-group,
+  .outlander-svg .svg-batt-marker {
+    transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+  }
+
+  .car-stage-card.fill-hidden .layer-battery-overlay {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .outlander-svg .svg-fx-xray {
+    opacity: 0;
+    transition: opacity 0.45s ease;
+  }
+  .car-stage-card.show-xray .svg-fx-xray,
+  .car-stage-card.is-charging .svg-fx-xray {
+    opacity: 1;
+  }
+
+  .outlander-svg .svg-batt-charge-ripples {
+    opacity: 0;
+  }
+  .car-stage-card.is-charging .svg-batt-charge-ripples {
+    opacity: 1;
+  }
+  .car-stage-card.is-charging .charge-scan.s1 {
+    animation: chargeScanUp 2.4s ease-out infinite;
+  }
+  .car-stage-card.is-charging .charge-scan.s2 {
+    animation: chargeScanUp 2.4s ease-out 1.2s infinite;
+  }
+  .car-stage-card.is-charging .svg-batt-wave-line {
+    animation: waveBob 1.6s ease-in-out infinite;
+  }
+
+  @keyframes chargeScanUp {
+    0% { transform: translateY(0); opacity: 0.55; }
+    100% { transform: translateY(-480px); opacity: 0; }
+  }
+
+  @keyframes waveBob {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(-1); }
+  }
+
+  /* Charger cable & port */
+  .outlander-svg .svg-charger-assembly {
+    opacity: 0;
+    transform: translateX(8px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .car-stage-card.is-plugged .svg-charger-assembly {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .car-stage-card.is-plugged .charge-flap-closed {
+    opacity: 0;
+  }
+
+  .outlander-svg .charge-cable-energy {
+    opacity: 0;
+  }
+  .car-stage-card.is-charging .charge-cable-energy {
+    opacity: 1;
+    animation: cablePulse 0.85s linear infinite;
+  }
+  .car-stage-card.is-charging .charge-socket-glow {
+    animation: socketGlowPulse 1.5s ease-in-out infinite;
+  }
+  .car-stage-card.is-plugged:not(.is-charging) .charge-handle-led {
+    fill: #f59e0b;
+  }
+
+  @keyframes cablePulse {
+    from { stroke-dashoffset: 44; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  @keyframes socketGlowPulse {
+    0%, 100% { opacity: 0.35; r: 11px; }
+    50% { opacity: 0.85; r: 17px; }
+  }
+
+  /* Central Lock Badge on Car Roof */
+  .car-stage-card.is-locked .lock-icon-open { display: none; }
+  .car-stage-card.is-locked .lock-icon-closed { display: block; }
+  .car-stage-card:not(.is-locked) .lock-icon-closed { display: none; }
+  .car-stage-card:not(.is-locked) .lock-icon-open { display: block; }
+  .car-stage-card:not(.is-locked) .lock-badge-bg {
+    stroke: rgba(245, 158, 11, 0.75);
+  }
+
+  /* Interactive Car Hit Zones */
+  .outlander-svg .car-hit-zone {
+    fill: transparent;
+    stroke: transparent;
+    stroke-width: 1.5;
+    cursor: pointer;
+    transition: fill 0.2s ease, stroke 0.2s ease;
+  }
+  .car-stage-card.interactive .car-hit-zone:hover {
+    fill: rgba(56, 189, 248, 0.08);
+    stroke: rgba(56, 189, 248, 0.35);
+  }
+  .car-stage-card:not(.interactive) .car-hit-zone {
+    pointer-events: none;
+  }
+
+  /* Quick Door Status Chips Bar at Bottom of Car Stage */
+  .door-chips-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    padding: 2px 6px 0;
+  }
+
+  .door-chip {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.72);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.22s ease;
+  }
+
+  .door-chip:hover {
+    border-color: rgba(148, 163, 184, 0.35);
+    color: #e2e8f0;
+  }
+
+  .door-chip.open {
+    background: rgba(239, 68, 68, 0.18);
+    border-color: rgba(248, 113, 113, 0.55);
+    color: #fca5a5;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.22);
+  }
+
+  /* =========================================================
+     RIGHT COLUMN: TELEMETRY & CONTROLS
+     ========================================================= */
+  .ophev-controls-col {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    min-width: 0;
+  }
+
+  .hud-panel {
+    background: var(--ophev-panel);
+    border: 1px solid var(--ophev-border);
+    border-radius: 16px;
+    padding: 14px;
+    backdrop-filter: blur(10px);
+  }
+
+  .panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .panel-label {
+    font-size: 0.73rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ophev-muted);
+  }
+
+  /* Battery Hero Readout */
+  .battery-hero {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .soc-big {
+    font-size: 2.15rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    color: #f8fafc;
+    cursor: pointer;
+  }
+
+  .soc-big .unit {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+    margin-left: 2px;
+  }
+
+  .ev-range-pill {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: #38bdf8;
+    background: rgba(14, 165, 233, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.24);
+    padding: 4px 9px;
+    border-radius: 999px;
+  }
+
+  /* Segmented Progress Bar */
+  .soc-bar-track {
+    position: relative;
+    height: 11px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    overflow: hidden;
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+
+  .soc-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--batt-secondary, #06b6d4), var(--batt-primary, #10b981));
+    box-shadow: 0 0 14px var(--batt-glow, rgba(16, 185, 129, 0.45));
+    transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+    position: relative;
+  }
+
+  .soc-bar-fill.charging::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    animation: barShimmer 1.7s linear infinite;
+  }
+
+  @keyframes barShimmer {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(100%); }
+  }
+
+  /* Charge Status Banner + Details */
+  .charge-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 11px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+  }
+
+  .charge-banner.active {
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.35);
+  }
+
+  .charge-banner.standby {
+    background: rgba(245, 158, 11, 0.11);
+    border-color: rgba(245, 158, 11, 0.32);
+  }
+
+  .charge-state-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .charge-icon-box {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    display: grid;
+    place-items: center;
+    background: rgba(30, 41, 59, 0.85);
+    color: #94a3b8;
+    flex-shrink: 0;
+  }
+
+  .charge-banner.active .charge-icon-box {
+    background: rgba(16, 185, 129, 0.22);
+    color: #34d399;
+  }
+
+  .charge-banner.standby .charge-icon-box {
+    background: rgba(245, 158, 11, 0.22);
+    color: #fbbf24;
+  }
+
+  .charge-state-title {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f1f5f9;
+  }
+
+  .charge-state-sub {
+    font-size: 0.72rem;
+    color: var(--ophev-muted);
+    margin-top: 1px;
+  }
+
+  /* External Power (W) & Energy (kWh) Sparkline Mini-Cards */
+  .ext-meters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 9px;
+    margin-top: 10px;
+  }
+
+  .meter-tile {
+    position: relative;
+    background: rgba(15, 23, 42, 0.68);
+    border: 1px solid rgba(148, 163, 184, 0.13);
+    border-radius: 12px;
+    padding: 9px 10px 0;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .meter-tile:hover {
+    border-color: rgba(249, 115, 22, 0.45);
+  }
+
+  .meter-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--ophev-muted);
+    margin-bottom: 3px;
+  }
+
+  .meter-val {
+    font-size: 1.06rem;
+    font-weight: 700;
+    color: #f8fafc;
+    margin-bottom: 4px;
+  }
+
+  .meter-val span {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--ophev-muted);
+    margin-left: 3px;
+  }
+
+  .meter-spark {
+    width: calc(100% + 20px);
+    height: 32px;
+    margin: 0 -10px;
+    display: block;
+  }
+
+  /* =========================================================
+     CLIMATE & LIGHTING / SYSTEM ACTION BUTTONS
+     ========================================================= */
+  .climate-badge {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(30, 41, 59, 0.85);
+    color: #cbd5e1;
+    border: 1px solid var(--ophev-border);
+  }
+
+  .climate-badge.cool {
+    color: #7dd3fc;
+    background: rgba(14, 165, 233, 0.18);
+    border-color: rgba(56, 189, 248, 0.4);
+  }
+  .climate-badge.heat {
+    color: #fdba74;
+    background: rgba(249, 115, 22, 0.2);
+    border-color: rgba(249, 115, 22, 0.42);
+  }
+  .climate-badge.windscreen {
+    color: #fde047;
+    background: rgba(234, 179, 8, 0.18);
+    border-color: rgba(250, 204, 21, 0.42);
+  }
+
+  .btn-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+
+  .btn-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  .ctrl-btn {
+    appearance: none;
+    border: 1px solid var(--ophev-border);
+    background: rgba(15, 23, 42, 0.68);
+    color: #e2e8f0;
+    border-radius: 13px;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.22s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .ctrl-btn.row-btn {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 10px 12px;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .ctrl-btn:hover:not(:disabled) {
+    background: var(--ophev-panel-hover);
+    border-color: var(--ophev-border-strong);
+    transform: translateY(-1px);
+  }
+
+  .ctrl-btn:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .ctrl-btn:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+  }
+
+  .ctrl-btn svg {
+    width: 21px;
+    height: 21px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease, color 0.25s ease;
+  }
+
+  .ctrl-btn-text {
+    font-size: 0.77rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .ctrl-btn-sub {
+    font-size: 0.66rem;
+    color: var(--ophev-muted);
+    margin-top: 1px;
+  }
+
+  /* Active Glow Variants */
+  .ctrl-btn.active-cool {
+    background: rgba(14, 165, 233, 0.2);
+    border-color: rgba(56, 189, 248, 0.6);
+    color: #bae6fd;
+    box-shadow: 0 0 18px rgba(14, 165, 233, 0.24);
+  }
+  .ctrl-btn.active-cool svg {
+    color: #38bdf8;
+    animation: spinSlow 4s linear infinite;
+  }
+
+  .ctrl-btn.active-heat {
+    background: rgba(249, 115, 22, 0.2);
+    border-color: rgba(251, 146, 60, 0.62);
+    color: #fed7aa;
+    box-shadow: 0 0 18px rgba(249, 115, 22, 0.24);
+  }
+  .ctrl-btn.active-heat svg {
+    color: #fb923c;
+  }
+
+  .ctrl-btn.active-windscreen {
+    background: rgba(245, 158, 11, 0.2);
+    border-color: rgba(251, 191, 36, 0.62);
+    color: #fef08a;
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.22);
+  }
+  .ctrl-btn.active-windscreen svg {
+    color: #fbbf24;
+  }
+
+  .ctrl-btn.active-light {
+    background: rgba(56, 189, 248, 0.19);
+    border-color: rgba(125, 211, 252, 0.62);
+    color: #e0f2fe;
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.24);
+  }
+  .ctrl-btn.active-light svg {
+    color: #7dd3fc;
+  }
+
+  .ctrl-btn.active-park {
+    background: rgba(244, 63, 94, 0.18);
+    border-color: rgba(251, 113, 133, 0.58);
+    color: #ffe4e6;
+    box-shadow: 0 0 16px rgba(244, 63, 94, 0.22);
+  }
+  .ctrl-btn.active-park svg {
+    color: #fb7185;
+  }
+
+  .ctrl-btn.confirming {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(251, 191, 36, 0.72);
+    color: #fef08a;
+  }
+
+  .ctrl-btn.sent-ok {
+    background: rgba(16, 185, 129, 0.22);
+    border-color: rgba(52, 211, 153, 0.65);
+    color: #a7f3d0;
+  }
+
+  @keyframes spinSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Climate Select Row (optional) */
+  .climate-select-row {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .climate-select {
+    width: 100%;
+    background: rgba(15, 23, 42, 0.78);
+    color: #e2e8f0;
+    border: 1px solid var(--ophev-border);
+    border-radius: 10px;
+    padding: 7px 10px;
+    font-size: 0.77rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+  }
+
+  /* Secondary Sensor Badges & Expandable Drawer */
+  .aux-sensors-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 9px;
+    padding-top: 9px;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+    flex-wrap: wrap;
+  }
+
+  .mini-ind {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.73rem;
+    color: var(--ophev-muted);
+    cursor: pointer;
+    padding: 3px 7px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .mini-ind:hover {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .mini-ind.on-amber {
+    color: #fbbf24;
+    background: rgba(245, 158, 11, 0.15);
+  }
+
+  .mini-ind svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .drawer-toggle {
+    background: none;
+    border: none;
+    color: var(--ophev-muted);
+    font-size: 0.73rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    margin-left: auto;
+  }
+
+  .drawer-toggle:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  .sensors-drawer {
+    display: none;
+    grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+    gap: 7px;
+    padding-top: 10px;
+    border-top: 1px solid var(--ophev-border);
+  }
+
+  .sensors-drawer.open {
+    display: grid;
+  }
+
+  .drawer-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.56);
+    border: 1px solid rgba(148, 163, 184, 0.1);
+    font-size: 0.74rem;
+    cursor: pointer;
+  }
+
+  .drawer-item:hover {
+    border-color: var(--ophev-border-strong);
+  }
+
+  .drawer-item-name {
+    color: var(--ophev-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .drawer-item-val {
+    font-weight: 600;
+    color: #e2e8f0;
+    white-space: nowrap;
+  }
+`;
