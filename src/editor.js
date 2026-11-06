@@ -8,6 +8,8 @@ const ENTITY_GROUPS = [
     open: true,
     fields: [
       { key: 'battery_entity', labelHu: 'Akkumulátor töltöttség (Battery %)', labelEn: 'Battery Level (%)', domains: ['sensor'] },
+      { key: 'daily_charge_energy_entity', labelHu: '⭐ Napi töltés energiában (segéd entitás – kWh / kW)', labelEn: '⭐ Daily Charge Energy (helper – kWh / kW)', domains: ['sensor', 'input_number', 'number'] },
+      { key: 'daily_charge_time_entity', labelHu: '⭐ Napi töltés órában / időtartamban (segéd entitás – óra / perc)', labelEn: '⭐ Daily Charge Duration (helper – h / min)', domains: ['sensor', 'input_number', 'input_text', 'number'] },
       { key: 'charging_entity', labelHu: 'Töltés folyamatban (Charging)', labelEn: 'Charging Active', domains: ['binary_sensor', 'sensor'] },
       { key: 'charger_connected_entity', labelHu: 'Töltő csatlakoztatva (Charger Connected)', labelEn: 'Charger Connected', domains: ['binary_sensor', 'sensor'] },
       { key: 'charge_remaining_entity', labelHu: 'Hátralévő töltési idő (Charge Remaining)', labelEn: 'Charge Remaining (min)', domains: ['sensor'] },
@@ -363,9 +365,19 @@ export class OutlanderPhevCardEditor extends HTMLElement {
               </div>
             </div>
 
-            <div class="field-row">
-              <label class="field-label">${localize(lang, 'ed_max_ev_range')}</label>
-              <input class="ed-input" id="inp-ev-range" type="number" min="0" max="120" step="1" value="${cfg.max_ev_range ?? 45}" />
+            <div class="field-grid-2">
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_daily_pos')}</label>
+                <select class="ed-select" id="sel-daily-pos">
+                  <option value="header" ${(cfg.daily_charge_position || 'header') === 'header' ? 'selected' : ''}>${localize(lang, 'ed_daily_pos_header')}</option>
+                  <option value="panel" ${cfg.daily_charge_position === 'panel' ? 'selected' : ''}>${localize(lang, 'ed_daily_pos_panel')}</option>
+                  <option value="both" ${cfg.daily_charge_position === 'both' ? 'selected' : ''}>${localize(lang, 'ed_daily_pos_both')}</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_max_ev_range')}</label>
+                <input class="ed-input" id="inp-ev-range" type="number" min="0" max="120" step="1" value="${cfg.max_ev_range ?? 45}" />
+              </div>
             </div>
 
             <label class="toggle-row">
@@ -530,6 +542,10 @@ export class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ battery_fill_opacity: val });
     });
 
+    sr.getElementById('sel-daily-pos')?.addEventListener('change', (e) => {
+      this._emitConfig({ daily_charge_position: e.target.value });
+    });
+
     sr.getElementById('inp-ev-range')?.addEventListener('change', (e) => {
       this._emitConfig({ max_ev_range: Number(e.target.value) || 0 });
     });
@@ -563,8 +579,14 @@ export class OutlanderPhevCardEditor extends HTMLElement {
     if (hexLbl) hexLbl.textContent = carColor;
 
     sr.querySelectorAll('.swatch').forEach((btn) => {
-      btn.classList.toggle('selected', btn.dataset.hex.toLowerCase() === carColor.toLowerCase());
+      btn.classList.toggle('selected', (btn.dataset?.hex || '').toLowerCase() === carColor.toLowerCase());
     });
+
+    const dailyPosSel = sr.getElementById('sel-daily-pos');
+    const dailyPosVal = this._config.daily_charge_position || 'header';
+    if (dailyPosSel && dailyPosSel.value !== dailyPosVal) {
+      dailyPosSel.value = dailyPosVal;
+    }
 
     for (const [key, entry] of this._selectors.entries()) {
       const nextVal = this._config[key] || '';

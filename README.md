@@ -17,7 +17,8 @@ Egyedi, fotorealisztikus felülnézeti **Home Assistant Lovelace kártya** a **M
   - **Világítás**: Felkapcsolt **tompított fényszórónál** dupla xenon fénycsóva vetül az autó elé; **helyzetjelzőnél** világítanak az első LED menetfények és a hátsó rubinvörös lámpák; **elakadásjelzőnél** ütemesen villog a 4 sarokindex és a tükörindex; **belső világításnál** meleg fény dereng az utastérben.
   - **Klíma-animáció**: Hűtésnél jeges kék légáramlás, fűtésnél meleg narancs hőáramlás az utastérben, szélvédő-páramentesítésnél pedig hullámzó fűtőszál-effekt a szélvédőn.
   - **Jobb hátsó töltőcsatlakozó**: Csatlakoztatott kábelnél kinyílik a töltőfedél és megjelenik a töltőkábel, aktív töltésnél pedig pulzáló energiaimpulzusok futnak be az autóba.
-- ** Külső töltésmérő integráció**
+- **Külső és Napi töltésmérő segéd-entitások támogatása**
+  - Opcionálisan beköthető **Napi töltés energiában (`kWh` / `kW`)** és **Napi töltési idő órában (`h` / `perc` / `history_stats`)** segéd-entitás, amely választhatóan a kártya felső fejlécében (jelvényként), a töltési panelen kiemelt kártyaként, vagy mindkét helyen megjeleníthető.
   - Opcionálisan beköthető külső fali töltő / okoskonnektor **Teljesítmény (`W` / `kW`)** és **Elfogyasztott energia (`kWh`)** szenzor 24 órás Home Assistant előzmény-grafikonnal (sparkline).
 - **✨ 1-kattintásos `phev2mqtt` automatikus felismerés és Vizuális Szerkesztő**
   - Nincs szükség kézi YAML írásra: a kártya hozzáadásakor vagy a szerkesztőben lévő gombbal automatikusan megkeresi a Mitsubishi Outlander PHEV eszközt és beállítja az összes entitást.
@@ -35,7 +36,7 @@ Egyedi, fotorealisztikus felülnézeti **Home Assistant Lovelace kártya** a **M
 1. Másold a gyökérkönyvtárban található [`outlander-phev-card.js`](./outlander-phev-card.js) fájlt a Home Assistant `/config/www/` mappájába.
 2. A Home Assistantban menj ide: **Beállítások -> Irányítópultok -> `⋮` (jobb felül) -> Erőforrások (Resources)**.
 3. Kattints az **Erőforrás hozzáadása** gombra:
-   - **URL:** `/local/outlander-phev-card.js?v=1.0.0`
+   - **URL:** `/local/outlander-phev-card.js?v=1.1.0`
    - **Típus:** `JavaScript modul (JavaScript Module)`
 4. Frissítsd a böngészőt (`Ctrl+F5` / `Cmd+Shift+R`), majd add hozzá a **Mitsubishi Outlander PHEV Card** kártyát bármelyik irányítópulthoz!
 
@@ -54,13 +55,16 @@ car_color: "#2b2f36"
 battery_fill_mode: always      # always | xray | charging | off
 battery_fill_opacity: 36       # 15..75 (%)
 layout_mode: auto              # auto | wide | compact
+daily_charge_position: header  # header | panel | both
 max_ev_range: 45               # Becsült max EV hatótáv km-ben (0 = elrejtve)
 show_sunroof: true
 interactive_car: true
 confirm_wifi_restart: true
 
-# Akkumulátor és töltés (phev2mqtt + opcionális külső mérők)
+# Akkumulátor és töltés (phev2mqtt + opcionális napi és külső mérők)
 battery_entity: sensor.phev_battery
+daily_charge_energy_entity: sensor.napi_toltes_kwh
+daily_charge_time_entity: sensor.napi_toltes_ido
 charging_entity: binary_sensor.phev_charging
 charger_connected_entity: binary_sensor.phev_charger_connected
 charge_remaining_entity: sensor.phev_charge_remaining

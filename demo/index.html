@@ -231,6 +231,8 @@
       'switch.phev_disable_charge_timer': { state: 'unknown', attributes: { friendly_name: 'PHEV Disable Charge Timer' } },
       'sensor.charger_power': { state: '2', attributes: { friendly_name: 'Töltés', unit_of_measurement: 'W', demo_history: powerHistoryIdle } },
       'sensor.charger_energy': { state: '111.29', attributes: { friendly_name: 'Elfogyasztott energia', unit_of_measurement: 'kWh', demo_history: energyHistory } },
+      'sensor.napi_toltes_kwh': { state: '0.93', attributes: { friendly_name: 'Napi töltés', unit_of_measurement: 'kWh', device_class: 'energy' } },
+      'sensor.napi_toltes_ido': { state: '0.47', attributes: { friendly_name: 'Napi töltés', unit_of_measurement: 'h', device_class: 'duration' } },
       'binary_sensor.phev_locked': { state: 'off', attributes: { friendly_name: 'PHEV Locked', device_class: 'lock' } }, // 'off' = Zárolt in HA device_class: lock!
       'binary_sensor.phev_driver_door': { state: 'off', attributes: { friendly_name: 'PHEV Driver Door', device_class: 'door' } },
       'binary_sensor.phev_front_passenger_door': { state: 'off', attributes: { friendly_name: 'PHEV Front Passenger Door', device_class: 'door' } },

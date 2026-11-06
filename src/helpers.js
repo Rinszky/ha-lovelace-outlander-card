@@ -21,6 +21,8 @@ export const ENTITY_KEYS = [
   'disable_charge_timer_entity',
   'charger_power_entity',
   'charger_energy_entity',
+  'daily_charge_energy_entity',
+  'daily_charge_time_entity',
   'locked_entity',
   'driver_door_entity',
   'front_passenger_door_entity',
@@ -227,13 +229,68 @@ export function formatEstimatedCompletion(estObj, remainingObj, isCharging, lang
   return localize(lang, 'not_charging');
 }
 
+export function formatDailyEnergy(stateObj, hass, lang = 'hu') {
+  if (!stateObj) return '--';
+  const raw = String(stateObj.state ?? '').trim();
+  if (!raw || raw === 'unknown' || raw === 'unavailable') return '--';
+
+  if (typeof hass?.formatEntityState === 'function') {
+    const formatted = hass.formatEntityState(stateObj);
+    if (formatted && formatted !== 'unknown' && formatted !== 'unavailable') {
+      return formatted;
+    }
+  }
+
+  const numStr = formatNumber(raw, 2, lang);
+  const unit = stateObj.attributes?.unit_of_measurement || 'kWh';
+  return numStr !== null ? `${numStr} ${unit}`.trim() : (unit && !raw.includes(unit) ? `${raw} ${unit}` : raw);
+}
+
+export function formatDailyDuration(stateObj, hass, lang = 'hu') {
+  if (!stateObj) return '--';
+  const raw = String(stateObj.state ?? '').trim();
+  if (!raw || raw === 'unknown' || raw === 'unavailable') return '--';
+
+  // Use Home Assistant's native duration formatter when device_class is duration
+  if (typeof hass?.formatEntityState === 'function' && stateObj.attributes?.device_class === 'duration') {
+    const formatted = hass.formatEntityState(stateObj);
+    if (formatted && formatted !== 'unknown' && formatted !== 'unavailable') {
+      return formatted;
+    }
+  }
+
+  const num = parseFloat(raw.replace(',', '.'));
+  if (!Number.isFinite(num) || /[:óhp]/i.test(raw)) {
+    const unit = stateObj.attributes?.unit_of_measurement || '';
+    return unit && !raw.includes(unit) ? `${raw} ${unit}` : raw;
+  }
+
+  const unit = String(stateObj.attributes?.unit_of_measurement || 'h').toLowerCase().trim();
+  let totalMinutes;
+  if (unit === 's' || unit === 'sec' || unit === 'seconds' || unit === 'mp') {
+    totalMinutes = Math.round(num / 60);
+  } else if (unit === 'min' || unit === 'm' || unit === 'perc' || unit === 'minutes') {
+    totalMinutes = Math.round(num);
+  } else {
+    // Default hours (e.g. Home Assistant history_stats sensor: 0.47 h -> 28 min)
+    totalMinutes = Math.round(num * 60);
+  }
+
+  const h = Math.floor(Math.max(0, totalMinutes) / 60);
+  const m = Math.max(0, totalMinutes) % 60;
+  if (lang === 'hu') {
+    return `${h} ${localize(lang, 'hr_short')} ${localize(lang, 'and_word')} ${m} ${localize(lang, 'min_tiny')}`;
+  }
+  return `${h}${localize(lang, 'hr_short')} ${m}${localize(lang, 'min_tiny')}`;
+}
+
 /**
  * Automatically discovers phev2mqtt entities from Home Assistant's device/entity registries and state machine.
  */
 export function autoDiscoverPhevEntities(hass) {
   if (!hass || !hass.states) return {};
 
-  const allStates = Object.values(hass.states);
+  const allStates = Object.values(hass.states).filter((st) => st && typeof st.entity_id === 'string');
   const phevDeviceIds = new Set();
 
   if (hass.devices) {
@@ -378,6 +435,45 @@ export function autoDiscoverPhevEntities(hass) {
     restart_wifi_entity: pick(['button', 'switch'], (id, fn) =>
       id.includes('reconnect_wifi') || id.includes('restart_wifi') || fn.includes('restart wifi')
     ),
+    daily_charge_energy_entity: allStates.find((st) => {
+      const dom = st.entity_id.split('.')[0];
+      if (!['sensor', 'input_number', 'number'].includes(dom)) return false;
+      const id = st.entity_id.toLowerCase();
+      const fn = String(st.attributes?.friendly_name || '').toLowerCase();
+      const unit = String(st.attributes?.unit_of_measurement || '').toLowerCase();
+      const dc = String(st.attributes?.device_class || '').toLowerCase();
+      const isDaily =
+        id.includes('napi_toltes') ||
+        fn.includes('napi töltés') ||
+        fn.includes('napi toltes') ||
+        id.includes('daily_charg') ||
+        fn.includes('daily charg');
+      const isEnergyOrPower =
+        ['kwh', 'wh', 'kw', 'w'].includes(unit) || dc === 'energy' || dc === 'power';
+      return isDaily && isEnergyOrPower;
+    })?.entity_id,
+    daily_charge_time_entity: allStates.find((st) => {
+      const dom = st.entity_id.split('.')[0];
+      if (!['sensor', 'input_number', 'input_text', 'number'].includes(dom)) return false;
+      const id = st.entity_id.toLowerCase();
+      const fn = String(st.attributes?.friendly_name || '').toLowerCase();
+      const unit = String(st.attributes?.unit_of_measurement || '').toLowerCase();
+      const dc = String(st.attributes?.device_class || '').toLowerCase();
+      const isDaily =
+        id.includes('napi_toltes') ||
+        fn.includes('napi töltés') ||
+        fn.includes('napi toltes') ||
+        id.includes('daily_charg') ||
+        fn.includes('daily charg');
+      const isDuration =
+        ['h', 'hr', 'hrs', 'min', 'm', 's', 'ó', 'perc'].includes(unit) ||
+        dc === 'duration' ||
+        id.includes('ido') ||
+        id.includes('ora') ||
+        id.includes('time') ||
+        id.includes('duration');
+      return isDaily && isDuration;
+    })?.entity_id,
   };
 
   return Object.fromEntries(Object.entries(result).filter(([, v]) => Boolean(v)));

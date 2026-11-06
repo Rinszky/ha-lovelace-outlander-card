@@ -192,6 +192,131 @@ export const CARD_STYLES = `
     50% { box-shadow: 0 0 12px 1px rgba(245, 158, 11, 0.28); }
   }
 
+  /* Two-line HA-style Daily Charge Badges in Card Header */
+  .daily-hdr-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .daily-hdr-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 13px 5px 10px;
+    border-radius: 999px;
+    background: rgba(20, 29, 45, 0.88);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 12px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.22s ease;
+  }
+
+  .daily-hdr-badge:hover {
+    border-color: rgba(56, 189, 248, 0.58);
+    background: rgba(28, 41, 63, 0.95);
+    transform: translateY(-1px);
+  }
+
+  .daily-hdr-icon {
+    width: 22px;
+    height: 22px;
+    color: #0ea5e9;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.35));
+  }
+
+  .daily-hdr-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .daily-hdr-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .daily-hdr-lbl {
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+  }
+
+  .daily-hdr-val {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #f8fafc;
+    white-space: nowrap;
+  }
+
+  /* Prominent Daily Charge Highlight Cards inside Battery & Charging Panel */
+  .daily-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 9px;
+    margin-top: 10px;
+  }
+
+  .daily-panel-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.13), rgba(15, 23, 42, 0.75));
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    cursor: pointer;
+    transition: all 0.22s ease;
+  }
+
+  .daily-panel-tile:hover {
+    border-color: rgba(56, 189, 248, 0.62);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(22, 33, 54, 0.88));
+    transform: translateY(-1px);
+  }
+
+  .daily-tile-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(14, 165, 233, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.32);
+    color: #38bdf8;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .daily-tile-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .daily-tile-copy {
+    min-width: 0;
+  }
+
+  .daily-tile-lbl {
+    font-size: 0.69rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+    margin-bottom: 2px;
+  }
+
+  .daily-tile-val {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   /* =========================================================
      MAIN GRID (RESPONSIVE CONTAINER QUERIES)
      ========================================================= */

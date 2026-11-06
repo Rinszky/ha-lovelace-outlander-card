@@ -1,6 +1,6 @@
 /**
  * Mitsubishi Outlander PHEV Lovelace Card (phev2mqtt)
- * Version: 1.0.0
+ * Version: 1.1.0
  * Interactive top-down animated Home Assistant custom card for Mitsubishi Outlander PHEV
  * Zero external runtime dependencies — HACS & Lovelace ready.
  */
@@ -45,6 +45,9 @@ const TRANSLATIONS = {
     estimated_finish: 'Várható befejezés',
     charger_power: 'Töltési teljesítmény',
     charger_energy: 'Elfogyasztott energia',
+    daily_charge_energy: 'Napi töltés',
+    daily_charge_time: 'Napi töltési idő',
+    daily_charge_short: 'Napi töltés',
     disable_timer: 'Időzítő tiltása',
     disable_timer_sub: 'Azonnali töltés',
     timer_sent: 'Parancs elküldve!',
@@ -80,7 +83,9 @@ const TRANSLATIONS = {
 
     // Units & Time
     min_short: 'perc',
+    min_tiny: 'p',
     hr_short: 'ó',
+    and_word: 'és',
     not_charging: 'Nem tölt',
     active: 'Aktív',
     inactive: 'Inaktív',
@@ -98,7 +103,7 @@ const TRANSLATIONS = {
     ed_auto_btn: '✨ phev2mqtt entitások automatikus kitöltése',
     ed_auto_result: '{count} entitás sikeresen felismerve és beállítva!',
     ed_sec_general: 'Általános és megjelenés',
-    ed_sec_battery: 'Akkumulátor és töltés (külső mérőkkel)',
+    ed_sec_battery: 'Akkumulátor és töltés (külső és napi mérőkkel)',
     ed_sec_doors: 'Ajtók és központi zár',
     ed_sec_climate: 'Klímavezérlés',
     ed_sec_lights: 'Világítás és kapcsolat',
@@ -118,6 +123,10 @@ const TRANSLATIONS = {
     ed_layout_auto: 'Automatikus (Reszponzív)',
     ed_layout_wide: 'Széles (2 oszlopos műszerfal)',
     ed_layout_compact: 'Kompakt (Egymás alatt)',
+    ed_daily_pos: 'Napi töltés adatok megjelenítési helye',
+    ed_daily_pos_header: 'Kártya felső fejlécében (jelvényként)',
+    ed_daily_pos_panel: 'Töltés panelen kiemelt kártyaként',
+    ed_daily_pos_both: 'Mindkét helyen (Fejléc + Töltés panel)',
     ed_max_ev_range: 'Becsült max. EV hatótáv 100%-nál (km, 0 = elrejtve)',
     ed_show_sunroof: 'Napfénytető megjelenítése az autón',
     ed_interactive_car: 'Interaktív érintési zónák engedélyezése az autón',
@@ -158,6 +167,9 @@ const TRANSLATIONS = {
     estimated_finish: 'Est. completion',
     charger_power: 'Charging power',
     charger_energy: 'Energy consumed',
+    daily_charge_energy: 'Daily charge',
+    daily_charge_time: 'Daily charge time',
+    daily_charge_short: 'Daily charge',
     disable_timer: 'Disable Timer',
     disable_timer_sub: 'Charge now',
     timer_sent: 'Command sent!',
@@ -189,7 +201,9 @@ const TRANSLATIONS = {
     hide_details: 'Hide details',
 
     min_short: 'min',
+    min_tiny: 'm',
     hr_short: 'h',
+    and_word: '',
     not_charging: 'Not charging',
     active: 'Active',
     inactive: 'Off',
@@ -205,7 +219,7 @@ const TRANSLATIONS = {
     ed_auto_btn: '✨ Auto-detect phev2mqtt entities',
     ed_auto_result: '{count} entities detected and mapped!',
     ed_sec_general: 'General & Appearance',
-    ed_sec_battery: 'Battery & Charging (incl. External Meters)',
+    ed_sec_battery: 'Battery & Charging (incl. External & Daily Meters)',
     ed_sec_doors: 'Doors & Central Lock',
     ed_sec_climate: 'Climate Controls',
     ed_sec_lights: 'Lights & Connectivity',
@@ -225,6 +239,10 @@ const TRANSLATIONS = {
     ed_layout_auto: 'Auto (Responsive)',
     ed_layout_wide: 'Wide (2-column dashboard)',
     ed_layout_compact: 'Compact (Stacked)',
+    ed_daily_pos: 'Daily Charging Stats Location',
+    ed_daily_pos_header: 'Top Card Header (Badge style)',
+    ed_daily_pos_panel: 'Battery & Charging Panel (Highlighted tiles)',
+    ed_daily_pos_both: 'Both (Header + Charging Panel)',
     ed_max_ev_range: 'Est. max EV range at 100% (km, 0 = hidden)',
     ed_show_sunroof: 'Show sunroof on car',
     ed_interactive_car: 'Enable interactive touch zones on car',
@@ -262,6 +280,8 @@ const ENTITY_KEYS = [
   'disable_charge_timer_entity',
   'charger_power_entity',
   'charger_energy_entity',
+  'daily_charge_energy_entity',
+  'daily_charge_time_entity',
   'locked_entity',
   'driver_door_entity',
   'front_passenger_door_entity',
@@ -458,6 +478,59 @@ function formatEstimatedCompletion(estObj, remainingObj, isCharging, lang = 'hu'
   }
   return localize(lang, 'not_charging');
 }
+function formatDailyEnergy(stateObj, hass, lang = 'hu') {
+  if (!stateObj) return '--';
+  const raw = String(stateObj.state ?? '').trim();
+  if (!raw || raw === 'unknown' || raw === 'unavailable') return '--';
+
+  if (typeof hass?.formatEntityState === 'function') {
+    const formatted = hass.formatEntityState(stateObj);
+    if (formatted && formatted !== 'unknown' && formatted !== 'unavailable') {
+      return formatted;
+    }
+  }
+
+  const numStr = formatNumber(raw, 2, lang);
+  const unit = stateObj.attributes?.unit_of_measurement || 'kWh';
+  return numStr !== null ? `${numStr} ${unit}`.trim() : (unit && !raw.includes(unit) ? `${raw} ${unit}` : raw);
+}
+function formatDailyDuration(stateObj, hass, lang = 'hu') {
+  if (!stateObj) return '--';
+  const raw = String(stateObj.state ?? '').trim();
+  if (!raw || raw === 'unknown' || raw === 'unavailable') return '--';
+
+  // Use Home Assistant's native duration formatter when device_class is duration
+  if (typeof hass?.formatEntityState === 'function' && stateObj.attributes?.device_class === 'duration') {
+    const formatted = hass.formatEntityState(stateObj);
+    if (formatted && formatted !== 'unknown' && formatted !== 'unavailable') {
+      return formatted;
+    }
+  }
+
+  const num = parseFloat(raw.replace(',', '.'));
+  if (!Number.isFinite(num) || /[:óhp]/i.test(raw)) {
+    const unit = stateObj.attributes?.unit_of_measurement || '';
+    return unit && !raw.includes(unit) ? `${raw} ${unit}` : raw;
+  }
+
+  const unit = String(stateObj.attributes?.unit_of_measurement || 'h').toLowerCase().trim();
+  let totalMinutes;
+  if (unit === 's' || unit === 'sec' || unit === 'seconds' || unit === 'mp') {
+    totalMinutes = Math.round(num / 60);
+  } else if (unit === 'min' || unit === 'm' || unit === 'perc' || unit === 'minutes') {
+    totalMinutes = Math.round(num);
+  } else {
+    // Default hours (e.g. Home Assistant history_stats sensor: 0.47 h -> 28 min)
+    totalMinutes = Math.round(num * 60);
+  }
+
+  const h = Math.floor(Math.max(0, totalMinutes) / 60);
+  const m = Math.max(0, totalMinutes) % 60;
+  if (lang === 'hu') {
+    return `${h} ${localize(lang, 'hr_short')} ${localize(lang, 'and_word')} ${m} ${localize(lang, 'min_tiny')}`;
+  }
+  return `${h}${localize(lang, 'hr_short')} ${m}${localize(lang, 'min_tiny')}`;
+}
 
 /**
  * Automatically discovers phev2mqtt entities from Home Assistant's device/entity registries and state machine.
@@ -465,7 +538,7 @@ function formatEstimatedCompletion(estObj, remainingObj, isCharging, lang = 'hu'
 function autoDiscoverPhevEntities(hass) {
   if (!hass || !hass.states) return {};
 
-  const allStates = Object.values(hass.states);
+  const allStates = Object.values(hass.states).filter((st) => st && typeof st.entity_id === 'string');
   const phevDeviceIds = new Set();
 
   if (hass.devices) {
@@ -610,6 +683,45 @@ function autoDiscoverPhevEntities(hass) {
     restart_wifi_entity: pick(['button', 'switch'], (id, fn) =>
       id.includes('reconnect_wifi') || id.includes('restart_wifi') || fn.includes('restart wifi')
     ),
+    daily_charge_energy_entity: allStates.find((st) => {
+      const dom = st.entity_id.split('.')[0];
+      if (!['sensor', 'input_number', 'number'].includes(dom)) return false;
+      const id = st.entity_id.toLowerCase();
+      const fn = String(st.attributes?.friendly_name || '').toLowerCase();
+      const unit = String(st.attributes?.unit_of_measurement || '').toLowerCase();
+      const dc = String(st.attributes?.device_class || '').toLowerCase();
+      const isDaily =
+        id.includes('napi_toltes') ||
+        fn.includes('napi töltés') ||
+        fn.includes('napi toltes') ||
+        id.includes('daily_charg') ||
+        fn.includes('daily charg');
+      const isEnergyOrPower =
+        ['kwh', 'wh', 'kw', 'w'].includes(unit) || dc === 'energy' || dc === 'power';
+      return isDaily && isEnergyOrPower;
+    })?.entity_id,
+    daily_charge_time_entity: allStates.find((st) => {
+      const dom = st.entity_id.split('.')[0];
+      if (!['sensor', 'input_number', 'input_text', 'number'].includes(dom)) return false;
+      const id = st.entity_id.toLowerCase();
+      const fn = String(st.attributes?.friendly_name || '').toLowerCase();
+      const unit = String(st.attributes?.unit_of_measurement || '').toLowerCase();
+      const dc = String(st.attributes?.device_class || '').toLowerCase();
+      const isDaily =
+        id.includes('napi_toltes') ||
+        fn.includes('napi töltés') ||
+        fn.includes('napi toltes') ||
+        id.includes('daily_charg') ||
+        fn.includes('daily charg');
+      const isDuration =
+        ['h', 'hr', 'hrs', 'min', 'm', 's', 'ó', 'perc'].includes(unit) ||
+        dc === 'duration' ||
+        id.includes('ido') ||
+        id.includes('ora') ||
+        id.includes('time') ||
+        id.includes('duration');
+      return isDaily && isDuration;
+    })?.entity_id,
   };
 
   return Object.fromEntries(Object.entries(result).filter(([, v]) => Boolean(v)));
@@ -1073,39 +1185,7 @@ function renderOutlanderSvg(uid) {
   </g>
 
   <!-- =========================================================
-       8. PROPORTIONAL BATTERY PERCENTAGE CAR FILL OVERLAY
-       ========================================================= -->
-  <g class="layer-battery-overlay">
-    <!-- Clipped to exact Car Silhouette AND Battery % Height -->
-    <g clip-path="url(#${uid}-body-clip)">
-      <g clip-path="url(#${uid}-batt-pct-clip)">
-        <rect class="svg-batt-body-tint" x="85" y="100" width="250" height="585" fill="url(#${uid}-batt-fill-grad)" style="opacity: var(--batt-fill-opacity, 0.34)" />
-        <!-- Animated Charging Scanlines inside the filled car portion -->
-        <g class="svg-batt-charge-ripples">
-          <line class="charge-scan s1" x1="95" y1="660" x2="325" y2="660" stroke="#ffffff" stroke-width="2" opacity="0.35" />
-          <line class="charge-scan s2" x1="95" y1="660" x2="325" y2="660" stroke="#a7f3d0" stroke-width="1.5" opacity="0.28" />
-        </g>
-      </g>
-
-      <!-- Glowing Laser / Wave Horizon Line right at the exact % mark -->
-      <g class="svg-batt-horizon-group" style="transform: translateY(675px)">
-        <line x1="92" y1="0" x2="328" y2="0" stroke="var(--batt-primary)" stroke-width="5" opacity="0.45" filter="url(#${uid}-blur-md)" />
-        <path class="svg-batt-wave-line" d="M 92,0 Q 151,-4 210,0 T 328,0" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.9" />
-        <path class="svg-batt-wave-accent" d="M 92,0 Q 151,4 210,0 T 328,0" fill="none" stroke="var(--batt-primary)" stroke-width="2.4" />
-      </g>
-    </g>
-
-    <!-- Floating % Pointer Callout on Left Side of Car -->
-    <g class="svg-batt-marker" style="transform: translateY(661px)">
-      <line x1="84" y1="0" x2="104" y2="0" stroke="var(--batt-primary)" stroke-width="1.6" stroke-dasharray="3 2" />
-      <circle cx="104" cy="0" r="3" fill="#ffffff" stroke="var(--batt-primary)" stroke-width="1.5" />
-      <rect x="24" y="-13" width="60" height="26" rx="13" fill="rgba(15, 23, 42, 0.9)" stroke="var(--batt-primary)" stroke-width="1.4" />
-      <text class="svg-batt-marker-text" x="54" y="4.5" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="700" font-family="system-ui, -apple-system, sans-serif">88%</text>
-    </g>
-  </g>
-
-  <!-- =========================================================
-       9. ANIMATED BONNET, BOOT & 4 SWINGING DOORS
+       8. ANIMATED BONNET, BOOT & 4 SWINGING DOORS
        ========================================================= -->
   <g class="layer-closures">
     <!-- BONNET (Hood) - Pivots from cowl y=264 -->
@@ -1180,6 +1260,38 @@ function renderOutlanderSvg(uid) {
       <polygon points="309,425 290,425 289,528 309,522" fill="url(#${uid}-glass-grad)" stroke="#0f172a" stroke-width="1" />
       <line x1="311" y1="422" x2="311" y2="528" stroke="url(#${uid}-chrome-grad)" stroke-width="1.6" />
       <rect x="313" y="496" width="3.5" height="17" rx="1.7" fill="url(#${uid}-chrome-grad)" />
+    </g>
+  </g>
+
+  <!-- =========================================================
+       9. PROPORTIONAL BATTERY PERCENTAGE CAR FILL OVERLAY
+       ========================================================= -->
+  <g class="layer-battery-overlay" pointer-events="none">
+    <!-- Clipped to exact Car Silhouette AND Battery % Height -->
+    <g clip-path="url(#${uid}-body-clip)">
+      <g clip-path="url(#${uid}-batt-pct-clip)">
+        <rect class="svg-batt-body-tint" x="85" y="100" width="250" height="585" fill="url(#${uid}-batt-fill-grad)" style="opacity: var(--batt-fill-opacity, 0.34)" />
+        <!-- Animated Charging Scanlines inside the filled car portion -->
+        <g class="svg-batt-charge-ripples">
+          <line class="charge-scan s1" x1="95" y1="660" x2="325" y2="660" stroke="#ffffff" stroke-width="2" opacity="0.35" />
+          <line class="charge-scan s2" x1="95" y1="660" x2="325" y2="660" stroke="#a7f3d0" stroke-width="1.5" opacity="0.28" />
+        </g>
+      </g>
+
+      <!-- Glowing Laser / Wave Horizon Line right at the exact % mark -->
+      <g class="svg-batt-horizon-group" style="transform: translateY(675px)">
+        <line x1="92" y1="0" x2="328" y2="0" stroke="var(--batt-primary)" stroke-width="5" opacity="0.45" filter="url(#${uid}-blur-md)" />
+        <path class="svg-batt-wave-line" d="M 92,0 Q 151,-4 210,0 T 328,0" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.9" />
+        <path class="svg-batt-wave-accent" d="M 92,0 Q 151,4 210,0 T 328,0" fill="none" stroke="var(--batt-primary)" stroke-width="2.4" />
+      </g>
+    </g>
+
+    <!-- Floating % Pointer Callout on Left Side of Car -->
+    <g class="svg-batt-marker" style="transform: translateY(661px)">
+      <line x1="84" y1="0" x2="104" y2="0" stroke="var(--batt-primary)" stroke-width="1.6" stroke-dasharray="3 2" />
+      <circle cx="104" cy="0" r="3" fill="#ffffff" stroke="var(--batt-primary)" stroke-width="1.5" />
+      <rect x="24" y="-13" width="60" height="26" rx="13" fill="rgba(15, 23, 42, 0.9)" stroke="var(--batt-primary)" stroke-width="1.4" />
+      <text class="svg-batt-marker-text" x="54" y="4.5" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="700" font-family="system-ui, -apple-system, sans-serif">88%</text>
     </g>
   </g>
 
@@ -1487,6 +1599,131 @@ const CARD_STYLES = `
   @keyframes pillPulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
     50% { box-shadow: 0 0 12px 1px rgba(245, 158, 11, 0.28); }
+  }
+
+  /* Two-line HA-style Daily Charge Badges in Card Header */
+  .daily-hdr-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .daily-hdr-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 5px 13px 5px 10px;
+    border-radius: 999px;
+    background: rgba(20, 29, 45, 0.88);
+    border: 1px solid rgba(56, 189, 248, 0.28);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 12px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.22s ease;
+  }
+
+  .daily-hdr-badge:hover {
+    border-color: rgba(56, 189, 248, 0.58);
+    background: rgba(28, 41, 63, 0.95);
+    transform: translateY(-1px);
+  }
+
+  .daily-hdr-icon {
+    width: 22px;
+    height: 22px;
+    color: #0ea5e9;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 6px rgba(14, 165, 233, 0.35));
+  }
+
+  .daily-hdr-icon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .daily-hdr-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+  }
+
+  .daily-hdr-lbl {
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+  }
+
+  .daily-hdr-val {
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #f8fafc;
+    white-space: nowrap;
+  }
+
+  /* Prominent Daily Charge Highlight Cards inside Battery & Charging Panel */
+  .daily-panel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+    gap: 9px;
+    margin-top: 10px;
+  }
+
+  .daily-panel-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 13px;
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.13), rgba(15, 23, 42, 0.75));
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    cursor: pointer;
+    transition: all 0.22s ease;
+  }
+
+  .daily-panel-tile:hover {
+    border-color: rgba(56, 189, 248, 0.62);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.2), rgba(22, 33, 54, 0.88));
+    transform: translateY(-1px);
+  }
+
+  .daily-tile-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: rgba(14, 165, 233, 0.18);
+    border: 1px solid rgba(56, 189, 248, 0.32);
+    color: #38bdf8;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .daily-tile-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .daily-tile-copy {
+    min-width: 0;
+  }
+
+  .daily-tile-lbl {
+    font-size: 0.69rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+    margin-bottom: 2px;
+  }
+
+  .daily-tile-val {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   /* =========================================================
@@ -2401,6 +2638,8 @@ const ENTITY_GROUPS = [
     open: true,
     fields: [
       { key: 'battery_entity', labelHu: 'Akkumulátor töltöttség (Battery %)', labelEn: 'Battery Level (%)', domains: ['sensor'] },
+      { key: 'daily_charge_energy_entity', labelHu: '⭐ Napi töltés energiában (segéd entitás – kWh / kW)', labelEn: '⭐ Daily Charge Energy (helper – kWh / kW)', domains: ['sensor', 'input_number', 'number'] },
+      { key: 'daily_charge_time_entity', labelHu: '⭐ Napi töltés órában / időtartamban (segéd entitás – óra / perc)', labelEn: '⭐ Daily Charge Duration (helper – h / min)', domains: ['sensor', 'input_number', 'input_text', 'number'] },
       { key: 'charging_entity', labelHu: 'Töltés folyamatban (Charging)', labelEn: 'Charging Active', domains: ['binary_sensor', 'sensor'] },
       { key: 'charger_connected_entity', labelHu: 'Töltő csatlakoztatva (Charger Connected)', labelEn: 'Charger Connected', domains: ['binary_sensor', 'sensor'] },
       { key: 'charge_remaining_entity', labelHu: 'Hátralévő töltési idő (Charge Remaining)', labelEn: 'Charge Remaining (min)', domains: ['sensor'] },
@@ -2755,9 +2994,19 @@ class OutlanderPhevCardEditor extends HTMLElement {
               </div>
             </div>
 
-            <div class="field-row">
-              <label class="field-label">${localize(lang, 'ed_max_ev_range')}</label>
-              <input class="ed-input" id="inp-ev-range" type="number" min="0" max="120" step="1" value="${cfg.max_ev_range ?? 45}" />
+            <div class="field-grid-2">
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_daily_pos')}</label>
+                <select class="ed-select" id="sel-daily-pos">
+                  <option value="header" ${(cfg.daily_charge_position || 'header') === 'header' ? 'selected' : ''}>${localize(lang, 'ed_daily_pos_header')}</option>
+                  <option value="panel" ${cfg.daily_charge_position === 'panel' ? 'selected' : ''}>${localize(lang, 'ed_daily_pos_panel')}</option>
+                  <option value="both" ${cfg.daily_charge_position === 'both' ? 'selected' : ''}>${localize(lang, 'ed_daily_pos_both')}</option>
+                </select>
+              </div>
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_max_ev_range')}</label>
+                <input class="ed-input" id="inp-ev-range" type="number" min="0" max="120" step="1" value="${cfg.max_ev_range ?? 45}" />
+              </div>
             </div>
 
             <label class="toggle-row">
@@ -2922,6 +3171,10 @@ class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ battery_fill_opacity: val });
     });
 
+    sr.getElementById('sel-daily-pos')?.addEventListener('change', (e) => {
+      this._emitConfig({ daily_charge_position: e.target.value });
+    });
+
     sr.getElementById('inp-ev-range')?.addEventListener('change', (e) => {
       this._emitConfig({ max_ev_range: Number(e.target.value) || 0 });
     });
@@ -2955,8 +3208,14 @@ class OutlanderPhevCardEditor extends HTMLElement {
     if (hexLbl) hexLbl.textContent = carColor;
 
     sr.querySelectorAll('.swatch').forEach((btn) => {
-      btn.classList.toggle('selected', btn.dataset.hex.toLowerCase() === carColor.toLowerCase());
+      btn.classList.toggle('selected', (btn.dataset?.hex || '').toLowerCase() === carColor.toLowerCase());
     });
+
+    const dailyPosSel = sr.getElementById('sel-daily-pos');
+    const dailyPosVal = this._config.daily_charge_position || 'header';
+    if (dailyPosSel && dailyPosSel.value !== dailyPosVal) {
+      dailyPosSel.value = dailyPosVal;
+    }
 
     for (const [key, entry] of this._selectors.entries()) {
       const nextVal = this._config[key] || '';
@@ -2985,6 +3244,8 @@ const ICONS = {
   wifiSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`,
   hazard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9l-4.5 8h9L12 9z"/></svg>`,
   bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.6 1 1.4 1 2.3h6c0-.9.4-1.7 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
+  counter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><line x1="12" y1="5" x2="12" y2="19"/><path d="M6.3 10.2 7.8 9v6"/><path d="M15.2 10.2a1.8 1.8 0 0 1 3.4.8c0 1.4-3.4 2.8-3.4 4h3.6"/></svg>`,
+  batteryClock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h4"/><path d="M10.5 19H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.2"/><circle cx="16.5" cy="16.5" r="4.5"/><path d="M16.5 14.3v2.3l1.5 1"/></svg>`,
 };
 
 let instanceCounter = 0;
@@ -3006,6 +3267,7 @@ class OutlanderPhevCard extends HTMLElement {
       battery_fill_mode: 'always',
       battery_fill_opacity: 36,
       layout_mode: 'auto',
+      daily_charge_position: 'header',
       max_ev_range: 45,
       show_sunroof: true,
       interactive_car: true,
@@ -3050,6 +3312,7 @@ class OutlanderPhevCard extends HTMLElement {
       battery_fill_mode: 'always',
       battery_fill_opacity: 36,
       layout_mode: 'auto',
+      daily_charge_position: 'header',
       max_ev_range: 45,
       show_sunroof: true,
       interactive_car: true,
@@ -3334,6 +3597,22 @@ class OutlanderPhevCard extends HTMLElement {
             </div>
 
             <div class="header-pills">
+              <div class="daily-hdr-badges" id="hdr-daily-wrap" style="display:none">
+                <div class="daily-hdr-badge" id="hdr-daily-energy" style="display:none">
+                  <div class="daily-hdr-icon">${ICONS.counter}</div>
+                  <div class="daily-hdr-copy">
+                    <span class="daily-hdr-lbl" id="lbl-hdr-daily-energy">${localize(lang, 'daily_charge_short')}</span>
+                    <span class="daily-hdr-val" id="val-hdr-daily-energy">--</span>
+                  </div>
+                </div>
+                <div class="daily-hdr-badge" id="hdr-daily-time" style="display:none">
+                  <div class="daily-hdr-icon">${ICONS.batteryClock}</div>
+                  <div class="daily-hdr-copy">
+                    <span class="daily-hdr-lbl" id="lbl-hdr-daily-time">${localize(lang, 'daily_charge_short')}</span>
+                    <span class="daily-hdr-val" id="val-hdr-daily-time">--</span>
+                  </div>
+                </div>
+              </div>
               <div class="status-pill ok" id="pill-lock" title="Locked">
                 <span id="pill-lock-icon">${ICONS.lockClosed}</span>
                 <span id="pill-lock-text">${localize(lang, 'locked')}</span>
@@ -3390,6 +3669,24 @@ class OutlanderPhevCard extends HTMLElement {
                     <div>
                       <div class="charge-state-title" id="charge-title">${localize(lang, 'charger_unplugged')}</div>
                       <div class="charge-state-sub" id="charge-sub">${localize(lang, 'estimated_finish')}: --</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Optional Daily Charge Energy (kWh/kW) & Duration (h/min) Highlight Cards -->
+                <div class="daily-panel-grid" id="panel-daily-wrap" style="display:none">
+                  <div class="daily-panel-tile" id="tile-daily-energy" style="display:none">
+                    <div class="daily-tile-icon">${ICONS.counter}</div>
+                    <div class="daily-tile-copy">
+                      <div class="daily-tile-lbl" id="lbl-panel-daily-energy">${localize(lang, 'daily_charge_energy')}</div>
+                      <div class="daily-tile-val" id="val-panel-daily-energy">--</div>
+                    </div>
+                  </div>
+                  <div class="daily-panel-tile" id="tile-daily-time" style="display:none">
+                    <div class="daily-tile-icon">${ICONS.batteryClock}</div>
+                    <div class="daily-tile-copy">
+                      <div class="daily-tile-lbl" id="lbl-panel-daily-time">${localize(lang, 'daily_charge_time')}</div>
+                      <div class="daily-tile-val" id="val-panel-daily-time">--</div>
                     </div>
                   </div>
                 </div>
@@ -3531,6 +3828,13 @@ class OutlanderPhevCard extends HTMLElement {
       hdrConnWrap: q('hdr-conn-wrap'),
       hdrConnDot: q('hdr-conn-dot'),
       hdrConnText: q('hdr-conn-text'),
+      hdrDailyWrap: q('hdr-daily-wrap'),
+      hdrDailyEnergy: q('hdr-daily-energy'),
+      lblHdrDailyEnergy: q('lbl-hdr-daily-energy'),
+      valHdrDailyEnergy: q('val-hdr-daily-energy'),
+      hdrDailyTime: q('hdr-daily-time'),
+      lblHdrDailyTime: q('lbl-hdr-daily-time'),
+      valHdrDailyTime: q('val-hdr-daily-time'),
       pillLock: q('pill-lock'),
       pillLockIcon: q('pill-lock-icon'),
       pillLockText: q('pill-lock-text'),
@@ -3558,6 +3862,13 @@ class OutlanderPhevCard extends HTMLElement {
       chargeIconBox: q('charge-icon-box'),
       chargeTitle: q('charge-title'),
       chargeSub: q('charge-sub'),
+      panelDailyWrap: q('panel-daily-wrap'),
+      tileDailyEnergy: q('tile-daily-energy'),
+      lblPanelDailyEnergy: q('lbl-panel-daily-energy'),
+      valPanelDailyEnergy: q('val-panel-daily-energy'),
+      tileDailyTime: q('tile-daily-time'),
+      lblPanelDailyTime: q('lbl-panel-daily-time'),
+      valPanelDailyTime: q('val-panel-daily-time'),
       extMeters: q('ext-meters'),
       tilePower: q('tile-power'),
       valPower: q('val-power'),
@@ -3601,6 +3912,8 @@ class OutlanderPhevCard extends HTMLElement {
     const ents = () => this._resolveEntities();
 
     $.hdrConnWrap.addEventListener('click', () => this._openMoreInfo(ents().connected_entity));
+    $.hdrDailyEnergy.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_energy_entity));
+    $.hdrDailyTime.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_time_entity));
     $.pillLock.addEventListener('click', () => {
       const lockEnt = ents().locked_entity;
       if (!lockEnt) return;
@@ -3622,6 +3935,8 @@ class OutlanderPhevCard extends HTMLElement {
     $.chargeBanner.addEventListener('click', () =>
       this._openMoreInfo(ents().charging_entity || ents().charger_connected_entity || ents().charge_remaining_entity)
     );
+    $.tileDailyEnergy.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_energy_entity));
+    $.tileDailyTime.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_time_entity));
     $.tilePower.addEventListener('click', () => this._openMoreInfo(ents().charger_power_entity));
     $.tileEnergy.addEventListener('click', () => this._openMoreInfo(ents().charger_energy_entity));
 
@@ -3887,6 +4202,52 @@ class OutlanderPhevCard extends HTMLElement {
       $.chargeSub.textContent = `${localize(lang, 'remaining_time')}: 0 ${localize(lang, 'min_short')}`;
     }
 
+    // Daily Charge Energy (kWh / kW) & Duration (h / min) Helpers
+    const hasDailyEnergy = Boolean(ents.daily_charge_energy_entity);
+    const hasDailyTime = Boolean(ents.daily_charge_time_entity);
+    const dailyEnergyObj = this._getState(ents.daily_charge_energy_entity);
+    const dailyTimeObj = this._getState(ents.daily_charge_time_entity);
+    const dailyEnergyFormatted = formatDailyEnergy(dailyEnergyObj, this._hass, lang);
+    const dailyTimeFormatted = formatDailyDuration(dailyTimeObj, this._hass, lang);
+
+    const dailyPos = cfg.daily_charge_position || 'header';
+    const showDailyInHeader = (dailyPos === 'header' || dailyPos === 'both') && (hasDailyEnergy || hasDailyTime);
+    const showDailyInPanel = (dailyPos === 'panel' || dailyPos === 'both') && (hasDailyEnergy || hasDailyTime);
+
+    $.hdrDailyWrap.style.display = showDailyInHeader ? 'flex' : 'none';
+    if (showDailyInHeader) {
+      $.hdrDailyEnergy.style.display = hasDailyEnergy ? 'inline-flex' : 'none';
+      if (hasDailyEnergy) {
+        const fnE = dailyEnergyObj?.attributes?.friendly_name || localize(lang, 'daily_charge_short');
+        $.lblHdrDailyEnergy.textContent = fnE;
+        $.valHdrDailyEnergy.textContent = dailyEnergyFormatted;
+        $.hdrDailyEnergy.title = `${fnE}: ${dailyEnergyFormatted}`;
+      }
+      $.hdrDailyTime.style.display = hasDailyTime ? 'inline-flex' : 'none';
+      if (hasDailyTime) {
+        const fnT = dailyTimeObj?.attributes?.friendly_name || localize(lang, 'daily_charge_short');
+        $.lblHdrDailyTime.textContent = fnT;
+        $.valHdrDailyTime.textContent = dailyTimeFormatted;
+        $.hdrDailyTime.title = `${fnT}: ${dailyTimeFormatted}`;
+      }
+    }
+
+    $.panelDailyWrap.style.display = showDailyInPanel ? 'grid' : 'none';
+    if (showDailyInPanel) {
+      $.tileDailyEnergy.style.display = hasDailyEnergy ? 'flex' : 'none';
+      if (hasDailyEnergy) {
+        $.lblPanelDailyEnergy.textContent = localize(lang, 'daily_charge_energy');
+        $.valPanelDailyEnergy.textContent = dailyEnergyFormatted;
+        $.tileDailyEnergy.title = dailyEnergyObj?.attributes?.friendly_name || localize(lang, 'daily_charge_energy');
+      }
+      $.tileDailyTime.style.display = hasDailyTime ? 'flex' : 'none';
+      if (hasDailyTime) {
+        $.lblPanelDailyTime.textContent = localize(lang, 'daily_charge_time');
+        $.valPanelDailyTime.textContent = dailyTimeFormatted;
+        $.tileDailyTime.title = dailyTimeObj?.attributes?.friendly_name || localize(lang, 'daily_charge_time');
+      }
+    }
+
     // External Charger Power (W) & Energy (kWh)
     const pwrObj = this._getState(ents.charger_power_entity);
     const engObj = this._getState(ents.charger_energy_entity);
@@ -4002,6 +4363,8 @@ class OutlanderPhevCard extends HTMLElement {
     if (this._drawerOpen) {
       const items = [
         { label: localize(lang, 'battery_title'), val: `${soc}%`, ent: ents.battery_entity },
+        { label: localize(lang, 'daily_charge_energy'), val: dailyEnergyFormatted, ent: ents.daily_charge_energy_entity },
+        { label: localize(lang, 'daily_charge_time'), val: dailyTimeFormatted, ent: ents.daily_charge_time_entity },
         { label: localize(lang, 'locked'), val: localize(lang, isLocked ? 'locked' : 'unlocked'), ent: ents.locked_entity },
         { label: localize(lang, 'bonnet'), val: localize(lang, openBonnet ? 'door_open' : 'door_closed'), ent: ents.bonnet_entity },
         { label: localize(lang, 'boot'), val: localize(lang, openBoot ? 'door_open' : 'door_closed'), ent: ents.boot_entity },
@@ -4052,7 +4415,7 @@ if (!window.customCards.some((c) => c.type === 'outlander-phev-card')) {
 }
 
 console.info(
-  '%c OUTLANDER-PHEV-CARD %c v1.0.0 ',
+  '%c OUTLANDER-PHEV-CARD %c v1.1.0 ',
   'background:#0ea5e9;color:#fff;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;',
   'background:#1e293b;color:#38bdf8;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;'
 );

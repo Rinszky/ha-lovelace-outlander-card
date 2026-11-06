@@ -411,39 +411,7 @@ export function renderOutlanderSvg(uid) {
   </g>
 
   <!-- =========================================================
-       8. PROPORTIONAL BATTERY PERCENTAGE CAR FILL OVERLAY
-       ========================================================= -->
-  <g class="layer-battery-overlay">
-    <!-- Clipped to exact Car Silhouette AND Battery % Height -->
-    <g clip-path="url(#${uid}-body-clip)">
-      <g clip-path="url(#${uid}-batt-pct-clip)">
-        <rect class="svg-batt-body-tint" x="85" y="100" width="250" height="585" fill="url(#${uid}-batt-fill-grad)" style="opacity: var(--batt-fill-opacity, 0.34)" />
-        <!-- Animated Charging Scanlines inside the filled car portion -->
-        <g class="svg-batt-charge-ripples">
-          <line class="charge-scan s1" x1="95" y1="660" x2="325" y2="660" stroke="#ffffff" stroke-width="2" opacity="0.35" />
-          <line class="charge-scan s2" x1="95" y1="660" x2="325" y2="660" stroke="#a7f3d0" stroke-width="1.5" opacity="0.28" />
-        </g>
-      </g>
-
-      <!-- Glowing Laser / Wave Horizon Line right at the exact % mark -->
-      <g class="svg-batt-horizon-group" style="transform: translateY(675px)">
-        <line x1="92" y1="0" x2="328" y2="0" stroke="var(--batt-primary)" stroke-width="5" opacity="0.45" filter="url(#${uid}-blur-md)" />
-        <path class="svg-batt-wave-line" d="M 92,0 Q 151,-4 210,0 T 328,0" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.9" />
-        <path class="svg-batt-wave-accent" d="M 92,0 Q 151,4 210,0 T 328,0" fill="none" stroke="var(--batt-primary)" stroke-width="2.4" />
-      </g>
-    </g>
-
-    <!-- Floating % Pointer Callout on Left Side of Car -->
-    <g class="svg-batt-marker" style="transform: translateY(661px)">
-      <line x1="84" y1="0" x2="104" y2="0" stroke="var(--batt-primary)" stroke-width="1.6" stroke-dasharray="3 2" />
-      <circle cx="104" cy="0" r="3" fill="#ffffff" stroke="var(--batt-primary)" stroke-width="1.5" />
-      <rect x="24" y="-13" width="60" height="26" rx="13" fill="rgba(15, 23, 42, 0.9)" stroke="var(--batt-primary)" stroke-width="1.4" />
-      <text class="svg-batt-marker-text" x="54" y="4.5" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="700" font-family="system-ui, -apple-system, sans-serif">88%</text>
-    </g>
-  </g>
-
-  <!-- =========================================================
-       9. ANIMATED BONNET, BOOT & 4 SWINGING DOORS
+       8. ANIMATED BONNET, BOOT & 4 SWINGING DOORS
        ========================================================= -->
   <g class="layer-closures">
     <!-- BONNET (Hood) - Pivots from cowl y=264 -->
@@ -518,6 +486,38 @@ export function renderOutlanderSvg(uid) {
       <polygon points="309,425 290,425 289,528 309,522" fill="url(#${uid}-glass-grad)" stroke="#0f172a" stroke-width="1" />
       <line x1="311" y1="422" x2="311" y2="528" stroke="url(#${uid}-chrome-grad)" stroke-width="1.6" />
       <rect x="313" y="496" width="3.5" height="17" rx="1.7" fill="url(#${uid}-chrome-grad)" />
+    </g>
+  </g>
+
+  <!-- =========================================================
+       9. PROPORTIONAL BATTERY PERCENTAGE CAR FILL OVERLAY
+       ========================================================= -->
+  <g class="layer-battery-overlay" pointer-events="none">
+    <!-- Clipped to exact Car Silhouette AND Battery % Height -->
+    <g clip-path="url(#${uid}-body-clip)">
+      <g clip-path="url(#${uid}-batt-pct-clip)">
+        <rect class="svg-batt-body-tint" x="85" y="100" width="250" height="585" fill="url(#${uid}-batt-fill-grad)" style="opacity: var(--batt-fill-opacity, 0.34)" />
+        <!-- Animated Charging Scanlines inside the filled car portion -->
+        <g class="svg-batt-charge-ripples">
+          <line class="charge-scan s1" x1="95" y1="660" x2="325" y2="660" stroke="#ffffff" stroke-width="2" opacity="0.35" />
+          <line class="charge-scan s2" x1="95" y1="660" x2="325" y2="660" stroke="#a7f3d0" stroke-width="1.5" opacity="0.28" />
+        </g>
+      </g>
+
+      <!-- Glowing Laser / Wave Horizon Line right at the exact % mark -->
+      <g class="svg-batt-horizon-group" style="transform: translateY(675px)">
+        <line x1="92" y1="0" x2="328" y2="0" stroke="var(--batt-primary)" stroke-width="5" opacity="0.45" filter="url(#${uid}-blur-md)" />
+        <path class="svg-batt-wave-line" d="M 92,0 Q 151,-4 210,0 T 328,0" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.9" />
+        <path class="svg-batt-wave-accent" d="M 92,0 Q 151,4 210,0 T 328,0" fill="none" stroke="var(--batt-primary)" stroke-width="2.4" />
+      </g>
+    </g>
+
+    <!-- Floating % Pointer Callout on Left Side of Car -->
+    <g class="svg-batt-marker" style="transform: translateY(661px)">
+      <line x1="84" y1="0" x2="104" y2="0" stroke="var(--batt-primary)" stroke-width="1.6" stroke-dasharray="3 2" />
+      <circle cx="104" cy="0" r="3" fill="#ffffff" stroke="var(--batt-primary)" stroke-width="1.5" />
+      <rect x="24" y="-13" width="60" height="26" rx="13" fill="rgba(15, 23, 42, 0.9)" stroke="var(--batt-primary)" stroke-width="1.4" />
+      <text class="svg-batt-marker-text" x="54" y="4.5" text-anchor="middle" fill="#f8fafc" font-size="12" font-weight="700" font-family="system-ui, -apple-system, sans-serif">88%</text>
     </g>
   </g>
 

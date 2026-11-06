@@ -9,6 +9,8 @@ import {
   formatNumber,
   formatRemainingTime,
   formatEstimatedCompletion,
+  formatDailyEnergy,
+  formatDailyDuration,
   autoDiscoverPhevEntities,
   buildSparklinePaths,
   ENTITY_KEYS,
@@ -34,6 +36,8 @@ const ICONS = {
   wifiSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`,
   hazard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9l-4.5 8h9L12 9z"/></svg>`,
   bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.6 1 1.4 1 2.3h6c0-.9.4-1.7 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
+  counter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><line x1="12" y1="5" x2="12" y2="19"/><path d="M6.3 10.2 7.8 9v6"/><path d="M15.2 10.2a1.8 1.8 0 0 1 3.4.8c0 1.4-3.4 2.8-3.4 4h3.6"/></svg>`,
+  batteryClock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h4"/><path d="M10.5 19H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.2"/><circle cx="16.5" cy="16.5" r="4.5"/><path d="M16.5 14.3v2.3l1.5 1"/></svg>`,
 };
 
 let instanceCounter = 0;
@@ -56,6 +60,7 @@ export class OutlanderPhevCard extends HTMLElement {
       battery_fill_mode: 'always',
       battery_fill_opacity: 36,
       layout_mode: 'auto',
+      daily_charge_position: 'header',
       max_ev_range: 45,
       show_sunroof: true,
       interactive_car: true,
@@ -100,6 +105,7 @@ export class OutlanderPhevCard extends HTMLElement {
       battery_fill_mode: 'always',
       battery_fill_opacity: 36,
       layout_mode: 'auto',
+      daily_charge_position: 'header',
       max_ev_range: 45,
       show_sunroof: true,
       interactive_car: true,
@@ -384,6 +390,22 @@ export class OutlanderPhevCard extends HTMLElement {
             </div>
 
             <div class="header-pills">
+              <div class="daily-hdr-badges" id="hdr-daily-wrap" style="display:none">
+                <div class="daily-hdr-badge" id="hdr-daily-energy" style="display:none">
+                  <div class="daily-hdr-icon">${ICONS.counter}</div>
+                  <div class="daily-hdr-copy">
+                    <span class="daily-hdr-lbl" id="lbl-hdr-daily-energy">${localize(lang, 'daily_charge_short')}</span>
+                    <span class="daily-hdr-val" id="val-hdr-daily-energy">--</span>
+                  </div>
+                </div>
+                <div class="daily-hdr-badge" id="hdr-daily-time" style="display:none">
+                  <div class="daily-hdr-icon">${ICONS.batteryClock}</div>
+                  <div class="daily-hdr-copy">
+                    <span class="daily-hdr-lbl" id="lbl-hdr-daily-time">${localize(lang, 'daily_charge_short')}</span>
+                    <span class="daily-hdr-val" id="val-hdr-daily-time">--</span>
+                  </div>
+                </div>
+              </div>
               <div class="status-pill ok" id="pill-lock" title="Locked">
                 <span id="pill-lock-icon">${ICONS.lockClosed}</span>
                 <span id="pill-lock-text">${localize(lang, 'locked')}</span>
@@ -440,6 +462,24 @@ export class OutlanderPhevCard extends HTMLElement {
                     <div>
                       <div class="charge-state-title" id="charge-title">${localize(lang, 'charger_unplugged')}</div>
                       <div class="charge-state-sub" id="charge-sub">${localize(lang, 'estimated_finish')}: --</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Optional Daily Charge Energy (kWh/kW) & Duration (h/min) Highlight Cards -->
+                <div class="daily-panel-grid" id="panel-daily-wrap" style="display:none">
+                  <div class="daily-panel-tile" id="tile-daily-energy" style="display:none">
+                    <div class="daily-tile-icon">${ICONS.counter}</div>
+                    <div class="daily-tile-copy">
+                      <div class="daily-tile-lbl" id="lbl-panel-daily-energy">${localize(lang, 'daily_charge_energy')}</div>
+                      <div class="daily-tile-val" id="val-panel-daily-energy">--</div>
+                    </div>
+                  </div>
+                  <div class="daily-panel-tile" id="tile-daily-time" style="display:none">
+                    <div class="daily-tile-icon">${ICONS.batteryClock}</div>
+                    <div class="daily-tile-copy">
+                      <div class="daily-tile-lbl" id="lbl-panel-daily-time">${localize(lang, 'daily_charge_time')}</div>
+                      <div class="daily-tile-val" id="val-panel-daily-time">--</div>
                     </div>
                   </div>
                 </div>
@@ -581,6 +621,13 @@ export class OutlanderPhevCard extends HTMLElement {
       hdrConnWrap: q('hdr-conn-wrap'),
       hdrConnDot: q('hdr-conn-dot'),
       hdrConnText: q('hdr-conn-text'),
+      hdrDailyWrap: q('hdr-daily-wrap'),
+      hdrDailyEnergy: q('hdr-daily-energy'),
+      lblHdrDailyEnergy: q('lbl-hdr-daily-energy'),
+      valHdrDailyEnergy: q('val-hdr-daily-energy'),
+      hdrDailyTime: q('hdr-daily-time'),
+      lblHdrDailyTime: q('lbl-hdr-daily-time'),
+      valHdrDailyTime: q('val-hdr-daily-time'),
       pillLock: q('pill-lock'),
       pillLockIcon: q('pill-lock-icon'),
       pillLockText: q('pill-lock-text'),
@@ -608,6 +655,13 @@ export class OutlanderPhevCard extends HTMLElement {
       chargeIconBox: q('charge-icon-box'),
       chargeTitle: q('charge-title'),
       chargeSub: q('charge-sub'),
+      panelDailyWrap: q('panel-daily-wrap'),
+      tileDailyEnergy: q('tile-daily-energy'),
+      lblPanelDailyEnergy: q('lbl-panel-daily-energy'),
+      valPanelDailyEnergy: q('val-panel-daily-energy'),
+      tileDailyTime: q('tile-daily-time'),
+      lblPanelDailyTime: q('lbl-panel-daily-time'),
+      valPanelDailyTime: q('val-panel-daily-time'),
       extMeters: q('ext-meters'),
       tilePower: q('tile-power'),
       valPower: q('val-power'),
@@ -651,6 +705,8 @@ export class OutlanderPhevCard extends HTMLElement {
     const ents = () => this._resolveEntities();
 
     $.hdrConnWrap.addEventListener('click', () => this._openMoreInfo(ents().connected_entity));
+    $.hdrDailyEnergy.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_energy_entity));
+    $.hdrDailyTime.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_time_entity));
     $.pillLock.addEventListener('click', () => {
       const lockEnt = ents().locked_entity;
       if (!lockEnt) return;
@@ -672,6 +728,8 @@ export class OutlanderPhevCard extends HTMLElement {
     $.chargeBanner.addEventListener('click', () =>
       this._openMoreInfo(ents().charging_entity || ents().charger_connected_entity || ents().charge_remaining_entity)
     );
+    $.tileDailyEnergy.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_energy_entity));
+    $.tileDailyTime.addEventListener('click', () => this._openMoreInfo(ents().daily_charge_time_entity));
     $.tilePower.addEventListener('click', () => this._openMoreInfo(ents().charger_power_entity));
     $.tileEnergy.addEventListener('click', () => this._openMoreInfo(ents().charger_energy_entity));
 
@@ -937,6 +995,52 @@ export class OutlanderPhevCard extends HTMLElement {
       $.chargeSub.textContent = `${localize(lang, 'remaining_time')}: 0 ${localize(lang, 'min_short')}`;
     }
 
+    // Daily Charge Energy (kWh / kW) & Duration (h / min) Helpers
+    const hasDailyEnergy = Boolean(ents.daily_charge_energy_entity);
+    const hasDailyTime = Boolean(ents.daily_charge_time_entity);
+    const dailyEnergyObj = this._getState(ents.daily_charge_energy_entity);
+    const dailyTimeObj = this._getState(ents.daily_charge_time_entity);
+    const dailyEnergyFormatted = formatDailyEnergy(dailyEnergyObj, this._hass, lang);
+    const dailyTimeFormatted = formatDailyDuration(dailyTimeObj, this._hass, lang);
+
+    const dailyPos = cfg.daily_charge_position || 'header';
+    const showDailyInHeader = (dailyPos === 'header' || dailyPos === 'both') && (hasDailyEnergy || hasDailyTime);
+    const showDailyInPanel = (dailyPos === 'panel' || dailyPos === 'both') && (hasDailyEnergy || hasDailyTime);
+
+    $.hdrDailyWrap.style.display = showDailyInHeader ? 'flex' : 'none';
+    if (showDailyInHeader) {
+      $.hdrDailyEnergy.style.display = hasDailyEnergy ? 'inline-flex' : 'none';
+      if (hasDailyEnergy) {
+        const fnE = dailyEnergyObj?.attributes?.friendly_name || localize(lang, 'daily_charge_short');
+        $.lblHdrDailyEnergy.textContent = fnE;
+        $.valHdrDailyEnergy.textContent = dailyEnergyFormatted;
+        $.hdrDailyEnergy.title = `${fnE}: ${dailyEnergyFormatted}`;
+      }
+      $.hdrDailyTime.style.display = hasDailyTime ? 'inline-flex' : 'none';
+      if (hasDailyTime) {
+        const fnT = dailyTimeObj?.attributes?.friendly_name || localize(lang, 'daily_charge_short');
+        $.lblHdrDailyTime.textContent = fnT;
+        $.valHdrDailyTime.textContent = dailyTimeFormatted;
+        $.hdrDailyTime.title = `${fnT}: ${dailyTimeFormatted}`;
+      }
+    }
+
+    $.panelDailyWrap.style.display = showDailyInPanel ? 'grid' : 'none';
+    if (showDailyInPanel) {
+      $.tileDailyEnergy.style.display = hasDailyEnergy ? 'flex' : 'none';
+      if (hasDailyEnergy) {
+        $.lblPanelDailyEnergy.textContent = localize(lang, 'daily_charge_energy');
+        $.valPanelDailyEnergy.textContent = dailyEnergyFormatted;
+        $.tileDailyEnergy.title = dailyEnergyObj?.attributes?.friendly_name || localize(lang, 'daily_charge_energy');
+      }
+      $.tileDailyTime.style.display = hasDailyTime ? 'flex' : 'none';
+      if (hasDailyTime) {
+        $.lblPanelDailyTime.textContent = localize(lang, 'daily_charge_time');
+        $.valPanelDailyTime.textContent = dailyTimeFormatted;
+        $.tileDailyTime.title = dailyTimeObj?.attributes?.friendly_name || localize(lang, 'daily_charge_time');
+      }
+    }
+
     // External Charger Power (W) & Energy (kWh)
     const pwrObj = this._getState(ents.charger_power_entity);
     const engObj = this._getState(ents.charger_energy_entity);
@@ -1052,6 +1156,8 @@ export class OutlanderPhevCard extends HTMLElement {
     if (this._drawerOpen) {
       const items = [
         { label: localize(lang, 'battery_title'), val: `${soc}%`, ent: ents.battery_entity },
+        { label: localize(lang, 'daily_charge_energy'), val: dailyEnergyFormatted, ent: ents.daily_charge_energy_entity },
+        { label: localize(lang, 'daily_charge_time'), val: dailyTimeFormatted, ent: ents.daily_charge_time_entity },
         { label: localize(lang, 'locked'), val: localize(lang, isLocked ? 'locked' : 'unlocked'), ent: ents.locked_entity },
         { label: localize(lang, 'bonnet'), val: localize(lang, openBonnet ? 'door_open' : 'door_closed'), ent: ents.bonnet_entity },
         { label: localize(lang, 'boot'), val: localize(lang, openBoot ? 'door_open' : 'door_closed'), ent: ents.boot_entity },
@@ -1102,7 +1208,7 @@ if (!window.customCards.some((c) => c.type === 'outlander-phev-card')) {
 }
 
 console.info(
-  '%c OUTLANDER-PHEV-CARD %c v1.0.0 ',
+  '%c OUTLANDER-PHEV-CARD %c v1.1.0 ',
   'background:#0ea5e9;color:#fff;font-weight:700;padding:2px 6px;border-radius:4px 0 0 4px;',
   'background:#1e293b;color:#38bdf8;font-weight:700;padding:2px 6px;border-radius:0 4px 4px 0;'
 );
