@@ -11,6 +11,7 @@ import {
   formatEstimatedCompletion,
   formatDailyEnergy,
   formatDailyDuration,
+  formatLastSeen,
   autoDiscoverPhevEntities,
   buildSparklinePaths,
   ENTITY_KEYS,
@@ -34,6 +35,7 @@ const ICONS = {
   parklight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8c-3 0-5 1.8-5 4s2 4 5 4V8z"/><path d="M15 8c3 0 5 1.8 5 4s-2 4-5 4V8z"/><path d="M1 9l1.5 1"/><path d="M1 15l1.5-1"/><path d="M23 9l-1.5 1"/><path d="M23 15l-1.5-1"/></svg>`,
   timerOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="13" r="8"/><path d="M3 3l18 18"/></svg>`,
   wifiSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`,
+  wifiOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 12.86a10 10 0 0 1 5.17-2.89"/><circle cx="12" cy="20" r="1"/></svg>`,
   hazard: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9l-4.5 8h9L12 9z"/></svg>`,
   bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.6 1 1.4 1 2.3h6c0-.9.4-1.7 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
   counter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><line x1="12" y1="5" x2="12" y2="19"/><path d="M6.3 10.2 7.8 9v6"/><path d="M15.2 10.2a1.8 1.8 0 0 1 3.4.8c0 1.4-3.4 2.8-3.4 4h3.6"/></svg>`,
@@ -63,6 +65,7 @@ export class OutlanderPhevCard extends HTMLElement {
       daily_charge_position: 'header',
       max_ev_range: 45,
       show_card_frame: true,
+      offline_dimming: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -109,6 +112,7 @@ export class OutlanderPhevCard extends HTMLElement {
       daily_charge_position: 'header',
       max_ev_range: 45,
       show_card_frame: true,
+      offline_dimming: true,
       show_sunroof: true,
       interactive_car: true,
       confirm_wifi_restart: true,
@@ -382,10 +386,11 @@ export class OutlanderPhevCard extends HTMLElement {
           <div class="ophev-header">
             <div class="brand-block">
               <div class="mitsu-badge">${ICONS.mitsubishi}</div>
-              <div class="title-wrap">
+              <div class="title-row">
                 <h2 class="card-title" id="hdr-title">Outlander PHEV</h2>
-                <div class="card-subtitle" id="hdr-conn-wrap" style="cursor:pointer">
-                  <span class="conn-dot" id="hdr-conn-dot"></span>
+                <div class="conn-pill online" id="hdr-conn-wrap">
+                  <span class="conn-dot online" id="hdr-conn-dot"></span>
+                  <span class="conn-pill-icon" id="hdr-conn-icon">${ICONS.wifiSync}</span>
                   <span id="hdr-conn-text">${localize(lang, 'connected')}</span>
                 </div>
               </div>
@@ -427,6 +432,21 @@ export class OutlanderPhevCard extends HTMLElement {
                 ${renderOutlanderSvg(uid)}
               </div>
 
+              <!-- Floating Glassmorphic Sleep / Offline HUD Card -->
+              <div class="offline-hud-card" id="offline-hud-card">
+                <div class="offline-radar-wrap">
+                  <span class="offline-radar-ring r1"></span>
+                  <span class="offline-radar-ring r2"></span>
+                  ${ICONS.wifiOff}
+                </div>
+                <div class="offline-hud-title">${localize(lang, 'offline_hud_title')}</div>
+                <div class="offline-hud-sub" id="offline-hud-sub">${localize(lang, 'offline_hud_desc')}</div>
+                <button type="button" class="offline-reconnect-btn" id="btn-offline-reconnect">
+                  ${ICONS.wifiSync}
+                  <span id="txt-offline-reconnect">${localize(lang, 'offline_reconnect_btn')}</span>
+                </button>
+              </div>
+
               <div class="door-chips-row" id="door-chips">
                 <span class="door-chip" data-door="bonnet" id="chip-bonnet">${localize(lang, 'bonnet_short')}</span>
                 <span class="door-chip" data-door="fl" id="chip-fl">${localize(lang, 'fl_short')}</span>
@@ -443,10 +463,10 @@ export class OutlanderPhevCard extends HTMLElement {
               <div class="hud-panel">
                 <div class="panel-head">
                   <span class="panel-label">${localize(lang, 'battery_title')}</span>
-                  <span class="ev-range-pill" id="ev-range-badge">~40 km EV</span>
+                  <span class="ev-range-pill phev-dep" id="ev-range-badge">~40 km EV</span>
                 </div>
 
-                <div class="battery-hero">
+                <div class="battery-hero phev-dep">
                   <div class="soc-big" id="soc-hero"><span id="soc-num">88</span><span class="unit">%</span></div>
                   <div style="text-align:right" id="charge-eta-box">
                     <div style="font-size:0.72rem;color:var(--ophev-muted)" id="eta-label">${localize(lang, 'remaining_time')}</div>
@@ -454,11 +474,11 @@ export class OutlanderPhevCard extends HTMLElement {
                   </div>
                 </div>
 
-                <div class="soc-bar-track" id="soc-bar-track">
+                <div class="soc-bar-track phev-dep" id="soc-bar-track">
                   <div class="soc-bar-fill" id="soc-bar-fill" style="width:88%"></div>
                 </div>
 
-                <div class="charge-banner" id="charge-banner" style="cursor:pointer">
+                <div class="charge-banner phev-dep" id="charge-banner" style="cursor:pointer">
                   <div class="charge-state-left">
                     <div class="charge-icon-box" id="charge-icon-box">${ICONS.plugOff}</div>
                     <div>
@@ -533,7 +553,7 @@ export class OutlanderPhevCard extends HTMLElement {
                   <span class="climate-badge" id="climate-badge">${localize(lang, 'climate_off')}</span>
                 </div>
 
-                <div class="btn-grid-3">
+                <div class="btn-grid-3 phev-dep">
                   <button type="button" class="ctrl-btn" id="btn-cool">
                     ${ICONS.cool}
                     <span class="ctrl-btn-text">${localize(lang, 'cool_btn')}</span>
@@ -548,7 +568,7 @@ export class OutlanderPhevCard extends HTMLElement {
                   </button>
                 </div>
 
-                <div class="climate-select-row" id="climate-select-wrap" style="display:none">
+                <div class="climate-select-row phev-dep" id="climate-select-wrap" style="display:none">
                   <select class="climate-select" id="sel-climate-mode"></select>
                 </div>
               </div>
@@ -560,7 +580,7 @@ export class OutlanderPhevCard extends HTMLElement {
                 </div>
 
                 <div class="btn-grid-2">
-                  <button type="button" class="ctrl-btn row-btn" id="btn-headlights">
+                  <button type="button" class="ctrl-btn row-btn phev-dep" id="btn-headlights">
                     ${ICONS.headlight}
                     <div>
                       <div class="ctrl-btn-text">${localize(lang, 'head_lights')}</div>
@@ -568,7 +588,7 @@ export class OutlanderPhevCard extends HTMLElement {
                     </div>
                   </button>
 
-                  <button type="button" class="ctrl-btn row-btn" id="btn-parklights">
+                  <button type="button" class="ctrl-btn row-btn phev-dep" id="btn-parklights">
                     ${ICONS.parklight}
                     <div>
                       <div class="ctrl-btn-text">${localize(lang, 'park_lights')}</div>
@@ -576,7 +596,7 @@ export class OutlanderPhevCard extends HTMLElement {
                     </div>
                   </button>
 
-                  <button type="button" class="ctrl-btn row-btn" id="btn-disable-timer">
+                  <button type="button" class="ctrl-btn row-btn phev-dep" id="btn-disable-timer">
                     ${ICONS.timerOff}
                     <div>
                       <div class="ctrl-btn-text" id="txt-disable-timer">${localize(lang, 'disable_timer')}</div>
@@ -594,11 +614,11 @@ export class OutlanderPhevCard extends HTMLElement {
                 </div>
 
                 <div class="aux-sensors-row">
-                  <div class="mini-ind" id="ind-hazard">
+                  <div class="mini-ind phev-dep" id="ind-hazard">
                     ${ICONS.hazard}
                     <span>${localize(lang, 'hazard_lights')}: <strong id="val-hazard">${localize(lang, 'inactive')}</strong></span>
                   </div>
-                  <div class="mini-ind" id="ind-interior">
+                  <div class="mini-ind phev-dep" id="ind-interior">
                     ${ICONS.bulb}
                     <span>${localize(lang, 'interior_lights')}: <strong id="val-interior">${localize(lang, 'inactive')}</strong></span>
                   </div>
@@ -622,6 +642,7 @@ export class OutlanderPhevCard extends HTMLElement {
       hdrTitle: q('hdr-title'),
       hdrConnWrap: q('hdr-conn-wrap'),
       hdrConnDot: q('hdr-conn-dot'),
+      hdrConnIcon: q('hdr-conn-icon'),
       hdrConnText: q('hdr-conn-text'),
       hdrDailyWrap: q('hdr-daily-wrap'),
       hdrDailyEnergy: q('hdr-daily-energy'),
@@ -637,6 +658,10 @@ export class OutlanderPhevCard extends HTMLElement {
       pillDoorsText: q('pill-doors-text'),
       bodyGrid: q('body-grid'),
       carStage: q('car-stage'),
+      offlineHudCard: q('offline-hud-card'),
+      offlineHudSub: q('offline-hud-sub'),
+      btnOfflineReconnect: q('btn-offline-reconnect'),
+      txtOfflineReconnect: q('txt-offline-reconnect'),
       svgBattClipRect: this.shadowRoot.querySelector('.svg-batt-clip-rect'),
       svgBattHorizon: this.shadowRoot.querySelector('.svg-batt-horizon-group'),
       svgBattMarker: this.shadowRoot.querySelector('.svg-batt-marker'),
@@ -753,6 +778,10 @@ export class OutlanderPhevCard extends HTMLElement {
     $.btnParklights.addEventListener('click', () => this._toggleEntity(ents().park_lights_entity));
     $.btnDisableTimer.addEventListener('click', () => this._handleDisableTimer());
     $.btnRestartWifi.addEventListener('click', () => this._handleRestartWifi());
+    $.btnOfflineReconnect.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      this._handleRestartWifi();
+    });
 
     $.indHazard.addEventListener('click', () => {
       const hEnt = ents().hazard_lights_entity;

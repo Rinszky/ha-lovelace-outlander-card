@@ -284,6 +284,33 @@ export function formatDailyDuration(stateObj, hass, lang = 'hu') {
   return `${h}${localize(lang, 'hr_short')} ${m}${localize(lang, 'min_tiny')}`;
 }
 
+export function formatLastSeen(stateObj, lang = 'hu') {
+  const rawTs = stateObj?.last_changed || stateObj?.last_updated;
+  if (rawTs) {
+    const dt = new Date(rawTs);
+    if (!Number.isNaN(dt.getTime())) {
+      const now = new Date();
+      const sameDay =
+        dt.getFullYear() === now.getFullYear() &&
+        dt.getMonth() === now.getMonth() &&
+        dt.getDate() === now.getDate();
+      const locale = lang === 'hu' ? 'hu-HU' : 'en-GB';
+      if (sameDay) {
+        const time = dt.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        return localize(lang, 'offline_last_seen_today', { time });
+      }
+      const date = dt.toLocaleString(locale, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      return localize(lang, 'offline_last_seen_date', { date });
+    }
+  }
+  return localize(lang, 'offline_hud_desc');
+}
+
 /**
  * Automatically discovers phev2mqtt entities from Home Assistant's device/entity registries and state machine.
  */

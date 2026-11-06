@@ -385,6 +385,10 @@ export class OutlanderPhevCardEditor extends HTMLElement {
               <input type="checkbox" id="chk-card-frame" ${cfg.show_card_frame !== false && cfg.frameless !== true ? 'checked' : ''} />
             </label>
             <label class="toggle-row">
+              <span class="field-label">${localize(lang, 'ed_offline_dimming')}</span>
+              <input type="checkbox" id="chk-offline-dim" ${cfg.offline_dimming !== false ? 'checked' : ''} />
+            </label>
+            <label class="toggle-row">
               <span class="field-label">${localize(lang, 'ed_show_sunroof')}</span>
               <input type="checkbox" id="chk-sunroof" ${cfg.show_sunroof !== false ? 'checked' : ''} />
             </label>
@@ -558,6 +562,10 @@ export class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ show_card_frame: e.target.checked, frameless: undefined });
     });
 
+    sr.getElementById('chk-offline-dim')?.addEventListener('change', (e) => {
+      this._emitConfig({ offline_dimming: e.target.checked });
+    });
+
     sr.getElementById('chk-sunroof')?.addEventListener('change', (e) => {
       this._emitConfig({ show_sunroof: e.target.checked });
     });
@@ -599,6 +607,11 @@ export class OutlanderPhevCardEditor extends HTMLElement {
     const frameChk = sr.getElementById('chk-card-frame');
     if (frameChk) {
       frameChk.checked = this._config.show_card_frame !== false && this._config.frameless !== true;
+    }
+
+    const offDimChk = sr.getElementById('chk-offline-dim');
+    if (offDimChk) {
+      offDimChk.checked = this._config.offline_dimming !== false;
     }
 
     for (const [key, entry] of this._selectors.entries()) {

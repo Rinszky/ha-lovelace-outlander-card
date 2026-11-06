@@ -139,13 +139,17 @@ export const CARD_STYLES = `
     filter: drop-shadow(0 0 6px rgba(225, 29, 72, 0.45));
   }
 
-  .title-wrap {
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
     min-width: 0;
   }
 
   .card-title {
     margin: 0;
-    font-size: 1.08rem;
+    font-size: 1.12rem;
     font-weight: 700;
     letter-spacing: -0.01em;
     color: #f8fafc;
@@ -154,31 +158,93 @@ export const CARD_STYLES = `
     text-overflow: ellipsis;
   }
 
-  .card-subtitle {
-    display: flex;
+  /* Modern Telemetry Connection Pill (Online vs Offline) */
+  .conn-pill {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
+    gap: 7px;
+    padding: 4px 11px 4px 9px;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.3s ease;
+    background: rgba(30, 41, 59, 0.78);
+    border: 1px solid var(--ophev-border-strong);
     color: var(--ophev-muted);
-    margin-top: 2px;
+  }
+
+  .conn-pill:hover {
+    transform: translateY(-1px);
+  }
+
+  .conn-pill.online {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(6, 78, 59, 0.32));
+    border-color: rgba(16, 185, 129, 0.48);
+    color: #34d399;
+    box-shadow: 0 0 18px -4px rgba(16, 185, 129, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+
+  .conn-pill.offline {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.24), rgba(127, 29, 29, 0.38));
+    border-color: rgba(248, 113, 113, 0.6);
+    color: #fca5a5;
+    animation: connOfflineGlow 2.2s ease-in-out infinite;
+  }
+
+  @keyframes connOfflineGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    50% { box-shadow: 0 0 16px 1px rgba(239, 68, 68, 0.36); }
+  }
+
+  .conn-pill-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .conn-pill-icon svg {
+    width: 14px;
+    height: 14px;
   }
 
   .conn-dot {
+    position: relative;
     width: 7px;
     height: 7px;
     border-radius: 50%;
     background: #64748b;
+    flex-shrink: 0;
     transition: all 0.3s ease;
   }
 
   .conn-dot.online {
-    background: var(--ophev-emerald);
-    box-shadow: 0 0 8px var(--ophev-emerald);
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+  }
+
+  .conn-dot.online::after {
+    content: '';
+    position: absolute;
+    inset: -3px;
+    border-radius: 50%;
+    border: 1.5px solid #10b981;
+    animation: connSonar 2.4s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+
+  @keyframes connSonar {
+    0% { transform: scale(0.75); opacity: 0.9; }
+    100% { transform: scale(2.1); opacity: 0; }
   }
 
   .conn-dot.offline {
-    background: var(--ophev-red);
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    background: #ef4444;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
   }
 
   .header-pills {
@@ -1266,5 +1332,200 @@ export const CARD_STYLES = `
     font-weight: 600;
     color: #e2e8f0;
     white-space: nowrap;
+  }
+
+  /* =========================================================
+     VEHICLE OFFLINE / SLEEP MODE HUD & SELECTIVE DIMMING
+     ========================================================= */
+  .car-svg-wrap {
+    transition: filter 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .mitsu-badge svg {
+    transition: filter 0.5s ease, opacity 0.5s ease;
+  }
+
+  ha-card.ophev-card.is-offline .mitsu-badge svg {
+    filter: grayscale(0.55);
+    opacity: 0.65;
+  }
+
+  .car-stage-card.is-offline {
+    border-color: rgba(148, 163, 184, 0.16);
+  }
+
+  .car-stage-card.is-offline .car-svg-wrap {
+    filter: grayscale(0.9) brightness(0.46) contrast(0.92);
+    opacity: 0.62;
+    transform: scale(0.982);
+    pointer-events: none;
+  }
+
+  .car-stage-card.is-offline .door-chips-row {
+    opacity: 0.38;
+    filter: grayscale(0.8);
+    transition: opacity 0.4s ease;
+  }
+
+  /* Floating Glassmorphic Offline HUD Card on Car Stage */
+  .offline-hud-card {
+    position: absolute;
+    top: 48%;
+    left: 50%;
+    transform: translate(-50%, -44%) scale(0.94);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 15;
+    width: calc(100% - 34px);
+    max-width: 256px;
+    padding: 16px 16px 15px;
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(15, 23, 42, 0.88), rgba(9, 13, 22, 0.94));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(248, 113, 113, 0.36);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.72), 0 0 28px -8px rgba(239, 68, 68, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    transition: opacity 0.45s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .car-stage-card.is-offline .offline-hud-card {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    pointer-events: auto;
+  }
+
+  .offline-radar-wrap {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(239, 68, 68, 0.24) 0%, rgba(239, 68, 68, 0.06) 72%);
+    border: 1px solid rgba(248, 113, 113, 0.45);
+    color: #f87171;
+    display: grid;
+    place-items: center;
+    margin-bottom: 2px;
+  }
+
+  .offline-radar-wrap svg {
+    width: 20px;
+    height: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .offline-radar-ring {
+    position: absolute;
+    inset: -1px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(248, 113, 113, 0.5);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .car-stage-card.is-offline .offline-radar-ring.r1 {
+    animation: offlineRadarExpand 2.8s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+  }
+
+  .car-stage-card.is-offline .offline-radar-ring.r2 {
+    animation: offlineRadarExpand 2.8s cubic-bezier(0.16, 1, 0.3, 1) 1.4s infinite;
+  }
+
+  @keyframes offlineRadarExpand {
+    0% { transform: scale(0.85); opacity: 0.75; }
+    100% { transform: scale(1.75); opacity: 0; }
+  }
+
+  .offline-hud-title {
+    font-size: 0.86rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #f8fafc;
+    line-height: 1.25;
+  }
+
+  .offline-hud-sub {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: #94a3b8;
+    line-height: 1.35;
+  }
+
+  .offline-reconnect-btn {
+    margin-top: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 11px;
+    border: 1px solid rgba(56, 189, 248, 0.42);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.22), rgba(30, 41, 59, 0.85));
+    color: #e0f2fe;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .offline-reconnect-btn:hover {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.35), rgba(30, 41, 59, 0.95));
+    border-color: rgba(56, 189, 248, 0.7);
+    transform: translateY(-1px);
+  }
+
+  .offline-reconnect-btn.confirming {
+    border-color: rgba(245, 158, 11, 0.65);
+    background: rgba(245, 158, 11, 0.22);
+    color: #fef3c7;
+  }
+
+  .offline-reconnect-btn.sent-ok {
+    border-color: rgba(16, 185, 129, 0.65);
+    background: rgba(16, 185, 129, 0.22);
+    color: #d1fae5;
+  }
+
+  .offline-reconnect-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  /* Selective dimming of phev2mqtt-dependent readouts & controls when offline
+     (External wallbox W/kWh sparklines, Daily Charge helpers & Wi-Fi Restart stay 100% live!) */
+  .phev-dep {
+    transition: opacity 0.45s ease, filter 0.45s ease;
+  }
+
+  ha-card.ophev-card.is-offline .phev-dep {
+    opacity: 0.46;
+    filter: grayscale(0.72);
+  }
+
+  ha-card.ophev-card.is-offline #pill-lock,
+  ha-card.ophev-card.is-offline #pill-doors {
+    opacity: 0.46;
+    filter: grayscale(0.75);
+    animation: none !important;
+  }
+
+  .climate-badge.offline {
+    color: #fca5a5;
+    border-color: rgba(248, 113, 113, 0.4);
+    background: rgba(239, 68, 68, 0.14);
+  }
+
+  ha-card.ophev-card.is-offline #btn-restart-wifi:not(:disabled) {
+    border-color: rgba(56, 189, 248, 0.48);
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(30, 41, 59, 0.82));
+    box-shadow: 0 0 16px -4px rgba(14, 165, 233, 0.3);
   }
 `;
