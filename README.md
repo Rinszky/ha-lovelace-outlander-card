@@ -1,10 +1,61 @@
-# Mitsubishi Outlander PHEV Lovelace Card (`phev2mqtt`)
+<div align="center">
 
-Egyedi, fotorealisztikus felülnézeti **Home Assistant Lovelace kártya** a **Mitsubishi Outlander PHEV** (`phev2mqtt` integráció) összes érzékelőjéhez és vezérlőjéhez, opcionális külső töltésmérő (`W` / `kWh`) támogatással.
+# 🚗 Mitsubishi Outlander PHEV Lovelace Card (`phev2mqtt`)
+
+**Fotorealisztikus, interaktív felülnézeti Home Assistant Lovelace kártya a Mitsubishi Outlander PHEV (`phev2mqtt`) összes érzékelőjéhez és vezérlőjéhez**
+
+[![Verzió](https://img.shields.io/badge/verzi%C3%B3-v1.3.0-0ea5e9?style=for-the-badge)](./package.json)
+[![HACS](https://img.shields.io/badge/HACS-Custom-10b981?style=for-the-badge)](https://hacs.xyz)
+[![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Lovelace-38bdf8?style=for-the-badge&logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
+[![Élő Demó](https://img.shields.io/badge/%F0%9F%8E%AE_%C3%89l%C5%91_Dem%C3%B3-Kipr%C3%B3b%C3%A1l%C3%A1s-f59e0b?style=for-the-badge)](https://rinszky.github.io/ha-lovelace-outlander-card/demo/)
+
+<br />
+
+<a href="./docs/screenshots/hero-lights-doors-editor.png">
+  <img src="./docs/screenshots/hero-lights-doors-editor.png" alt="Mitsubishi Outlander PHEV Lovelace Card — Animált világítás, ajtónyitás, szélvédőfűtés és Vizuális Szerkesztő" width="100%" />
+</a>
+
+*Felkapcsolt tompított fényszóró és hátsó helyzetjelző, nyitott vezetőoldali ajtó biztonsági ívvel, aktív szélvédő-páramentesítés, `37%`-os arányos akkumulátor-színezés és az 1-kattintásos Vizuális Szerkesztő.*
+
+</div>
 
 ---
 
-## Főbb funkciók
+## 📸 Képernyőképek és Állapotok
+
+<table>
+  <tr>
+    <td width="50%" align="center" valign="top">
+      <a href="./docs/screenshots/charging-active.png">
+        <img src="./docs/screenshots/charging-active.png" alt="Aktív töltés — 58% töltöttség és animált töltőkábel" width="100%" />
+      </a>
+      <br />
+      <b>⚡ Aktív töltés (<code>58%</code>)</b><br />
+      <sub>Smaragdzöld energia-aura, nyitott jobb hátsó töltőfedél pulzáló töltőkábellel és valós idejű karosszéria-színezéssel.</sub>
+    </td>
+    <td width="50%" align="center" valign="top">
+      <a href="./docs/screenshots/idle-locked-simulator.png">
+        <img src="./docs/screenshots/idle-locked-simulator.png" alt="Zárolt alapállapot és beépített Szenzor Szimulátor" width="100%" />
+      </a>
+      <br />
+      <b>🔒 Zárolt alapállapot &amp; Szenzor Szimulátor</b><br />
+      <sub>Letisztult sötét stúdió megjelenés zárolt központi zárral, napi töltés jelvényekkel és az interaktív tesztpanellel.</sub>
+    </td>
+  </tr>
+</table>
+
+<div align="center">
+  <a href="./docs/screenshots/telemetry-controls.png">
+    <img src="./docs/screenshots/telemetry-controls.png" alt="Meghajtó akkumulátor telemetria, W és kWh sparkline grafikonok, előfűtés/klíma és világítás vezérlőpanelek" width="88%" />
+  </a>
+  <br />
+  <b>📊 Telemetria, 24 órás Sparkline Grafikonok és Vezérlőpanelek</b><br />
+  <sub>Hátralévő töltési idő és várható befejezés, külső fali töltő teljesítmény (<code>W</code>) és energia (<code>kWh</code>) grafikonok, egyérintéses klíma-előfűtés/hűtés/szélvédő vezérlés, valamint világítás- és rendszerkapcsolók.</sub>
+</div>
+
+---
+
+## ✨ Főbb funkciók
 
 - **Részletgazdag felülnézeti Mitsubishi Outlander PHEV (Dynamic Shield) SVG grafika**
   - Szabadon választható metálfényezés (8 gyári színprofil + egyedi színválasztó, alapértelmezett: sötétszürke/grafitfekete).
