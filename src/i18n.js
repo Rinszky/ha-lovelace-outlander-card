@@ -171,6 +171,8 @@ export const TRANSLATIONS = {
     // Diagnostics & System
     diag_btn: 'Diagnosztika',
     diag_title: 'Jármű Diagnosztika, Óra és Wi-Fi',
+    diag_sub: 'Gyújtás, Riasztó, Óra, Wi-Fi és ECU diagnosztika',
+    timers_sub: 'Klíma, Előfűtés és Töltési menetrend (1-5 slot)',
     ignition_title: 'Gyújtás / Menetkészültség',
     ignition_off: 'Kikapcsolva (OFF)',
     ignition_acc: 'Tartozékok (ACC)',
@@ -187,6 +189,7 @@ export const TRANSLATIONS = {
     locate_car: 'Autó keresése (Fénykürt)',
     locate_car_btn: 'Jármű keresése (Fénykürt)',
     locate_car_sent: 'Fénykürt aktiválva!',
+    thermal_title: 'Akkumulátor Védelem',
     battery_thermal_title: 'Akkumulátor Védelem',
     battery_warming: 'Akkumulátorfűtés aktív',
     batt_thermal_state: 'Akkumulátor hőmérséklet',
@@ -411,6 +414,8 @@ export const TRANSLATIONS = {
     // Diagnostics & System
     diag_btn: 'Diagnostics',
     diag_title: 'Vehicle Diagnostics, Clock & Wi-Fi',
+    diag_sub: 'Ignition, Alarm, Clock, Wi-Fi & ECU Diagnostics',
+    timers_sub: 'Climate, Pre-heating & Charging Schedules (Slots 1-5)',
     ignition_title: 'Ignition / Readiness',
     ignition_off: 'OFF',
     ignition_acc: 'ACC (Accessories)',
@@ -427,6 +432,7 @@ export const TRANSLATIONS = {
     locate_car: 'Locate Car (Flash)',
     locate_car_btn: 'Locate Vehicle (Flash Lights)',
     locate_car_sent: 'Lights Flashed!',
+    thermal_title: 'Drive Battery Health',
     battery_thermal_title: 'Drive Battery Health',
     batt_thermal_state: 'Battery Temperature',
     battery_warming: 'Battery Heater Active',

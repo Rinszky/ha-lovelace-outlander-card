@@ -1778,6 +1778,7 @@ export const CARD_STYLES = `
     flex-direction: column;
     gap: 8px;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .days-row {
@@ -1785,23 +1786,28 @@ export const CARD_STYLES = `
     gap: 6px;
     flex-wrap: wrap;
     align-items: center;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .day-chip {
-    width: 33px;
-    height: 33px;
+    min-width: 36px;
+    height: 34px;
+    padding: 0 6px;
     border-radius: 9px;
     border: 1px solid var(--ophev-border);
     background: rgba(9, 13, 22, 0.75);
     color: var(--ophev-muted);
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 700;
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.18s ease;
     user-select: none;
     font-family: inherit;
+    box-sizing: border-box;
   }
 
   .day-chip:hover {
@@ -1816,8 +1822,17 @@ export const CARD_STYLES = `
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.22);
   }
 
+  .presets-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .preset-chip {
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 8px;
     border: 1px solid var(--ophev-border);
     background: rgba(9, 13, 22, 0.65);
@@ -1827,6 +1842,7 @@ export const CARD_STYLES = `
     cursor: pointer;
     transition: all 0.18s ease;
     font-family: inherit;
+    box-sizing: border-box;
   }
 
   .preset-chip:hover {
@@ -2017,9 +2033,10 @@ export const CARD_STYLES = `
   }
 
   /* =========================================================
-     VEHICLE CUSTOMIZATION SETTINGS MODAL DIALOG (ETACS / AC)
+     MODAL DIALOGS (SETTINGS, TIMERS, DIAGNOSTICS)
      ========================================================= */
-  .settings-modal-backdrop {
+  .settings-modal-backdrop,
+  .ophev-modal-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(5, 9, 16, 0.82);
@@ -2033,14 +2050,17 @@ export const CARD_STYLES = `
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
+    box-sizing: border-box;
   }
 
-  .settings-modal-backdrop.open {
+  .settings-modal-backdrop.open,
+  .ophev-modal-backdrop.open {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .settings-modal-card {
+  .settings-modal-card,
+  .ophev-modal-card {
     width: 100%;
     max-width: 820px;
     max-height: 88vh;
@@ -2053,9 +2073,11 @@ export const CARD_STYLES = `
     overflow: hidden;
     transform: scale(0.96);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
   }
 
-  .settings-modal-backdrop.open .settings-modal-card {
+  .settings-modal-backdrop.open .settings-modal-card,
+  .ophev-modal-backdrop.open .ophev-modal-card {
     transform: scale(1);
   }
 

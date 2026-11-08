@@ -75,12 +75,14 @@
   - **Kategorizált szűrőkapszulák**: *Ablaktörlők*, *Irányjelző* (komfort 3-villanás), *Kulcsnélküli & Riasztó*, *Világítás* (hazakísérő fény késleltetés), *Tükrök* (automatikus behajtás zárásra/nyitásra), *Ajtózárak* (sebességfüggő automatikus zárás), *Ablakok*, *Klíma* (külső levegő / belső keringetés prioritás), *Egyéb*.
   - **Élő keresőmező** a beállítások azonnali szűrésére.
   - **Gyári beállítások visszaállítása (Factory Reset)** egy kattintással megerősítéssel.
-- **⏰ Töltés és Előfűtés Időzítők Kezelése (Timers 1–5)**
+- **⏰ Töltés és Előfűtés Időzítők Popup Modal (Timers 1–5)**
+  - A fejléc óra ikonjára kattintva különálló, felugró modális ablakban kezelhetők az időzítők — a kártya mérete és elrendezése teljesen stabil marad.
   - Külön alfülek a **Klíma & Fűtés időzítőknek** és a **Töltési időzítőknek**.
   - **Slot-választó kapszulák (1..5)** aktív állapotjelző ponttal és mentett időponttal.
-  - Részletes slot-szerkesztő: indulási idő, töltési kezdet/vége, időtartam választó (10/20/30 perc), nap-kiválasztó gombok (Hét..Vas) és gyors presetek (*Minden nap*, *Hétköznapok*, *Hétvégék*).
+  - Részletes slot-szerkesztő: indulási idő, töltési kezdet/vége, időtartam választó (10/20/30 perc), reszponzív nap-kiválasztó gombok (Hét..Vas) és gyors presetek (*Minden nap*, *Hétköznapok*, *Hétvégék*), túlcsordulás-mentes elrendezéssel.
   - Főkapcsoló és üzemmód (hűtés/fűtés/szélvédő) közvetlen eléréssel.
-- **🔍 Dedikált Diagnosztika Blokk (Diagnostics & Security)**
+- **🔍 Jármű Diagnosztika és Rendszeradatok Popup Modal (Diagnostics)**
+  - A fejléc villáskulcs/műszerfal ikonjára kattintva felugró modális ablak:
   - **Gyújtás állapot**: `OFF`, `ACC`, `ON`, `READY` dinamikus állapotjelző jelvény.
   - **Lopásgátló riasztó**: Élesítve / Hatástalanítva banner, riasztás esetén villogó riasztási sáv és egyérintéses **Riasztás törlése** gomb.
   - **Jármű belső órája** valós idejű kijelzéssel és **Óra szinkronizálása a Home Assistanttal** gombbal.
@@ -91,7 +93,7 @@
 - **🛡️ Ugrásmentes Gördülés (Scroll Stability Fix)**
   - Megszüntetve az oldal aljára görgetéskor jelentkező 1–2 másodperces felugrási hiba.
   - Intelligens entitás-változás figyelés: a más helyiségekben frissülő szenzorok nem okoznak felesleges DOM újrarendezést és layout reflow-t.
-  - `overflow-anchor: none` védelem és optimális kártyaméret (`getCardSize: 16`) a Lovelace Masonry rácshoz.
+  - Mivel a Beállítások, az Időzítők és a Diagnosztika is modális felugró ablakban (`fixed popup modal`) jelenik meg, a kártya magassága soha nem növekszik meg hirtelen, így a Lovelace Masonry rács és a böngésző görgetési pozíciója (`overflow-anchor: none`) sziklaszilárd marad.
 - **Külső és Napi töltésmérő segéd-entitások támogatása**
   - Opcionálisan beköthető **Napi töltés energiában (`kWh` / `kW`)** és **Napi töltési idő órában (`h` / `perc` / `history_stats`)** segéd-entitás.
   - Opcionálisan beköthető külső fali töltő / okoskonnektor **Teljesítmény (`W` / `kW`)** és **Elfogyasztott energia (`kWh`)** szenzor 24 órás Home Assistant előzmény-grafikonnal (sparkline).

@@ -181,6 +181,8 @@ const TRANSLATIONS = {
     // Diagnostics & System
     diag_btn: 'Diagnosztika',
     diag_title: 'Jármű Diagnosztika, Óra és Wi-Fi',
+    diag_sub: 'Gyújtás, Riasztó, Óra, Wi-Fi és ECU diagnosztika',
+    timers_sub: 'Klíma, Előfűtés és Töltési menetrend (1-5 slot)',
     ignition_title: 'Gyújtás / Menetkészültség',
     ignition_off: 'Kikapcsolva (OFF)',
     ignition_acc: 'Tartozékok (ACC)',
@@ -197,6 +199,7 @@ const TRANSLATIONS = {
     locate_car: 'Autó keresése (Fénykürt)',
     locate_car_btn: 'Jármű keresése (Fénykürt)',
     locate_car_sent: 'Fénykürt aktiválva!',
+    thermal_title: 'Akkumulátor Védelem',
     battery_thermal_title: 'Akkumulátor Védelem',
     battery_warming: 'Akkumulátorfűtés aktív',
     batt_thermal_state: 'Akkumulátor hőmérséklet',
@@ -421,6 +424,8 @@ const TRANSLATIONS = {
     // Diagnostics & System
     diag_btn: 'Diagnostics',
     diag_title: 'Vehicle Diagnostics, Clock & Wi-Fi',
+    diag_sub: 'Ignition, Alarm, Clock, Wi-Fi & ECU Diagnostics',
+    timers_sub: 'Climate, Pre-heating & Charging Schedules (Slots 1-5)',
     ignition_title: 'Ignition / Readiness',
     ignition_off: 'OFF',
     ignition_acc: 'ACC (Accessories)',
@@ -437,6 +442,7 @@ const TRANSLATIONS = {
     locate_car: 'Locate Car (Flash)',
     locate_car_btn: 'Locate Vehicle (Flash Lights)',
     locate_car_sent: 'Lights Flashed!',
+    thermal_title: 'Drive Battery Health',
     battery_thermal_title: 'Drive Battery Health',
     batt_thermal_state: 'Battery Temperature',
     battery_warming: 'Battery Heater Active',
@@ -865,15 +871,17 @@ function autoDiscoverPhevEntities(hass) {
     }
   }
 
-  // Also include entities matching phev / outlander or signature phev2mqtt names
+  // Also include entities matching phev / outlander / mitsubishi or signature phev2mqtt names
   for (const st of allStates) {
     const id = st.entity_id.toLowerCase();
     const fn = String(st.attributes?.friendly_name || '').toLowerCase();
     if (
       id.includes('phev') ||
       id.includes('outlander') ||
+      id.includes('mitsubishi') ||
       fn.includes('phev') ||
       fn.includes('outlander') ||
+      fn.includes('mitsubishi') ||
       id.includes('restart_wifi_connetion') ||
       id.includes('reconnect_wifi') ||
       id.includes('cancel_charge_timer') ||
@@ -883,13 +891,13 @@ function autoDiscoverPhevEntities(hass) {
     }
   }
 
-  // If still small, search all states for exact phev2mqtt friendly names (e.g., when device prefix was stripped in HA)
-  const pool = candidateIds.size >= 4
+  // If candidate pool has elements, search it first; fallback to all states
+  const pool = candidateIds.size >= 1
     ? Array.from(candidateIds).map((id) => hass.states[id]).filter(Boolean)
     : allStates;
 
   const pick = (domains, matchFn) => {
-    // Prefer candidates from the PHEV pool first, then fallback to allStates for helper templates
+    // Prefer candidates from the PHEV pool first, then fallback to allStates
     const foundInPool = pool.find((st) => {
       const dom = st.entity_id.split('.')[0];
       if (domains && !domains.includes(dom)) return false;
@@ -904,7 +912,7 @@ function autoDiscoverPhevEntities(hass) {
       if (domains && !domains.includes(dom)) return false;
       const id = st.entity_id.toLowerCase();
       const fn = String(st.attributes?.friendly_name || '').toLowerCase();
-      return (id.includes('phev') || id.includes('outlander') || id.includes('charge')) && matchFn(id, fn, st);
+      return matchFn(id, fn, st);
     });
     return foundGlobal ? foundGlobal.entity_id : undefined;
   };
@@ -1044,49 +1052,47 @@ function autoDiscoverPhevEntities(hass) {
       id.includes('alarm_clear') ||
       (fn.includes('clear') && fn.includes('alarm'))
     ),
-    locate_car_entity: pick(['button', 'switch'], (id, fn) =>
-      id.includes('locate_car') || id.includes('locate') || fn.includes('locate')
+    locate_car_entity: pick(['button', 'switch', 'light'], (id, fn) =>
+      id.includes('locate_car') || id.includes('flash_lights') || id.includes('locate') || fn.includes('locate')
     ),
     car_clock_entity: pick(['sensor'], (id, fn) =>
-      id.includes('car_clock') || id.includes('phev_clock') || fn.includes('car clock')
+      id.includes('car_clock') || id.includes('phev_clock') || (id.includes('clock') && !id.includes('sync')) || fn.includes('car clock') || fn.includes('clock')
     ),
     sync_car_clock_entity: pick(['button', 'switch'], (id, fn) =>
-      (id.includes('sync') && (id.includes('clock') || id.includes('time'))) ||
-      id.includes('synctime') ||
-      (fn.includes('sync') && (fn.includes('clock') || fn.includes('time')))
+      id.includes('sync_car_clock') || (id.includes('sync') && id.includes('clock')) || id.includes('synctime') || (fn.includes('sync') && fn.includes('clock'))
     ),
-    battery_warning_entity: pick(['binary_sensor'], (id, fn) =>
-      id.includes('battery_warning') || fn.includes('battery warning')
+    battery_warning_entity: pick(['binary_sensor', 'sensor'], (id, fn) =>
+      (id.includes('battery_warning') || fn.includes('battery warning')) && !id.includes('thermal') && !id.includes('warming')
     ),
-    battery_thermal_entity: pick(['sensor'], (id, fn) =>
-      id.includes('battery_thermal') || id.includes('battery_warning_active') || fn.includes('thermal')
+    battery_thermal_entity: pick(['sensor', 'binary_sensor'], (id, fn) =>
+      id.includes('battery_thermal') || id.includes('thermal_status') || (id.includes('thermal') && !id.includes('warming')) || fn.includes('thermal')
     ),
-    battery_warming_entity: pick(['binary_sensor'], (id, fn) =>
-      id.includes('battery_warming') || fn.includes('battery warming')
+    battery_warming_entity: pick(['binary_sensor', 'sensor', 'switch'], (id, fn) =>
+      id.includes('battery_warming') || id.includes('battery_heater') || fn.includes('battery warming') || fn.includes('warming') || fn.includes('heater')
     ),
     wifi_ssid_entity: pick(['sensor'], (id, fn) =>
-      id.includes('wifi_ssid') || fn.includes('wifi ssid')
+      id.includes('wifi_ssid') || id.includes('ssid') || fn.includes('wifi ssid') || fn.includes('ssid')
     ),
     wifi_channel_entity: pick(['select', 'sensor'], (id, fn) =>
-      id.includes('wifi_channel') || fn.includes('wifi channel')
+      id.includes('wifi_channel') || id.includes('channel') || fn.includes('wifi channel') || fn.includes('channel')
     ),
-    wifi_always_on_entity: pick(['switch'], (id, fn) =>
-      id.includes('keep_wifi_always_active') || id.includes('wifi_always_on') || fn.includes('always active')
+    wifi_always_on_entity: pick(['switch', 'binary_sensor'], (id, fn) =>
+      id.includes('keep_wifi_always_active') || id.includes('wifi_always_on') || id.includes('always_active') || fn.includes('always active') || fn.includes('always on')
     ),
-    refresh_status_entity: pick(['button'], (id, fn) =>
+    refresh_status_entity: pick(['button', 'switch'], (id, fn) =>
       id.includes('refresh_vehicle_status') || id.includes('refresh') || fn.includes('refresh')
     ),
     vin_entity: pick(['sensor'], (id, fn) =>
-      id.includes('phev_vin') || fn === 'vin' || fn.includes('vin')
+      id.includes('phev_vin') || id.endsWith('_vin') || id.includes('vin') || id.includes('alvazszam') || fn.includes('vin')
     ),
     ecu_version_entity: pick(['sensor'], (id, fn) =>
-      id.includes('ecu_version') || id.includes('ecuversion') || fn.includes('ecu version')
+      id.includes('ecu_version') || id.includes('ecuversion') || id.includes('firmware') || fn.includes('ecu version') || fn.includes('firmware')
     ),
     steering_side_entity: pick(['sensor'], (id, fn) =>
       id.includes('steering_side') || id.includes('steering') || fn.includes('steering')
     ),
     registered_phones_entity: pick(['sensor'], (id, fn) =>
-      id.includes('registered_smartphones') || id.includes('registrations') || fn.includes('registered')
+      id.includes('registered_smartphones') || id.includes('smartphones') || id.includes('registrations') || fn.includes('smartphones') || fn.includes('registered')
     ),
     last_seen_entity: pick(['sensor'], (id, fn) =>
       id.includes('phev_last_seen') || fn.includes('last seen')
@@ -3768,6 +3774,7 @@ const CARD_STYLES = `
     flex-direction: column;
     gap: 8px;
     width: 100%;
+    box-sizing: border-box;
   }
 
   .days-row {
@@ -3775,23 +3782,28 @@ const CARD_STYLES = `
     gap: 6px;
     flex-wrap: wrap;
     align-items: center;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .day-chip {
-    width: 33px;
-    height: 33px;
+    min-width: 36px;
+    height: 34px;
+    padding: 0 6px;
     border-radius: 9px;
     border: 1px solid var(--ophev-border);
     background: rgba(9, 13, 22, 0.75);
     color: var(--ophev-muted);
-    font-size: 0.75rem;
+    font-size: 0.74rem;
     font-weight: 700;
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.18s ease;
     user-select: none;
     font-family: inherit;
+    box-sizing: border-box;
   }
 
   .day-chip:hover {
@@ -3806,8 +3818,17 @@ const CARD_STYLES = `
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.22);
   }
 
+  .presets-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
   .preset-chip {
-    padding: 5px 10px;
+    padding: 6px 12px;
     border-radius: 8px;
     border: 1px solid var(--ophev-border);
     background: rgba(9, 13, 22, 0.65);
@@ -3817,6 +3838,7 @@ const CARD_STYLES = `
     cursor: pointer;
     transition: all 0.18s ease;
     font-family: inherit;
+    box-sizing: border-box;
   }
 
   .preset-chip:hover {
@@ -4007,9 +4029,10 @@ const CARD_STYLES = `
   }
 
   /* =========================================================
-     VEHICLE CUSTOMIZATION SETTINGS MODAL DIALOG (ETACS / AC)
+     MODAL DIALOGS (SETTINGS, TIMERS, DIAGNOSTICS)
      ========================================================= */
-  .settings-modal-backdrop {
+  .settings-modal-backdrop,
+  .ophev-modal-backdrop {
     position: fixed;
     inset: 0;
     background: rgba(5, 9, 16, 0.82);
@@ -4023,14 +4046,17 @@ const CARD_STYLES = `
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.25s ease;
+    box-sizing: border-box;
   }
 
-  .settings-modal-backdrop.open {
+  .settings-modal-backdrop.open,
+  .ophev-modal-backdrop.open {
     opacity: 1;
     pointer-events: auto;
   }
 
-  .settings-modal-card {
+  .settings-modal-card,
+  .ophev-modal-card {
     width: 100%;
     max-width: 820px;
     max-height: 88vh;
@@ -4043,9 +4069,11 @@ const CARD_STYLES = `
     overflow: hidden;
     transform: scale(0.96);
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-sizing: border-box;
   }
 
-  .settings-modal-backdrop.open .settings-modal-card {
+  .settings-modal-backdrop.open .settings-modal-card,
+  .ophev-modal-backdrop.open .ophev-modal-card {
     transform: scale(1);
   }
 
@@ -4941,8 +4969,8 @@ class OutlanderPhevCard extends HTMLElement {
     this._autoDiscoveredCache = null;
     this._lastValidSoc = 88;
     this._drawerOpen = false;
-    this._timersPanelOpen = false;
-    this._diagPanelOpen = false;
+    this._timersModalOpen = false;
+    this._diagModalOpen = false;
     this._settingsModalOpen = false;
     this._settingsCategoryFilter = 'all';
     this._settingsSearchTerm = '';
@@ -5035,7 +5063,7 @@ class OutlanderPhevCard extends HTMLElement {
 
     // 3. Settings selects
     for (const eid of Object.keys(newHass.states)) {
-      if (eid.startsWith('select.') && (eid.includes('_setting_') || eid.includes('phev_settings_'))) {
+      if (eid.startsWith('select.') && (eid.includes('_setting_') || eid.includes('phev_settings_') || eid.includes('phev_etacs'))) {
         if (oldHass.states[eid] !== newHass.states[eid]) return true;
       }
     }
@@ -5045,8 +5073,6 @@ class OutlanderPhevCard extends HTMLElement {
 
   getCardSize() {
     let size = 16;
-    if (this._timersPanelOpen) size += 8;
-    if (this._diagPanelOpen) size += 8;
     if (this._drawerOpen) size += 6;
     return size;
   }
@@ -5064,14 +5090,13 @@ class OutlanderPhevCard extends HTMLElement {
   }
 
   _resolveEntities() {
-    const hasAnyConfigured = ENTITY_KEYS.some((k) => Boolean(this._config?.[k]));
-    if (!hasAnyConfigured && this._hass) {
+    if (this._hass) {
       if (!this._autoDiscoveredCache) {
         this._autoDiscoveredCache = autoDiscoverPhevEntities(this._hass);
       }
-      return { ...this._autoDiscoveredCache, ...this._config };
+      return { ...this._autoDiscoveredCache, ...(this._config || {}) };
     }
-    return this._config;
+    return this._config || {};
   }
 
   _getState(entityId) {
@@ -5558,148 +5583,165 @@ class OutlanderPhevCard extends HTMLElement {
           </div>
 
           <!-- TIMERS PANEL -->
-          <div class="section-panel" id="panel-timers">
-            <div class="section-head">
-              <div class="section-title">
-                ${ICONS.clock}
-                <span>${localize(lang, 'timers_title')}</span>
-              </div>
-              <div class="subtabs-bar">
-                <button type="button" class="subtab-btn active" id="btn-subtab-climate">
-                  ${ICONS.cool}
-                  <span>${localize(lang, 'climate_tab')}</span>
-                </button>
-                <button type="button" class="subtab-btn" id="btn-subtab-charge">
-                  ${ICONS.bolt}
-                  <span>${localize(lang, 'charge_tab')}</span>
-                </button>
-              </div>
-            </div>
+          <!-- COLLAPSIBLE ALL-SENSORS DRAWER -->
+          <div class="sensors-drawer" id="sensors-drawer"></div>
+        </div>
 
-            <!-- Master Schedule Banner -->
-            <div class="timer-master-banner" id="timer-master-banner">
-              <div class="timer-master-left">
-                <span id="timer-master-icon">${ICONS.clock}</span>
-                <span class="timer-master-text" id="timer-master-text">${localize(lang, 'climate_timer_master')}</span>
+        <!-- TIMERS POPUP MODAL -->
+        <div class="ophev-modal-backdrop" id="modal-timers">
+          <div class="ophev-modal-card">
+            <div class="modal-head">
+              <div class="modal-title-group">
+                <h3 class="modal-title">${ICONS.clock} ${localize(lang, 'timers_title')}</h3>
+                <p class="modal-sub">${localize(lang, 'timers_sub')}</p>
               </div>
-              <div style="display:flex;align-items:center;gap:10px;">
-                <select class="setting-select" id="sel-timer-master-mode" style="display:none;width:auto;padding:4px 8px;font-size:0.75rem;"></select>
-                <button type="button" class="hdr-action-btn" id="btn-toggle-master-timer" style="padding:4px 10px;">
-                  <span id="txt-toggle-master-timer">${localize(lang, 'timer_enabled')}</span>
+              <div class="modal-head-btns">
+                <div class="subtabs-bar">
+                  <button type="button" class="subtab-btn active" id="btn-subtab-climate">
+                    ${ICONS.cool}
+                    <span>${localize(lang, 'climate_tab')}</span>
+                  </button>
+                  <button type="button" class="subtab-btn" id="btn-subtab-charge">
+                    ${ICONS.bolt}
+                    <span>${localize(lang, 'charge_tab')}</span>
+                  </button>
+                </div>
+                <button type="button" class="modal-btn-close" id="btn-timers-close" title="${localize(lang, 'close')}">
+                  ${ICONS.close}
                 </button>
               </div>
             </div>
 
-            <!-- Slots pills (1..5) -->
-            <div class="slots-bar" id="timer-slots-bar"></div>
+            <div class="modal-body">
+              <!-- Master Schedule Banner -->
+              <div class="timer-master-banner" id="timer-master-banner">
+                <div class="timer-master-left">
+                  <span id="timer-master-icon">${ICONS.clock}</span>
+                  <span class="timer-master-text" id="timer-master-text">${localize(lang, 'climate_timer_master')}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <select class="setting-select" id="sel-timer-master-mode" style="display:none;width:auto;padding:4px 8px;font-size:0.75rem;"></select>
+                  <button type="button" class="hdr-action-btn" id="btn-toggle-master-timer" style="padding:4px 10px;">
+                    <span id="txt-toggle-master-timer">${localize(lang, 'timer_enabled')}</span>
+                  </button>
+                </div>
+              </div>
 
-            <!-- Active Slot Editor Card -->
-            <div class="timer-editor-card" id="timer-editor-card"></div>
+              <!-- Slots pills (1..5) -->
+              <div class="slots-bar" id="timer-slots-bar"></div>
+
+              <!-- Active Slot Editor Card -->
+              <div class="timer-editor-card" id="timer-editor-card"></div>
+            </div>
           </div>
+        </div>
 
-          <!-- DIAGNOSTICS & SYSTEM TELEMETRY PANEL -->
-          <div class="section-panel" id="panel-diag">
-            <div class="section-head">
-              <div class="section-title">
-                ${ICONS.gauge}
-                <span>${localize(lang, 'diag_title')}</span>
+        <!-- DIAGNOSTICS POPUP MODAL -->
+        <div class="ophev-modal-backdrop" id="modal-diag">
+          <div class="ophev-modal-card">
+            <div class="modal-head">
+              <div class="modal-title-group">
+                <h3 class="modal-title">${ICONS.gauge} ${localize(lang, 'diag_title')}</h3>
+                <p class="modal-sub">${localize(lang, 'diag_sub')}</p>
               </div>
-              <div class="hdr-actions-wrap">
-                <button type="button" class="diag-action-btn" id="btn-diag-locate" style="width:auto;padding:5px 11px;">
+              <div class="modal-head-btns">
+                <button type="button" class="diag-action-btn" id="btn-diag-locate" title="${localize(lang, 'locate_car_btn')}">
                   ${ICONS.bulb}
                   <span>${localize(lang, 'locate_car')}</span>
                 </button>
-                <button type="button" class="diag-action-btn" id="btn-diag-sync-clock" style="width:auto;padding:5px 11px;">
+                <button type="button" class="diag-action-btn" id="btn-diag-sync-clock" title="${localize(lang, 'car_clock_sync_btn')}">
                   ${ICONS.refresh}
                   <span>${localize(lang, 'sync_clock')}</span>
+                </button>
+                <button type="button" class="modal-btn-close" id="btn-diag-close" title="${localize(lang, 'close')}">
+                  ${ICONS.close}
                 </button>
               </div>
             </div>
 
-            <div class="diag-grid">
-              <!-- 1. Ignition & Security -->
-              <div class="diag-card">
-                <div class="diag-card-top">
-                  <span class="diag-card-title">${ICONS.key} ${localize(lang, 'ignition_title')}</span>
-                  <span class="ignition-badge off" id="diag-ignition-badge">OFF</span>
+            <div class="modal-body">
+              <div class="diag-grid">
+                <!-- 1. Ignition & Security -->
+                <div class="diag-card">
+                  <div class="diag-card-top">
+                    <span class="diag-card-title">${ICONS.key} ${localize(lang, 'ignition_title')}</span>
+                    <span class="ignition-badge off" id="diag-ignition-badge">OFF</span>
+                  </div>
+                  <div class="alarm-banner disarmed" id="diag-alarm-banner">
+                    <span id="diag-alarm-text">${localize(lang, 'alarm_disarmed')}</span>
+                    <button type="button" class="modal-btn-reset" id="btn-clear-alarm" style="display:none;padding:3px 8px;font-size:0.7rem;">
+                      ${localize(lang, 'clear_alarm')}
+                    </button>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'theft_alarm')}</span>
+                    <span class="diag-row-val" id="diag-alarm-val">--</span>
+                  </div>
+                  <div class="diag-row" id="diag-last-alarm-row" style="display:none;">
+                    <span class="diag-row-lbl">${localize(lang, 'alarm_last_event')}</span>
+                    <span class="diag-row-val" id="diag-last-alarm-val">--</span>
+                  </div>
                 </div>
-                <div class="alarm-banner disarmed" id="diag-alarm-banner">
-                  <span id="diag-alarm-text">${localize(lang, 'alarm_disarmed')}</span>
-                  <button type="button" class="modal-btn-reset" id="btn-clear-alarm" style="display:none;padding:3px 8px;font-size:0.7rem;">
-                    ${localize(lang, 'clear_alarm')}
-                  </button>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'theft_alarm')}</span>
-                  <span class="diag-row-val" id="diag-alarm-val">--</span>
-                </div>
-                <div class="diag-row" id="diag-last-alarm-row" style="display:none;">
-                  <span class="diag-row-lbl">${localize(lang, 'alarm_last_event')}</span>
-                  <span class="diag-row-val" id="diag-last-alarm-val">--</span>
-                </div>
-              </div>
 
-              <!-- 2. Car Clock & Wi-Fi Telemetry -->
-              <div class="diag-card">
-                <div class="diag-card-top">
-                  <span class="diag-card-title">${ICONS.clock} ${localize(lang, 'clock_title')}</span>
+                <!-- 2. Car Clock & Wi-Fi Telemetry -->
+                <div class="diag-card">
+                  <div class="diag-card-top">
+                    <span class="diag-card-title">${ICONS.clock} ${localize(lang, 'clock_title')}</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'car_clock')}</span>
+                    <span class="diag-row-val" id="diag-clock-val">--:--:--</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'wifi_channel')}</span>
+                    <span class="diag-row-val" id="diag-wifi-channel-val">--</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'wifi_always_on')}</span>
+                    <span class="diag-row-val" id="diag-wifi-always-val">--</span>
+                  </div>
                 </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'car_clock')}</span>
-                  <span class="diag-row-val" id="diag-clock-val">--:--:--</span>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'wifi_channel')}</span>
-                  <span class="diag-row-val" id="diag-wifi-channel-val">--</span>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'wifi_always_on')}</span>
-                  <span class="diag-row-val" id="diag-wifi-always-val">--</span>
-                </div>
-              </div>
 
-              <!-- 3. Battery Health & Warming -->
-              <div class="diag-card">
-                <div class="diag-card-top">
-                  <span class="diag-card-title">${ICONS.bolt} ${localize(lang, 'thermal_title')}</span>
+                <!-- 3. Battery Health & Warming -->
+                <div class="diag-card">
+                  <div class="diag-card-top">
+                    <span class="diag-card-title">${ICONS.bolt} ${localize(lang, 'thermal_title')}</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'batt_thermal_state')}</span>
+                    <span class="diag-row-val" id="diag-thermal-val">--</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'batt_warming')}</span>
+                    <span class="diag-row-val" id="diag-warming-val">--</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'batt_warning_active')}</span>
+                    <span class="diag-row-val" id="diag-warning-val">--</span>
+                  </div>
                 </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'batt_thermal_state')}</span>
-                  <span class="diag-row-val" id="diag-thermal-val">--</span>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'batt_warming')}</span>
-                  <span class="diag-row-val" id="diag-warming-val">--</span>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'batt_warning_active')}</span>
-                  <span class="diag-row-val" id="diag-warning-val">--</span>
-                </div>
-              </div>
 
-              <!-- 4. Vehicle Specs & VIN -->
-              <div class="diag-card">
-                <div class="diag-card-top">
-                  <span class="diag-card-title">${ICONS.mitsubishi} ${localize(lang, 'vehicle_specs')}</span>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'vin')}</span>
-                  <span class="diag-row-val" id="diag-vin-val" style="font-family:monospace;font-size:0.7rem;">--</span>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'firmware_version')}</span>
-                  <span class="diag-row-val" id="diag-firmware-val">--</span>
-                </div>
-                <div class="diag-row">
-                  <span class="diag-row-lbl">${localize(lang, 'registered_phones')}</span>
-                  <span class="diag-row-val" id="diag-phones-val">--</span>
+                <!-- 4. Vehicle Specs & VIN -->
+                <div class="diag-card">
+                  <div class="diag-card-top">
+                    <span class="diag-card-title">${ICONS.mitsubishi} ${localize(lang, 'vehicle_specs')}</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'vin')}</span>
+                    <span class="diag-row-val" id="diag-vin-val" style="font-family:monospace;font-size:0.7rem;">--</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'firmware_version')}</span>
+                    <span class="diag-row-val" id="diag-firmware-val">--</span>
+                  </div>
+                  <div class="diag-row">
+                    <span class="diag-row-lbl">${localize(lang, 'registered_phones')}</span>
+                    <span class="diag-row-val" id="diag-phones-val">--</span>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-
-          <!-- COLLAPSIBLE ALL-SENSORS DRAWER -->
-          <div class="sensors-drawer" id="sensors-drawer"></div>
         </div>
 
         <!-- SETTINGS POPUP MODAL (ETACS & AC CUSTOMIZATION) -->
@@ -5820,7 +5862,8 @@ class OutlanderPhevCard extends HTMLElement {
       btnDrawerToggle: q('btn-drawer-toggle'),
       txtDrawerToggle: q('txt-drawer-toggle'),
       sensorsDrawer: q('sensors-drawer'),
-      panelTimers: q('panel-timers'),
+      modalTimers: q('modal-timers'),
+      btnTimersClose: q('btn-timers-close'),
       btnSubtabClimate: q('btn-subtab-climate'),
       btnSubtabCharge: q('btn-subtab-charge'),
       timerMasterBanner: q('timer-master-banner'),
@@ -5830,7 +5873,8 @@ class OutlanderPhevCard extends HTMLElement {
       txtToggleMasterTimer: q('txt-toggle-master-timer'),
       timerSlotsBar: q('timer-slots-bar'),
       timerEditorCard: q('timer-editor-card'),
-      panelDiag: q('panel-diag'),
+      modalDiag: q('modal-diag'),
+      btnDiagClose: q('btn-diag-close'),
       btnDiagLocate: q('btn-diag-locate'),
       btnDiagSyncClock: q('btn-diag-sync-clock'),
       diagIgnitionBadge: q('diag-ignition-badge'),
@@ -5961,18 +6005,50 @@ class OutlanderPhevCard extends HTMLElement {
 
     // Header Extension Action Buttons
     $.btnToggleTimers.addEventListener('click', () => {
-      this._timersPanelOpen = !this._timersPanelOpen;
+      this._timersModalOpen = !this._timersModalOpen;
+      this._diagModalOpen = false;
+      this._settingsModalOpen = false;
       this._updateState();
     });
 
     $.btnToggleDiag.addEventListener('click', () => {
-      this._diagPanelOpen = !this._diagPanelOpen;
+      this._diagModalOpen = !this._diagModalOpen;
+      this._timersModalOpen = false;
+      this._settingsModalOpen = false;
       this._updateState();
     });
 
     $.btnOpenSettings.addEventListener('click', () => {
-      this._settingsModalOpen = true;
+      this._settingsModalOpen = !this._settingsModalOpen;
+      this._timersModalOpen = false;
+      this._diagModalOpen = false;
       this._updateState();
+    });
+
+    // Timers Modal Listeners
+    $.btnTimersClose?.addEventListener('click', () => {
+      this._timersModalOpen = false;
+      this._updateState();
+    });
+
+    $.modalTimers?.addEventListener('click', (ev) => {
+      if (ev.target === $.modalTimers) {
+        this._timersModalOpen = false;
+        this._updateState();
+      }
+    });
+
+    // Diagnostics Modal Listeners
+    $.btnDiagClose?.addEventListener('click', () => {
+      this._diagModalOpen = false;
+      this._updateState();
+    });
+
+    $.modalDiag?.addEventListener('click', (ev) => {
+      if (ev.target === $.modalDiag) {
+        this._diagModalOpen = false;
+        this._updateState();
+      }
     });
 
     // Settings Modal Listeners
@@ -5983,6 +6059,16 @@ class OutlanderPhevCard extends HTMLElement {
 
     $.modalSettings.addEventListener('click', (ev) => {
       if (ev.target === $.modalSettings) {
+        this._settingsModalOpen = false;
+        this._updateState();
+      }
+    });
+
+    // Global Escape Key to close open modal
+    window.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && (this._timersModalOpen || this._diagModalOpen || this._settingsModalOpen)) {
+        this._timersModalOpen = false;
+        this._diagModalOpen = false;
         this._settingsModalOpen = false;
         this._updateState();
       }
@@ -6521,18 +6607,18 @@ class OutlanderPhevCard extends HTMLElement {
       });
     }
 
-    // 8. Extension Panels & Settings Modal
-    $.btnToggleTimers.classList.toggle('active', this._timersPanelOpen);
-    $.btnToggleDiag.classList.toggle('active', this._diagPanelOpen);
+    // 8. Extension Modals
+    $.btnToggleTimers.classList.toggle('active', this._timersModalOpen);
+    $.btnToggleDiag.classList.toggle('active', this._diagModalOpen);
     $.btnOpenSettings.classList.toggle('active', this._settingsModalOpen);
-    $.panelTimers.classList.toggle('open', this._timersPanelOpen);
-    $.panelDiag.classList.toggle('open', this._diagPanelOpen);
-    $.modalSettings.classList.toggle('open', this._settingsModalOpen);
+    $.modalTimers?.classList.toggle('open', this._timersModalOpen);
+    $.modalDiag?.classList.toggle('open', this._diagModalOpen);
+    $.modalSettings?.classList.toggle('open', this._settingsModalOpen);
 
-    if (this._timersPanelOpen) {
+    if (this._timersModalOpen) {
       this._updateTimersPanel();
     }
-    if (this._diagPanelOpen) {
+    if (this._diagModalOpen) {
       this._updateDiagPanel();
     }
     if (this._settingsModalOpen) {
@@ -6541,7 +6627,7 @@ class OutlanderPhevCard extends HTMLElement {
   }
 
   _updateTimersPanel() {
-    if (!this._hass || !this.$.panelTimers) return;
+    if (!this._hass || !this.$.modalTimers) return;
     const $ = this.$;
     const lang = this._lang();
     const ents = this._resolveEntities();
@@ -6629,7 +6715,7 @@ class OutlanderPhevCard extends HTMLElement {
               )
               .join('')}
           </div>
-          <div style="display:flex;gap:6px;margin-top:4px;">
+          <div class="presets-row">
             <button type="button" class="preset-chip" data-preset="Everyday">${localize(lang, 'preset_everyday')}</button>
             <button type="button" class="preset-chip" data-preset="Weekdays">${localize(lang, 'preset_weekdays')}</button>
             <button type="button" class="preset-chip" data-preset="Weekends">${localize(lang, 'preset_weekends')}</button>
@@ -6738,7 +6824,7 @@ class OutlanderPhevCard extends HTMLElement {
               )
               .join('')}
           </div>
-          <div style="display:flex;gap:6px;margin-top:4px;">
+          <div class="presets-row">
             <button type="button" class="preset-chip" data-preset="Everyday">${localize(lang, 'preset_everyday')}</button>
             <button type="button" class="preset-chip" data-preset="Weekdays">${localize(lang, 'preset_weekdays')}</button>
             <button type="button" class="preset-chip" data-preset="Weekends">${localize(lang, 'preset_weekends')}</button>
@@ -6801,7 +6887,7 @@ class OutlanderPhevCard extends HTMLElement {
   }
 
   _updateDiagPanel() {
-    if (!this._hass || !this.$.panelDiag) return;
+    if (!this._hass || !this.$.modalDiag) return;
     const $ = this.$;
     const lang = this._lang();
     const ents = this._resolveEntities();

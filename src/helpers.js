@@ -368,15 +368,17 @@ export function autoDiscoverPhevEntities(hass) {
     }
   }
 
-  // Also include entities matching phev / outlander or signature phev2mqtt names
+  // Also include entities matching phev / outlander / mitsubishi or signature phev2mqtt names
   for (const st of allStates) {
     const id = st.entity_id.toLowerCase();
     const fn = String(st.attributes?.friendly_name || '').toLowerCase();
     if (
       id.includes('phev') ||
       id.includes('outlander') ||
+      id.includes('mitsubishi') ||
       fn.includes('phev') ||
       fn.includes('outlander') ||
+      fn.includes('mitsubishi') ||
       id.includes('restart_wifi_connetion') ||
       id.includes('reconnect_wifi') ||
       id.includes('cancel_charge_timer') ||
@@ -386,13 +388,13 @@ export function autoDiscoverPhevEntities(hass) {
     }
   }
 
-  // If still small, search all states for exact phev2mqtt friendly names (e.g., when device prefix was stripped in HA)
-  const pool = candidateIds.size >= 4
+  // If candidate pool has elements, search it first; fallback to all states
+  const pool = candidateIds.size >= 1
     ? Array.from(candidateIds).map((id) => hass.states[id]).filter(Boolean)
     : allStates;
 
   const pick = (domains, matchFn) => {
-    // Prefer candidates from the PHEV pool first, then fallback to allStates for helper templates
+    // Prefer candidates from the PHEV pool first, then fallback to allStates
     const foundInPool = pool.find((st) => {
       const dom = st.entity_id.split('.')[0];
       if (domains && !domains.includes(dom)) return false;
@@ -407,7 +409,7 @@ export function autoDiscoverPhevEntities(hass) {
       if (domains && !domains.includes(dom)) return false;
       const id = st.entity_id.toLowerCase();
       const fn = String(st.attributes?.friendly_name || '').toLowerCase();
-      return (id.includes('phev') || id.includes('outlander') || id.includes('charge')) && matchFn(id, fn, st);
+      return matchFn(id, fn, st);
     });
     return foundGlobal ? foundGlobal.entity_id : undefined;
   };
@@ -547,49 +549,47 @@ export function autoDiscoverPhevEntities(hass) {
       id.includes('alarm_clear') ||
       (fn.includes('clear') && fn.includes('alarm'))
     ),
-    locate_car_entity: pick(['button', 'switch'], (id, fn) =>
-      id.includes('locate_car') || id.includes('locate') || fn.includes('locate')
+    locate_car_entity: pick(['button', 'switch', 'light'], (id, fn) =>
+      id.includes('locate_car') || id.includes('flash_lights') || id.includes('locate') || fn.includes('locate')
     ),
     car_clock_entity: pick(['sensor'], (id, fn) =>
-      id.includes('car_clock') || id.includes('phev_clock') || fn.includes('car clock')
+      id.includes('car_clock') || id.includes('phev_clock') || (id.includes('clock') && !id.includes('sync')) || fn.includes('car clock') || fn.includes('clock')
     ),
     sync_car_clock_entity: pick(['button', 'switch'], (id, fn) =>
-      (id.includes('sync') && (id.includes('clock') || id.includes('time'))) ||
-      id.includes('synctime') ||
-      (fn.includes('sync') && (fn.includes('clock') || fn.includes('time')))
+      id.includes('sync_car_clock') || (id.includes('sync') && id.includes('clock')) || id.includes('synctime') || (fn.includes('sync') && fn.includes('clock'))
     ),
-    battery_warning_entity: pick(['binary_sensor'], (id, fn) =>
-      id.includes('battery_warning') || fn.includes('battery warning')
+    battery_warning_entity: pick(['binary_sensor', 'sensor'], (id, fn) =>
+      (id.includes('battery_warning') || fn.includes('battery warning')) && !id.includes('thermal') && !id.includes('warming')
     ),
-    battery_thermal_entity: pick(['sensor'], (id, fn) =>
-      id.includes('battery_thermal') || id.includes('battery_warning_active') || fn.includes('thermal')
+    battery_thermal_entity: pick(['sensor', 'binary_sensor'], (id, fn) =>
+      id.includes('battery_thermal') || id.includes('thermal_status') || (id.includes('thermal') && !id.includes('warming')) || fn.includes('thermal')
     ),
-    battery_warming_entity: pick(['binary_sensor'], (id, fn) =>
-      id.includes('battery_warming') || fn.includes('battery warming')
+    battery_warming_entity: pick(['binary_sensor', 'sensor', 'switch'], (id, fn) =>
+      id.includes('battery_warming') || id.includes('battery_heater') || fn.includes('battery warming') || fn.includes('warming') || fn.includes('heater')
     ),
     wifi_ssid_entity: pick(['sensor'], (id, fn) =>
-      id.includes('wifi_ssid') || fn.includes('wifi ssid')
+      id.includes('wifi_ssid') || id.includes('ssid') || fn.includes('wifi ssid') || fn.includes('ssid')
     ),
     wifi_channel_entity: pick(['select', 'sensor'], (id, fn) =>
-      id.includes('wifi_channel') || fn.includes('wifi channel')
+      id.includes('wifi_channel') || id.includes('channel') || fn.includes('wifi channel') || fn.includes('channel')
     ),
-    wifi_always_on_entity: pick(['switch'], (id, fn) =>
-      id.includes('keep_wifi_always_active') || id.includes('wifi_always_on') || fn.includes('always active')
+    wifi_always_on_entity: pick(['switch', 'binary_sensor'], (id, fn) =>
+      id.includes('keep_wifi_always_active') || id.includes('wifi_always_on') || id.includes('always_active') || fn.includes('always active') || fn.includes('always on')
     ),
-    refresh_status_entity: pick(['button'], (id, fn) =>
+    refresh_status_entity: pick(['button', 'switch'], (id, fn) =>
       id.includes('refresh_vehicle_status') || id.includes('refresh') || fn.includes('refresh')
     ),
     vin_entity: pick(['sensor'], (id, fn) =>
-      id.includes('phev_vin') || fn === 'vin' || fn.includes('vin')
+      id.includes('phev_vin') || id.endsWith('_vin') || id.includes('vin') || id.includes('alvazszam') || fn.includes('vin')
     ),
     ecu_version_entity: pick(['sensor'], (id, fn) =>
-      id.includes('ecu_version') || id.includes('ecuversion') || fn.includes('ecu version')
+      id.includes('ecu_version') || id.includes('ecuversion') || id.includes('firmware') || fn.includes('ecu version') || fn.includes('firmware')
     ),
     steering_side_entity: pick(['sensor'], (id, fn) =>
       id.includes('steering_side') || id.includes('steering') || fn.includes('steering')
     ),
     registered_phones_entity: pick(['sensor'], (id, fn) =>
-      id.includes('registered_smartphones') || id.includes('registrations') || fn.includes('registered')
+      id.includes('registered_smartphones') || id.includes('smartphones') || id.includes('registrations') || fn.includes('smartphones') || fn.includes('registered')
     ),
     last_seen_entity: pick(['sensor'], (id, fn) =>
       id.includes('phev_last_seen') || fn.includes('last seen')
