@@ -681,6 +681,20 @@ export const SETTING_DEFINITIONS = {
   fast_idle_heater_boost: { cat: 'ac', hu: 'Megnövelt alapjárat magasabb fűtési teljesítményhez', en: 'Fast Idle for Higher Heater Performance' },
 
   acc_power_auto_cutout: { cat: 'other', hu: 'ACC fogyasztók automatikus lekapcsolása', en: 'Auto Cut of ACC Power' },
+
+  // Aliases & extra vehicle options
+  front_wiper_operation: { cat: 'wipers', hu: 'Első ablaktörlő működés', en: 'Front Wiper Operation' },
+  turn_signal_flasher_mode: { cat: 'turn_signal', hu: 'Irányjelző komfort villantás mód', en: 'Turn Signal Flasher Mode' },
+  rear_wiper_reverse_gear_operation: { cat: 'wipers', hu: 'Hátsó törlő tolatáskor', en: 'Rear Wiper in Reverse Gear' },
+  headlight_auto_off_delay: { cat: 'lights', hu: 'Fényszóró lekapcsolási késleltetés', en: 'Headlight Auto-off Delay' },
+  mirror_auto_fold: { cat: 'mirrors', hu: 'Tükör automatikus behajtás', en: 'Mirror Auto Fold' },
+  keyless_entry_hazard_answerback: { cat: 'keyless', hu: 'Kulcsnélküli vészvillogó visszajelzés', en: 'Keyless Hazard Answerback' },
+  auto_door_lock_by_speed: { cat: 'locks', hu: 'Automatikus ajtózár sebességre', en: 'Auto Door Lock by Speed' },
+  power_window_timer: { cat: 'windows', hu: 'Elektromos ablak időzítő', en: 'Power Window Timer' },
+  air_conditioning_inlet_mode: { cat: 'ac', hu: 'Klíma levegőbemenet mód', en: 'A/C Air Inlet Mode' },
+  wifi_channel: { cat: 'other', hu: 'Wi-Fi kommunikációs csatorna', en: 'Wi-Fi Channel' },
+  climate_duration_min: { cat: 'ac', hu: 'Előfűtés/hűtés időtartama (perc)', en: 'Pre-conditioning Duration' },
+  climate_start_delay_min: { cat: 'ac', hu: 'Előfűtés/hűtés indítási késleltetés (perc)', en: 'Pre-conditioning Start Delay' },
 };
 
 /**
@@ -693,33 +707,44 @@ export function getPhevCustomizationSettings(hass, lang = 'hu') {
   for (const [entityId, st] of Object.entries(hass.states)) {
     if (!entityId.startsWith('select.')) continue;
     const lowerId = entityId.toLowerCase();
+
+    // Skip card-level operational controls that are managed in specific card components
+    if (lowerId.endsWith('_climate_state') || lowerId === 'select.phev_climate_state') continue;
+    if (lowerId.includes('_timer_mode')) continue;
+    if (lowerId.includes('_timer_') && (lowerId.includes('_duration') || lowerId.includes('_days') || lowerId.includes('_time'))) continue;
+
     const isSetting =
       lowerId.includes('_setting_') ||
-      lowerId.includes('phev_settings_') ||
-      Object.keys(SETTING_DEFINITIONS).some((slug) => lowerId.endsWith(`_${slug}`) || lowerId.includes(slug));
+      lowerId.includes('phev_setting') ||
+      lowerId.includes('_settings_') ||
+      lowerId.includes('etacs') ||
+      lowerId.includes('customization') ||
+      Object.keys(SETTING_DEFINITIONS).some((slug) => lowerId.includes(slug));
 
     if (!isSetting) continue;
 
-    // Match slug
-    const matchedSlug = Object.keys(SETTING_DEFINITIONS).find(
-      (slug) => lowerId.endsWith(`_${slug}`) || lowerId.includes(slug)
-    );
+    // Match slug (pick longest matching slug to avoid substring ambiguity)
+    const matchedSlug = Object.keys(SETTING_DEFINITIONS)
+      .filter((slug) => lowerId.includes(slug))
+      .sort((a, b) => b.length - a.length)[0] || null;
     const def = matchedSlug ? SETTING_DEFINITIONS[matchedSlug] : null;
 
     let cat = def?.cat;
     if (!cat) {
       if (lowerId.includes('wiper')) cat = 'wipers';
-      else if (lowerId.includes('turn_signal') || lowerId.includes('flasher')) cat = 'turn_signal';
+      else if (lowerId.includes('turn_signal') || lowerId.includes('flasher') || lowerId.includes('indicator')) cat = 'turn_signal';
       else if (lowerId.includes('mirror')) cat = 'mirrors';
       else if (lowerId.includes('window')) cat = 'windows';
-      else if (lowerId.includes('lock')) cat = 'locks';
-      else if (lowerId.includes('light') || lowerId.includes('lamp')) cat = 'lights';
-      else if (lowerId.includes('keyless') || lowerId.includes('alarm') || lowerId.includes('remote')) cat = 'keyless';
-      else if (lowerId.includes('ac') || lowerId.includes('air_conditioning') || lowerId.includes('climate')) cat = 'ac';
+      else if (lowerId.includes('lock') || lowerId.includes('deadlock') || lowerId.includes('door')) cat = 'locks';
+      else if (lowerId.includes('light') || lowerId.includes('lamp') || lowerId.includes('headlight') || lowerId.includes('lid')) cat = 'lights';
+      else if (lowerId.includes('keyless') || lowerId.includes('remote') || lowerId.includes('kos') || lowerId.includes('horn') || lowerId.includes('beep')) cat = 'keyless';
+      else if (lowerId.includes('ac') || lowerId.includes('air_conditioning') || lowerId.includes('climate') || lowerId.includes('heat') || lowerId.includes('cool') || lowerId.includes('defrost') || lowerId.includes('idle')) cat = 'ac';
       else cat = 'other';
     }
 
-    const label = def ? (lang === 'hu' ? def.hu : def.en) : st.attributes?.friendly_name || entityId;
+    const label = def
+      ? (lang === 'hu' ? def.hu : def.en)
+      : (st.attributes?.friendly_name || entityId.replace(/^select\./, '').replace(/_/g, ' '));
 
     entries.push({
       entity_id: entityId,

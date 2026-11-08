@@ -1622,30 +1622,41 @@ export const CARD_STYLES = `
 
   /* Subtabs Bar (Timers: Charge vs Climate) */
   .subtabs-bar {
-    display: flex;
-    gap: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
     background: rgba(9, 13, 22, 0.72);
-    padding: 4px;
-    border-radius: 12px;
+    padding: 3px;
+    border-radius: 9px;
     border: 1px solid var(--ophev-border);
+    height: 32px;
+    box-sizing: border-box;
   }
 
   .subtab-btn {
-    flex: 1;
-    padding: 8px 12px;
-    border-radius: 9px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 6px;
     border: none;
     background: transparent;
     color: var(--ophev-muted);
-    font-size: 0.76rem;
+    font-size: 0.73rem;
     font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 5px;
     font-family: inherit;
+    white-space: nowrap;
+    box-sizing: border-box;
+  }
+
+  .subtab-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
   }
 
   .subtab-btn:hover {
@@ -1655,7 +1666,7 @@ export const CARD_STYLES = `
   .subtab-btn.active {
     background: rgba(14, 165, 233, 0.22);
     color: #e0f2fe;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
   }
 
   /* Timer Slots Pills (1..5) */
@@ -1715,14 +1726,30 @@ export const CARD_STYLES = `
     gap: 12px;
     padding: 10px 14px;
     border-radius: 12px;
-    background: rgba(15, 23, 42, 0.78);
-    border: 1px solid var(--ophev-border);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.85), rgba(30, 41, 59, 0.6));
+    border: 1px solid rgba(56, 189, 248, 0.25);
   }
 
   .timer-master-left {
     display: flex;
     align-items: center;
     gap: 9px;
+  }
+
+  #timer-master-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: #38bdf8;
+  }
+
+  #timer-master-icon svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
   }
 
   .timer-master-text {
@@ -2009,28 +2036,47 @@ export const CARD_STYLES = `
   }
 
   .diag-action-btn {
-    width: 100%;
-    padding: 8px 12px;
-    border-radius: 9px;
-    border: 1px solid rgba(56, 189, 248, 0.4);
-    background: rgba(14, 165, 233, 0.16);
-    color: #e0f2fe;
-    font-size: 0.75rem;
+    height: 32px;
+    padding: 0 10px;
+    min-width: 124px;
+    border-radius: 8px;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    background: rgba(14, 165, 233, 0.12);
+    color: #bae6fd;
+    font-size: 0.72rem;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
     font-family: inherit;
+    white-space: nowrap;
+    user-select: none;
+    box-sizing: border-box;
+    flex-shrink: 0;
+  }
+
+  .diag-action-btn svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    color: #38bdf8;
   }
 
   .diag-action-btn:hover {
-    background: rgba(14, 165, 233, 0.28);
-    border-color: rgba(56, 189, 248, 0.65);
+    background: rgba(14, 165, 233, 0.24);
+    border-color: rgba(56, 189, 248, 0.6);
+    color: #f0f9ff;
     transform: translateY(-1px);
+    box-shadow: 0 2px 8px -2px rgba(14, 165, 233, 0.3);
   }
+
+  .diag-action-btn:active {
+    transform: translateY(0);
+  }
+
 
   /* =========================================================
      MODAL DIALOGS (SETTINGS, TIMERS, DIAGNOSTICS)
@@ -2082,30 +2128,44 @@ export const CARD_STYLES = `
   }
 
   .modal-head {
-    padding: 18px 22px 14px;
+    padding: 14px 18px;
     border-bottom: 1px solid var(--ophev-border);
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: rgba(15, 23, 42, 0.45);
   }
 
   .modal-title-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
+    min-width: 0;
   }
 
   .modal-title {
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     font-weight: 800;
     letter-spacing: -0.01em;
     color: #f8fafc;
     margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.25;
+  }
+
+  .modal-title svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: #38bdf8;
   }
 
   .modal-sub {
-    font-size: 0.74rem;
+    font-size: 0.73rem;
     color: var(--ophev-muted);
     margin: 0;
   }
@@ -2115,10 +2175,12 @@ export const CARD_STYLES = `
     align-items: center;
     gap: 8px;
     flex-shrink: 0;
+    flex-wrap: wrap;
   }
 
   .modal-btn-reset {
-    padding: 6px 12px;
+    height: 32px;
+    padding: 0 12px;
     border-radius: 8px;
     border: 1px solid rgba(239, 68, 68, 0.4);
     background: rgba(239, 68, 68, 0.14);
@@ -2128,6 +2190,10 @@ export const CARD_STYLES = `
     cursor: pointer;
     transition: all 0.2s ease;
     font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
   }
 
   .modal-btn-reset:hover {
@@ -2138,14 +2204,24 @@ export const CARD_STYLES = `
   .modal-btn-close {
     width: 32px;
     height: 32px;
-    border-radius: 9px;
+    border-radius: 8px;
     border: 1px solid var(--ophev-border);
     background: rgba(15, 23, 42, 0.8);
     color: var(--ophev-muted);
-    display: grid;
-    place-items: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+    box-sizing: border-box;
+  }
+
+  .modal-btn-close svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
   }
 
   .modal-btn-close:hover {
