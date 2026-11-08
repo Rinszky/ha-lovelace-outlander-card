@@ -695,6 +695,11 @@ export const SETTING_DEFINITIONS = {
   wifi_channel: { cat: 'other', hu: 'Wi-Fi kommunikációs csatorna', en: 'Wi-Fi Channel' },
   climate_duration_min: { cat: 'ac', hu: 'Előfűtés/hűtés időtartama (perc)', en: 'Pre-conditioning Duration' },
   climate_start_delay_min: { cat: 'ac', hu: 'Előfűtés/hűtés indítási késleltetés (perc)', en: 'Pre-conditioning Start Delay' },
+
+  // ETACS Custom Register IDs discovered on vehicles (0x1e, 0x26, 0x27)
+  setting_1e: { cat: 'keyless', hu: 'ETACS Kényelmi funkció (0x1E)', en: 'ETACS Convenience Setting (0x1E)' },
+  setting_26: { cat: 'lights', hu: 'ETACS Világítás vezérlés (0x26)', en: 'ETACS Lighting Setting (0x26)' },
+  setting_27: { cat: 'lights', hu: 'ETACS Vészfékezés / Világítás (0x27)', en: 'ETACS Safety / Lighting Setting (0x27)' },
 };
 
 /**
@@ -731,6 +736,20 @@ export function getPhevCustomizationSettings(hass, lang = 'hu') {
 
     let cat = def?.cat;
     if (!cat) {
+      const hexMatch = lowerId.match(/setting_([0-9a-f]{2})/);
+      if (hexMatch) {
+        const idNum = parseInt(hexMatch[1], 16);
+        if (idNum >= 0x01 && idNum <= 0x06) cat = 'wipers';
+        else if (idNum >= 0x07 && idNum <= 0x0d) cat = 'lights';
+        else if (idNum >= 0x0e && idNum <= 0x0f) cat = 'turn_signal';
+        else if (idNum >= 0x10 && idNum <= 0x13) cat = 'locks';
+        else if (idNum >= 0x14 && idNum <= 0x21) cat = 'keyless';
+        else if (idNum >= 0x22 && idNum <= 0x23) cat = 'windows';
+        else if (idNum >= 0x24 && idNum <= 0x2b) cat = 'lights';
+        else if (idNum >= 0x2c && idNum <= 0x3c) cat = 'ac';
+      }
+    }
+    if (!cat) {
       if (lowerId.includes('wiper')) cat = 'wipers';
       else if (lowerId.includes('turn_signal') || lowerId.includes('flasher') || lowerId.includes('indicator')) cat = 'turn_signal';
       else if (lowerId.includes('mirror')) cat = 'mirrors';
@@ -742,9 +761,16 @@ export function getPhevCustomizationSettings(hass, lang = 'hu') {
       else cat = 'other';
     }
 
-    const label = def
-      ? (lang === 'hu' ? def.hu : def.en)
-      : (st.attributes?.friendly_name || entityId.replace(/^select\./, '').replace(/_/g, ' '));
+    let label = def ? (lang === 'hu' ? def.hu : def.en) : null;
+    if (!label) {
+      const hexMatch = lowerId.match(/setting_([0-9a-f]{2})/);
+      if (hexMatch) {
+        const hexUpper = hexMatch[1].toUpperCase();
+        label = lang === 'hu' ? `ETACS beállítás (0x${hexUpper})` : `ETACS Setting (0x${hexUpper})`;
+      } else {
+        label = st.attributes?.friendly_name || entityId.replace(/^select\./, '').replace(/_/g, ' ');
+      }
+    }
 
     entries.push({
       entity_id: entityId,

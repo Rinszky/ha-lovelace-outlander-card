@@ -874,7 +874,7 @@ export class OutlanderPhevCard extends HTMLElement {
             <div class="modal-head">
               <div class="modal-title-group">
                 <h3 class="modal-title">${localize(lang, 'settings_title')}</h3>
-                <p class="modal-sub">${localize(lang, 'settings_sub')}</p>
+                <p class="modal-sub" id="settings-modal-sub">${localize(lang, 'settings_sub')}</p>
               </div>
               <div class="modal-head-btns">
                 <button type="button" class="modal-btn-reset" id="btn-settings-factory-reset">
@@ -2090,6 +2090,12 @@ export class OutlanderPhevCard extends HTMLElement {
 
   _updateSettingsModal() {
     if (!this._hass || !this.$.modalSettings) return;
+    const lang = this._lang();
+    const all = getPhevCustomizationSettings(this._hass, lang);
+    const subEl = this.shadowRoot.getElementById('settings-modal-sub');
+    if (subEl) {
+      subEl.textContent = `${localize(lang, 'settings_sub')} · ${all.length} ${localize(lang, 'settings_active_count')}`;
+    }
     this._renderSettingsChips();
     this._renderSettingsList();
   }
