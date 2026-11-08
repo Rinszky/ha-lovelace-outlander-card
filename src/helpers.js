@@ -709,30 +709,62 @@ export function getPhevCustomizationSettings(hass, lang = 'hu') {
   if (!hass || !hass.states) return [];
   const entries = [];
 
+  function cleanStr(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+  }
+
   for (const [entityId, st] of Object.entries(hass.states)) {
     if (!entityId.startsWith('select.')) continue;
     const lowerId = entityId.toLowerCase();
+    const friendly = String(st.attributes?.friendly_name || '').toLowerCase();
 
     // Skip card-level operational controls that are managed in specific card components
     if (lowerId.endsWith('_climate_state') || lowerId === 'select.phev_climate_state') continue;
     if (lowerId.includes('_timer_mode')) continue;
     if (lowerId.includes('_timer_') && (lowerId.includes('_duration') || lowerId.includes('_days') || lowerId.includes('_time'))) continue;
 
-    const isSetting =
-      lowerId.includes('_setting_') ||
-      lowerId.includes('phev_setting') ||
-      lowerId.includes('_settings_') ||
+    const isPhevEntity =
+      lowerId.includes('phev') ||
+      lowerId.includes('outlander') ||
+      friendly.includes('phev') ||
+      friendly.includes('outlander');
+
+    const isExplicitSetting =
+      lowerId.includes('setting') ||
+      lowerId.includes('settings') ||
       lowerId.includes('etacs') ||
       lowerId.includes('customization') ||
-      Object.keys(SETTING_DEFINITIONS).some((slug) => lowerId.includes(slug));
+      friendly.includes('setting') ||
+      friendly.includes('etacs');
 
-    if (!isSetting) continue;
+    const cId = cleanStr(lowerId);
+    const cName = cleanStr(friendly);
 
-    // Match slug (pick longest matching slug to avoid substring ambiguity)
-    const matchedSlug = Object.keys(SETTING_DEFINITIONS)
-      .filter((slug) => lowerId.includes(slug))
-      .sort((a, b) => b.length - a.length)[0] || null;
-    const def = matchedSlug ? SETTING_DEFINITIONS[matchedSlug] : null;
+    // Try matching SETTING_DEFINITIONS (check raw slug, English name, and Hungarian name)
+    let matchedSlug = null;
+    let def = null;
+
+    for (const [slug, d] of Object.entries(SETTING_DEFINITIONS)) {
+      const cSlug = cleanStr(slug);
+      const cEn = cleanStr(d.en);
+      const cHu = cleanStr(d.hu);
+
+      if (
+        cId.includes(cSlug) ||
+        cSlug.includes(cId.replace(/^(select)?phev/, '')) ||
+        cName.includes(cEn) ||
+        cEn.includes(cName.replace(/^(select)?phev/, '')) ||
+        cId.includes(cEn) ||
+        cEn.includes(cId.replace(/^(select)?phev/, '')) ||
+        (cHu && (cName.includes(cHu) || cId.includes(cHu)))
+      ) {
+        matchedSlug = slug;
+        def = d;
+        break;
+      }
+    }
+
+    if (!isPhevEntity && !isExplicitSetting && !def) continue;
 
     let cat = def?.cat;
     if (!cat) {
@@ -750,14 +782,14 @@ export function getPhevCustomizationSettings(hass, lang = 'hu') {
       }
     }
     if (!cat) {
-      if (lowerId.includes('wiper')) cat = 'wipers';
-      else if (lowerId.includes('turn_signal') || lowerId.includes('flasher') || lowerId.includes('indicator')) cat = 'turn_signal';
-      else if (lowerId.includes('mirror')) cat = 'mirrors';
-      else if (lowerId.includes('window')) cat = 'windows';
-      else if (lowerId.includes('lock') || lowerId.includes('deadlock') || lowerId.includes('door')) cat = 'locks';
-      else if (lowerId.includes('light') || lowerId.includes('lamp') || lowerId.includes('headlight') || lowerId.includes('lid')) cat = 'lights';
-      else if (lowerId.includes('keyless') || lowerId.includes('remote') || lowerId.includes('kos') || lowerId.includes('horn') || lowerId.includes('beep')) cat = 'keyless';
-      else if (lowerId.includes('ac') || lowerId.includes('air_conditioning') || lowerId.includes('climate') || lowerId.includes('heat') || lowerId.includes('cool') || lowerId.includes('defrost') || lowerId.includes('idle')) cat = 'ac';
+      if (cId.includes('wiper') || cName.includes('wiper')) cat = 'wipers';
+      else if (cId.includes('turnsignal') || cId.includes('flasher') || cId.includes('indicator') || cName.includes('turn signal')) cat = 'turn_signal';
+      else if (cId.includes('mirror') || cName.includes('mirror')) cat = 'mirrors';
+      else if (cId.includes('window') || cName.includes('window')) cat = 'windows';
+      else if (cId.includes('lock') || cId.includes('deadlock') || cId.includes('door') || cName.includes('lock') || cName.includes('door')) cat = 'locks';
+      else if (cId.includes('light') || cId.includes('lamp') || cId.includes('headlight') || cId.includes('lid') || cName.includes('light') || cName.includes('lamp')) cat = 'lights';
+      else if (cId.includes('keyless') || cId.includes('remote') || cId.includes('kos') || cId.includes('horn') || cId.includes('beep') || cName.includes('keyless') || cName.includes('remote') || cName.includes('horn')) cat = 'keyless';
+      else if (cId.includes('ac') || cId.includes('air') || cId.includes('climate') || cId.includes('heat') || cId.includes('cool') || cId.includes('defrost') || cId.includes('idle') || cName.includes('ac') || cName.includes('air') || cName.includes('climate') || cName.includes('defrost')) cat = 'ac';
       else cat = 'other';
     }
 
@@ -768,7 +800,8 @@ export function getPhevCustomizationSettings(hass, lang = 'hu') {
         const hexUpper = hexMatch[1].toUpperCase();
         label = lang === 'hu' ? `ETACS beállítás (0x${hexUpper})` : `ETACS Setting (0x${hexUpper})`;
       } else {
-        label = st.attributes?.friendly_name || entityId.replace(/^select\./, '').replace(/_/g, ' ');
+        const cleanFriendly = (st.attributes?.friendly_name || '').replace(/^(phev|mitsubishi)\s+/i, '');
+        label = cleanFriendly || entityId.replace(/^select\./, '').replace(/_/g, ' ');
       }
     }
 
