@@ -141,6 +141,121 @@ const TRANSLATIONS = {
     ed_interactive_car: 'Interaktív érintési zónák engedélyezése az autón',
     ed_confirm_wifi: 'Megerősítés kérése Wi-Fi újraindítás előtt',
     ed_invert_lock: 'Zár állapotának megfordítása (ha ellentétesen jelez)',
+
+    // Timers & Schedules
+    timers_btn: 'Időzítők',
+    timers_title: 'Időzített Töltés és Előfűtés (Timers 1–5)',
+    climate_tab: 'Klíma & Fűtés',
+    charge_tab: 'Töltés',
+    tab_climate_timers: 'Klíma & Fűtés időzítők',
+    tab_charge_timers: 'Töltési időzítők',
+    climate_timer_master: 'Klíma időzítő főkapcsoló',
+    timer_master_enabled: 'Főkapcsoló: Aktív',
+    timer_master_disabled: 'Főkapcsoló: Kikapcsolva',
+    timer_scheduled_mode: 'Időzített üzemmód',
+    timer_slot: 'Időzítő {slot}',
+    slot_num: 'Időzítő #{num}',
+    timer_enabled: 'Aktív',
+    timer_disabled: 'Kikapcsolva',
+    ready_time: 'Indulási idő (Készre)',
+    start_time: 'Töltés kezdete',
+    stop_time: 'Töltés vége',
+    duration: 'Időtartam',
+    days_active: 'Aktív napok',
+    timer_start_time: 'Kezdés (HH:MM)',
+    timer_end_time: 'Befejezés (HH:MM)',
+    timer_duration: 'Időtartam (perc)',
+    timer_full_charge: 'Teljes feltöltésig',
+    timer_days: 'Aktív napok',
+    preset_everyday: 'Minden nap',
+    preset_weekdays: 'Hétköznapok',
+    preset_weekend: 'Hétvége',
+    preset_weekends: 'Hétvégék',
+    charge_now_override: 'Azonnali töltés (Időzítő felülbírálása)',
+    charge_waiting_timer: 'Várakozás időzített töltési ablakra',
+    pre_ac_duration: 'Időtartam',
+    pre_ac_delay: 'Késleltetés',
+    pre_ac_stop_time: 'Várható leállás',
+    pre_ac_reset_alert: 'Hibaüzenet törlése',
+
+    // Diagnostics & System
+    diag_btn: 'Diagnosztika',
+    diag_title: 'Jármű Diagnosztika, Óra és Wi-Fi',
+    ignition_title: 'Gyújtás / Menetkészültség',
+    ignition_off: 'Kikapcsolva (OFF)',
+    ignition_acc: 'Tartozékok (ACC)',
+    ignition_on: 'Gyújtás BE (ON)',
+    ignition_ready: 'READY (Menetkész)',
+    theft_alarm_title: 'Lopásgátló Riasztó',
+    theft_alarm: 'Riasztó állapota',
+    alarm_disarmed: 'Hatástalanítva',
+    alarm_armed: 'Élesítve',
+    alarm_triggered: 'RIASZTÁS AKTÍV!',
+    alarm_last_event: 'Utolsó riasztási esemény',
+    clear_alarm: 'Riasztás törlése',
+    alarm_clear_btn: 'Riasztás jelzés törlése',
+    locate_car: 'Autó keresése (Fénykürt)',
+    locate_car_btn: 'Jármű keresése (Fénykürt)',
+    locate_car_sent: 'Fénykürt aktiválva!',
+    battery_thermal_title: 'Akkumulátor Védelem',
+    battery_warming: 'Akkumulátorfűtés aktív',
+    batt_thermal_state: 'Akkumulátor hőmérséklet',
+    batt_warming: 'Akkumulátorfűtés',
+    batt_warning_active: 'Figyelmeztetés aktív',
+    clock_title: 'Óra és Wi-Fi',
+    car_clock_title: 'Jármű belső órája',
+    car_clock: 'Belső óra',
+    sync_clock: 'Óra szinkron',
+    car_clock_sync_btn: 'Óra szinkronizálása',
+    car_clock_sync_done: 'Óra szinkronizálva!',
+    wifi_settings_title: 'Wi-Fi & Kommunikáció',
+    wifi_ssid: 'SSID',
+    wifi_channel: 'Csatorna',
+    wifi_always_on: 'Folyamatos Wi-Fi (ne aludjon el)',
+    refresh_status_btn: 'Státusz frissítése most',
+    vehicle_info_title: 'Jármű Azonosítók',
+    vehicle_specs: 'Jármű adatok',
+    vin: 'Alvázszám (VIN)',
+    ecu_version: 'ECU szoftververzió',
+    firmware_version: 'ECU Firmware verzió',
+    steering_side: 'Kormányoldal',
+    registered_phones: 'Regisztrált telefonok',
+    last_packet: 'Utolsó adatcsomag',
+
+    // Settings Modal (ETACS / AC)
+    settings_btn: 'Beállítások',
+    settings_title: 'Mitsubishi ETACS & Klíma Beállítások',
+    settings_sub: 'Gyári jármű-testreszabás és kényelmi funkciók (phev2mqtt)',
+    settings_subtitle: 'Gyári jármű-testreszabás és kényelmi funkciók (phev2mqtt)',
+    settings_search: 'Keresés a beállítások között',
+    settings_search_placeholder: 'Beállítás keresése név vagy kategória alapján...',
+    settings_reset_all: 'Gyári visszaállítás',
+    settings_reset_confirm: 'Biztosan visszaállítod az összes gyári járműbeállítást?',
+    settings_factory_reset: 'Gyári beállítások visszaállítása',
+    settings_factory_reset_confirm: 'Biztosan visszaállítod az összes gyári járműbeállítást?',
+    settings_no_found: 'Nem található a keresésnek megfelelő beállítás.',
+    settings_saved: 'Beállítás sikeresen frissítve!',
+    cat_all: 'Összes',
+    cat_wipers: 'Ablaktörlők',
+    cat_turn_signal: 'Irányjelző',
+    cat_keyless: 'Kulcsnélküli',
+    cat_lights: 'Világítás',
+    cat_mirrors: 'Tükrök',
+    cat_locks: 'Ajtózárak',
+    cat_windows: 'Ablakok',
+    cat_ac: 'Klíma & Fűtés',
+    cat_other: 'Egyéb',
+    settings_cat_all: 'Összes',
+    settings_cat_wipers: 'Ablaktörlők',
+    settings_cat_turn_signal: 'Irányjelző',
+    settings_cat_keyless: 'Kulcsnélküli & Riasztó',
+    settings_cat_lights: 'Világítás',
+    settings_cat_mirrors: 'Tükrök',
+    settings_cat_locks: 'Ajtózárak',
+    settings_cat_windows: 'Elektromos ablakok',
+    settings_cat_ac: 'Klíma & Fűtés',
+    settings_cat_other: 'Egyéb',
+    close: 'Bezárás',
   },
   en: {
     card_title_default: 'Outlander PHEV',
@@ -266,6 +381,123 @@ const TRANSLATIONS = {
     ed_interactive_car: 'Enable interactive touch zones on car',
     ed_confirm_wifi: 'Require confirmation before Restart Wi-Fi',
     ed_invert_lock: 'Invert lock sensor polarity',
+
+    // Timers & Schedules
+    timers_btn: 'Timers',
+    timers_title: 'Charging & Pre-Conditioning Schedules (Timers 1–5)',
+    climate_tab: 'Climate & Heat',
+    charge_tab: 'Charging',
+    tab_climate_timers: 'Climate & Pre-AC Timers',
+    tab_charge_timers: 'Charging Timers',
+    climate_timer_master: 'Climate timer master switch',
+    timer_master_enabled: 'Master Schedule: Enabled',
+    timer_master_disabled: 'Master Schedule: Disabled',
+    timer_scheduled_mode: 'Scheduled Mode',
+    timer_slot: 'Timer {slot}',
+    slot_num: 'Timer #{num}',
+    timer_enabled: 'Active',
+    timer_disabled: 'Inactive',
+    ready_time: 'Ready Time',
+    start_time: 'Start Time',
+    stop_time: 'Stop Time',
+    duration: 'Duration',
+    days_active: 'Active Days',
+    timer_start_time: 'Start Time (HH:MM)',
+    timer_end_time: 'End Time (HH:MM)',
+    timer_duration: 'Duration (min)',
+    timer_full_charge: 'Full Charge',
+    timer_days: 'Active Days',
+    preset_everyday: 'Everyday',
+    preset_weekdays: 'Weekdays',
+    preset_weekend: 'Weekend',
+    preset_weekends: 'Weekends',
+    charge_now_override: 'Charge Now (Override Timer)',
+    charge_waiting_timer: 'Waiting for scheduled charging timer window',
+    pre_ac_duration: 'Duration',
+    pre_ac_delay: 'Start Delay',
+    pre_ac_stop_time: 'Target Stop Time',
+    pre_ac_reset_alert: 'Clear Termination Alert',
+
+    // Diagnostics & System
+    diag_btn: 'Diagnostics',
+    diag_title: 'Vehicle Diagnostics, Clock & Wi-Fi',
+    ignition_title: 'Ignition / Readiness',
+    ignition_off: 'OFF',
+    ignition_acc: 'ACC (Accessories)',
+    ignition_on: 'Ignition ON',
+    ignition_ready: 'READY',
+    theft_alarm_title: 'Theft Alarm',
+    theft_alarm: 'Alarm Status',
+    alarm_disarmed: 'Disarmed',
+    alarm_armed: 'Armed',
+    alarm_triggered: 'ALARM TRIGGERED!',
+    alarm_last_event: 'Last Alarm Event',
+    clear_alarm: 'Clear Alarm',
+    alarm_clear_btn: 'Clear Alarm Notification',
+    locate_car: 'Locate Car (Flash)',
+    locate_car_btn: 'Locate Vehicle (Flash Lights)',
+    locate_car_sent: 'Lights Flashed!',
+    battery_thermal_title: 'Drive Battery Health',
+    batt_thermal_state: 'Battery Temperature',
+    battery_warming: 'Battery Heater Active',
+    batt_warming: 'Battery Warming',
+    batt_warning_active: 'Warning Active',
+    clock_title: 'Clock & Wi-Fi',
+    car_clock_title: 'Vehicle Internal Clock',
+    car_clock: 'Vehicle Clock',
+    sync_clock: 'Sync Clock',
+    car_clock_sync_btn: 'Sync Clock to HA',
+    car_clock_sync_done: 'Clock Synchronized!',
+    wifi_settings_title: 'Wi-Fi & Communication',
+    wifi_ssid: 'SSID',
+    wifi_channel: 'Channel',
+    wifi_always_on: 'Keep Wi-Fi Always Active',
+    refresh_status_btn: 'Refresh Vehicle Status Now',
+    vehicle_info_title: 'Vehicle Identifiers',
+    vehicle_specs: 'Vehicle Specs',
+    vin: 'VIN',
+    ecu_version: 'ECU Version',
+    firmware_version: 'ECU Firmware',
+    steering_side: 'Steering Side',
+    registered_phones: 'Registered Phones',
+    last_packet: 'Last Packet',
+
+    // Settings Modal (ETACS / AC)
+    settings_btn: 'Settings',
+    settings_title: 'Mitsubishi ETACS & Climate Customization',
+    settings_sub: 'OEM vehicle customization and convenience features (phev2mqtt)',
+    settings_subtitle: 'OEM vehicle customization and convenience features (phev2mqtt)',
+    settings_search: 'Search settings',
+    settings_search_placeholder: 'Search settings by name or category...',
+    settings_reset_all: 'Factory Reset',
+    settings_reset_confirm: 'Are you sure you want to restore all factory vehicle settings?',
+    settings_factory_reset: 'Restore Factory Defaults',
+    settings_factory_reset_confirm: 'Are you sure you want to restore all customization settings to OEM factory defaults?',
+    settings_no_found: 'No settings match your search.',
+    settings_saved: 'Setting updated successfully!',
+    cat_all: 'All',
+    cat_wipers: 'Wipers',
+    cat_turn_signal: 'Turn Signal',
+    cat_keyless: 'Keyless',
+    cat_lights: 'Lights',
+    cat_mirrors: 'Mirrors',
+    cat_locks: 'Locks',
+    cat_windows: 'Windows',
+    cat_ac: 'Climate & AC',
+    cat_other: 'Other',
+    settings_cat_all: 'All',
+    settings_cat_wipers: 'Wipers',
+    settings_cat_turn_signal: 'Turn Signal',
+    settings_cat_keyless: 'Keyless & Alarm',
+    settings_cat_lights: 'Lights',
+    settings_cat_mirrors: 'Mirrors',
+    settings_cat_locks: 'Door Locks',
+    settings_cat_windows: 'Power Windows',
+    settings_cat_ac: 'Climate & A/C',
+    settings_cat_other: 'Other',
+    settings_no_found: 'No matching customization settings found.',
+    settings_saved: 'Setting updated successfully!',
+    close: 'Close',
   },
 };
 function localize(lang, key, vars = {}) {
@@ -317,6 +549,36 @@ const ENTITY_KEYS = [
   'interior_lights_entity',
   'connected_entity',
   'restart_wifi_entity',
+  // New Diagnostics & Telemetry
+  'ignition_state_entity',
+  'theft_alarm_entity',
+  'theft_alarm_last_event_entity',
+  'clear_alarm_entity',
+  'locate_car_entity',
+  'car_clock_entity',
+  'sync_car_clock_entity',
+  'battery_warning_entity',
+  'battery_thermal_entity',
+  'battery_warming_entity',
+  'wifi_ssid_entity',
+  'wifi_channel_entity',
+  'wifi_always_on_entity',
+  'refresh_status_entity',
+  'vin_entity',
+  'ecu_version_entity',
+  'steering_side_entity',
+  'registered_phones_entity',
+  'last_seen_entity',
+  // New Climate & Charge Timers
+  'climate_timer_master_entity',
+  'climate_timer_mode_entity',
+  'charge_timer_master_entity',
+  'charge_now_entity',
+  'waiting_charge_timer_entity',
+  'climate_duration_min_entity',
+  'climate_start_delay_min_entity',
+  'climate_stop_time_entity',
+  'reset_climate_error_entity',
 ];
 
 function clamp(val, min, max) {
@@ -766,9 +1028,284 @@ function autoDiscoverPhevEntities(hass) {
         id.includes('duration');
       return isDaily && isDuration;
     })?.entity_id,
+
+    // Diagnostics & System Telemetry
+    ignition_state_entity: pick(['sensor'], (id, fn) =>
+      id.includes('ignition_state') || id.includes('ignition') || fn.includes('ignition')
+    ),
+    theft_alarm_entity: pick(['sensor', 'binary_sensor'], (id, fn) =>
+      id.includes('theft_alarm') || id.includes('alarm_state') || fn.includes('theft alarm')
+    ),
+    theft_alarm_last_event_entity: pick(['sensor'], (id, fn) =>
+      id.includes('last_theft_alarm') || id.includes('alarm_last_event') || fn.includes('last alarm')
+    ),
+    clear_alarm_entity: pick(['button', 'switch'], (id, fn) =>
+      (id.includes('clear') && id.includes('alarm')) ||
+      id.includes('alarm_clear') ||
+      (fn.includes('clear') && fn.includes('alarm'))
+    ),
+    locate_car_entity: pick(['button', 'switch'], (id, fn) =>
+      id.includes('locate_car') || id.includes('locate') || fn.includes('locate')
+    ),
+    car_clock_entity: pick(['sensor'], (id, fn) =>
+      id.includes('car_clock') || id.includes('phev_clock') || fn.includes('car clock')
+    ),
+    sync_car_clock_entity: pick(['button', 'switch'], (id, fn) =>
+      (id.includes('sync') && (id.includes('clock') || id.includes('time'))) ||
+      id.includes('synctime') ||
+      (fn.includes('sync') && (fn.includes('clock') || fn.includes('time')))
+    ),
+    battery_warning_entity: pick(['binary_sensor'], (id, fn) =>
+      id.includes('battery_warning') || fn.includes('battery warning')
+    ),
+    battery_thermal_entity: pick(['sensor'], (id, fn) =>
+      id.includes('battery_thermal') || id.includes('battery_warning_active') || fn.includes('thermal')
+    ),
+    battery_warming_entity: pick(['binary_sensor'], (id, fn) =>
+      id.includes('battery_warming') || fn.includes('battery warming')
+    ),
+    wifi_ssid_entity: pick(['sensor'], (id, fn) =>
+      id.includes('wifi_ssid') || fn.includes('wifi ssid')
+    ),
+    wifi_channel_entity: pick(['select', 'sensor'], (id, fn) =>
+      id.includes('wifi_channel') || fn.includes('wifi channel')
+    ),
+    wifi_always_on_entity: pick(['switch'], (id, fn) =>
+      id.includes('keep_wifi_always_active') || id.includes('wifi_always_on') || fn.includes('always active')
+    ),
+    refresh_status_entity: pick(['button'], (id, fn) =>
+      id.includes('refresh_vehicle_status') || id.includes('refresh') || fn.includes('refresh')
+    ),
+    vin_entity: pick(['sensor'], (id, fn) =>
+      id.includes('phev_vin') || fn === 'vin' || fn.includes('vin')
+    ),
+    ecu_version_entity: pick(['sensor'], (id, fn) =>
+      id.includes('ecu_version') || id.includes('ecuversion') || fn.includes('ecu version')
+    ),
+    steering_side_entity: pick(['sensor'], (id, fn) =>
+      id.includes('steering_side') || id.includes('steering') || fn.includes('steering')
+    ),
+    registered_phones_entity: pick(['sensor'], (id, fn) =>
+      id.includes('registered_smartphones') || id.includes('registrations') || fn.includes('registered')
+    ),
+    last_seen_entity: pick(['sensor'], (id, fn) =>
+      id.includes('phev_last_seen') || fn.includes('last seen')
+    ),
+
+    // Timers & Pre-AC Extensions
+    climate_timer_master_entity: pick(['switch'], (id, fn) =>
+      id.includes('climate_timer_master') || fn.includes('climate timer master')
+    ),
+    climate_timer_mode_entity: pick(['select'], (id, fn) =>
+      id.includes('climate_timer_mode') || fn.includes('climate timer mode')
+    ),
+    charge_timer_master_entity: pick(['switch'], (id, fn) =>
+      id.includes('charge_timer_master') || fn.includes('charge timer master')
+    ),
+    charge_now_entity: pick(['button', 'switch'], (id, fn) =>
+      id.includes('charge_now') || id.includes('override_timer') || fn.includes('charge immediately')
+    ),
+    waiting_charge_timer_entity: pick(['binary_sensor'], (id, fn) =>
+      id.includes('waiting_for_charge_timer') || id.includes('timer_inhibited') || fn.includes('waiting for timer')
+    ),
+    climate_duration_min_entity: pick(['select'], (id, fn) =>
+      id.includes('climate_duration_min') || fn.includes('duration')
+    ),
+    climate_start_delay_min_entity: pick(['select'], (id, fn) =>
+      id.includes('climate_start_delay_min') || fn.includes('start delay')
+    ),
+    climate_stop_time_entity: pick(['sensor'], (id, fn) =>
+      id.includes('climate_stop_time') || fn.includes('stop time')
+    ),
+    reset_climate_error_entity: pick(['button'], (id, fn) =>
+      id.includes('reset_climate_error') || fn.includes('clear termination')
+    ),
   };
 
   return Object.fromEntries(Object.entries(result).filter(([, v]) => Boolean(v)));
+}
+
+/**
+ * Metadata catalog for ETACS & AC Customization Settings (0x01..0x3c)
+ */
+const SETTING_DEFINITIONS = {
+  wipers_key_position: { cat: 'wipers', hu: 'Ablaktörlő működése gyújtáskapcsoló állásban', en: 'Wipers Operation in Key Position' },
+  front_wiper_intermittent: { cat: 'wipers', hu: 'Első ablaktörlő szakaszos működése', en: 'Windshield Wipers Intermittent Operation' },
+  wipers_linked_to_washer: { cat: 'wipers', hu: 'Ablakmosóhoz kapcsolt törlés', en: 'Wipers Linked to Washer' },
+  rear_wiper_interval: { cat: 'wipers', hu: 'Hátsó ablaktörlő intervallum', en: 'Rear Wiper Intermittent Interval' },
+  comfort_washer: { cat: 'wipers', hu: 'Komfort ablakmosó funkció', en: 'Comfort Washer' },
+  rear_wiper_in_reverse: { cat: 'wipers', hu: 'Hátsó ablaktörlő hátramenetben', en: 'Rear Wiper Activated in Reverse' },
+
+  lane_change_3flash: { cat: 'turn_signal', hu: 'Sávváltó 3-villanásos komfort irányjelző', en: 'Lane-change 3-Flash Turn Signal' },
+  lane_change_activation_time: { cat: 'turn_signal', hu: 'Sávváltó irányjelző aktiválási ideje', en: 'Activation Time for Lane-change Signals' },
+
+  turn_signal_answerback: { cat: 'keyless', hu: 'Irányjelző villogás nyitáskor/záráskor', en: 'Turn Signal Lights Answerback' },
+  horn_answerback_lock: { cat: 'keyless', hu: 'Kürt visszajelzés záráskor', en: 'Horn Answerback at Keyless Lock' },
+  kos_answerback_beep: { cat: 'keyless', hu: 'Kulcsnélküli hangjelzés (Beep)', en: 'Keyless Answerback Beep' },
+  auto_relock_time: { cat: 'keyless', hu: 'Automatikus visszazárási idő feloldás után', en: 'Automatic Relocking After Remote Unlock' },
+  multi_mode_keyless: { cat: 'keyless', hu: 'Multi Mode kulcsnélküli ablak/tükör vezérlés', en: 'Multi Mode Keyless Entry System' },
+  horn_answerback_duration: { cat: 'keyless', hu: 'Kürt visszajelzés hanghossza', en: 'Duration of Horn Answerback' },
+  remote_unlock_inactivation: { cat: 'keyless', hu: 'Nyitás letiltási késleltetés zárás után', en: 'Remote Unlock Inactivation After Locking' },
+  horn_remote_start: { cat: 'keyless', hu: 'Kürt visszajelzés távindításkor', en: 'Horn Answerback at Remote Start' },
+
+  charging_lid_light_cutout: { cat: 'lights', hu: 'Töltőfedél világítás automatikus lekapcsolása', en: 'Charging Lid Light Auto Cut-out' },
+  auto_light_sensitivity: { cat: 'lights', hu: 'Automata fényszóró fényérzékenysége', en: 'Sensitivity for Auto Light' },
+  auto_light_linked_wiper: { cat: 'lights', hu: 'Automata fényszóró ablaktörlőhöz kapcsolása', en: 'Auto Light Linked to Wiper' },
+  dome_light_delay: { cat: 'lights', hu: 'Belső mennyezetvilágítás késleltetése ajtózárás után', en: 'Dome Light Duration After Door Closed' },
+  headlight_auto_cutout: { cat: 'lights', hu: 'Fényszóró automatikus lekapcsolása kiszálláskor', en: 'Headlight Auto-cutout Function' },
+  interior_light_auto_cutout: { cat: 'lights', hu: 'Belső világítás energiatakarékos lekapcsolása', en: 'Interior Light Auto-cutout Time' },
+  headlights_on_exit: { cat: 'lights', hu: 'Hazakísérő fény (Coming Home) időtartama', en: 'Headlights ON When Exiting Vehicle' },
+  exterior_lights_remote_unlock: { cat: 'lights', hu: 'Külső fények felkapcsolása távoli nyitáskor (Welcome Light)', en: 'Exterior Lights ON with Remote Unlock' },
+
+  auto_fold_mirrors: { cat: 'mirrors', hu: 'Visszapillantó tükrök automatikus behajtása', en: 'Auto Fold Mirrors' },
+
+  automatic_door_unlock: { cat: 'locks', hu: 'Automatikus ajtónyitás (P fokozat / leállítás)', en: 'Automatic Door Unlock' },
+  selective_door_unlock: { cat: 'locks', hu: 'Szelektív ajtónyitás (csak vezető / összes ajtó)', en: 'Unlock Operation' },
+  deadlock_button_pushes: { cat: 'locks', hu: 'Reteszelő zár (Deadlock) gombnyomások', en: 'Lock Button Pushes for Dead Lock' },
+
+  power_window_keyoff_timer: { cat: 'windows', hu: 'Ablakemelő működtetési idő gyújtás levétele után', en: 'Power Window Timer After IG Off' },
+  window_open_after_ig_off: { cat: 'windows', hu: 'Ablaknyitás engedélyezése leállítás után', en: 'Window Open Operation After IG Off' },
+  window_lock_switch_scope: { cat: 'windows', hu: 'Ablakzár kapcsoló hatóköre', en: 'Power Window Lock-switch Scope' },
+
+  ac_recirculation_control: { cat: 'ac', hu: 'Belső levegőkeringetés automatikus vezérlése', en: 'Recirculation Control' },
+  ac_switch_control: { cat: 'ac', hu: 'A/C kompresszor kapcsoló vezérlése', en: 'A/C Switch Control' },
+  ac_eco_mode: { cat: 'ac', hu: 'A/C Eco / Comfort üzemmód', en: 'A/C Eco Mode' },
+  foot_defroster_airflow_ratio: { cat: 'ac', hu: 'Lábtér / Szélvédő légáramlás aránya', en: 'Foot / Defroster Airflow Ratio' },
+  face_foot_airflow_ratio: { cat: 'ac', hu: 'Mellkas / Lábtér légáramlás aránya', en: 'Face / Foot Airflow Ratio' },
+  auto_rear_defrost_at_start: { cat: 'ac', hu: 'Automatikus hátsó szélvédőfűtés induláskor', en: 'Automatic Rear Defrost at Start' },
+  start_ac_at_door_unlock: { cat: 'ac', hu: 'Klíma / Fűtés indítása ajtónyitáskor', en: 'Start A/C or Heater at Door Unlock' },
+  foot_mode_defroster_bleed: { cat: 'ac', hu: 'Szélvédő mikrolevegőzés lábtér üzemmódban', en: 'Slight Defroster Airflow in Foot Mode' },
+  fast_idle_heater_boost: { cat: 'ac', hu: 'Megnövelt alapjárat magasabb fűtési teljesítményhez', en: 'Fast Idle for Higher Heater Performance' },
+
+  acc_power_auto_cutout: { cat: 'other', hu: 'ACC fogyasztók automatikus lekapcsolása', en: 'Auto Cut of ACC Power' },
+};
+
+/**
+ * Discovers and groups all ETACS/AC customization settings from Home Assistant.
+ */
+function getPhevCustomizationSettings(hass, lang = 'hu') {
+  if (!hass || !hass.states) return [];
+  const entries = [];
+
+  for (const [entityId, st] of Object.entries(hass.states)) {
+    if (!entityId.startsWith('select.')) continue;
+    const lowerId = entityId.toLowerCase();
+    const isSetting =
+      lowerId.includes('_setting_') ||
+      lowerId.includes('phev_settings_') ||
+      Object.keys(SETTING_DEFINITIONS).some((slug) => lowerId.endsWith(`_${slug}`) || lowerId.includes(slug));
+
+    if (!isSetting) continue;
+
+    // Match slug
+    const matchedSlug = Object.keys(SETTING_DEFINITIONS).find(
+      (slug) => lowerId.endsWith(`_${slug}`) || lowerId.includes(slug)
+    );
+    const def = matchedSlug ? SETTING_DEFINITIONS[matchedSlug] : null;
+
+    let cat = def?.cat;
+    if (!cat) {
+      if (lowerId.includes('wiper')) cat = 'wipers';
+      else if (lowerId.includes('turn_signal') || lowerId.includes('flasher')) cat = 'turn_signal';
+      else if (lowerId.includes('mirror')) cat = 'mirrors';
+      else if (lowerId.includes('window')) cat = 'windows';
+      else if (lowerId.includes('lock')) cat = 'locks';
+      else if (lowerId.includes('light') || lowerId.includes('lamp')) cat = 'lights';
+      else if (lowerId.includes('keyless') || lowerId.includes('alarm') || lowerId.includes('remote')) cat = 'keyless';
+      else if (lowerId.includes('ac') || lowerId.includes('air_conditioning') || lowerId.includes('climate')) cat = 'ac';
+      else cat = 'other';
+    }
+
+    const label = def ? (lang === 'hu' ? def.hu : def.en) : st.attributes?.friendly_name || entityId;
+
+    entries.push({
+      entity_id: entityId,
+      slug: matchedSlug || entityId.replace('select.', ''),
+      cat,
+      label,
+      state: st.state,
+      options: Array.isArray(st.attributes?.options) ? st.attributes.options : [],
+    });
+  }
+
+  // Sort by category order then label
+  const catOrder = ['wipers', 'turn_signal', 'keyless', 'lights', 'mirrors', 'locks', 'windows', 'ac', 'other'];
+  return entries.sort((a, b) => {
+    const ca = catOrder.indexOf(a.cat);
+    const cb = catOrder.indexOf(b.cat);
+    if (ca !== cb) return ca - cb;
+    return a.label.localeCompare(b.label, lang === 'hu' ? 'hu' : 'en');
+  });
+}
+
+/**
+ * Discovers climate timer slot entities (1..5).
+ */
+function getPhevClimateTimers(hass) {
+  if (!hass || !hass.states) return [];
+  const slots = [];
+  for (let s = 1; s <= 5; s++) {
+    const prefix = `climate_timer_${s}`;
+    const enabledEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('enabled'));
+    const timeEnt = Object.keys(hass.states).find(
+      (id) =>
+        id.includes(prefix) &&
+        !id.includes('enabled') &&
+        (id.endsWith('_time') || id.endsWith('time') || (id.includes('_time_') && !id.includes('_timer_')) || id.startsWith('time.'))
+    );
+    const durEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('duration'));
+    const daysEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('days'));
+    const summaryEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('summary'));
+
+    slots.push({
+      slot: s,
+      enabledEntity: enabledEnt,
+      timeEntity: timeEnt,
+      durationEntity: durEnt,
+      daysEntity: daysEnt,
+      summaryEntity: summaryEnt,
+      enabled: enabledEnt ? hass.states[enabledEnt]?.state === 'on' : false,
+      time: timeEnt ? hass.states[timeEnt]?.state || '--:--' : '--:--',
+      duration: durEnt ? hass.states[durEnt]?.state || '20' : '20',
+      days: daysEnt ? hass.states[daysEnt]?.state || 'Everyday' : 'Everyday',
+      summary: summaryEnt ? hass.states[summaryEnt]?.state : null,
+    });
+  }
+  return slots;
+}
+
+/**
+ * Discovers charge timer slot entities (1..5).
+ */
+function getPhevChargeTimers(hass) {
+  if (!hass || !hass.states) return [];
+  const slots = [];
+  for (let s = 1; s <= 5; s++) {
+    const prefix = `charge_timer_${s}`;
+    const enabledEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('enabled'));
+    const startEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('start'));
+    const endEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('end'));
+    const fullEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('full_charge'));
+    const daysEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('days'));
+    const summaryEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('summary'));
+
+    slots.push({
+      slot: s,
+      enabledEntity: enabledEnt,
+      startEntity: startEnt,
+      endEntity: endEnt,
+      fullChargeEntity: fullEnt,
+      daysEntity: daysEnt,
+      summaryEntity: summaryEnt,
+      enabled: enabledEnt ? hass.states[enabledEnt]?.state === 'on' : false,
+      start: startEnt ? hass.states[startEnt]?.state || '--:--' : '--:--',
+      end: endEnt ? hass.states[endEnt]?.state || '--:--' : '--:--',
+      fullCharge: fullEnt ? hass.states[fullEnt]?.state === 'on' : true,
+      days: daysEnt ? hass.states[daysEnt]?.state || 'Everyday' : 'Everyday',
+      summary: summaryEnt ? hass.states[summaryEnt]?.state : null,
+    });
+  }
+  return slots;
 }
 
 /**
@@ -1477,6 +2014,7 @@ const CARD_STYLES = `
   ha-card.ophev-card {
     position: relative;
     overflow: hidden;
+    overflow-anchor: none;
     background: var(--ophev-bg);
     color: var(--ophev-text);
     border-radius: var(--ha-card-border-radius, 22px);
@@ -2981,6 +3519,735 @@ const CARD_STYLES = `
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(30, 41, 59, 0.82));
     box-shadow: 0 0 16px -4px rgba(14, 165, 233, 0.3);
   }
+
+  /* =========================================================
+     HEADER EXTENSION ACTIONS (SETTINGS, TIMERS, DIAGNOSTICS)
+     ========================================================= */
+  .hdr-actions-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .hdr-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid var(--ophev-border-strong);
+    color: var(--ophev-text);
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .hdr-action-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .hdr-action-btn:hover {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: rgba(56, 189, 248, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .hdr-action-btn.active {
+    background: rgba(14, 165, 233, 0.28);
+    border-color: rgba(56, 189, 248, 0.7);
+    color: #38bdf8;
+    box-shadow: 0 0 12px -2px rgba(14, 165, 233, 0.4);
+  }
+
+  /* =========================================================
+     COLLAPSIBLE PANELS (TIMERS & DIAGNOSTICS)
+     ========================================================= */
+  .section-panel {
+    background: var(--ophev-panel);
+    border: 1px solid var(--ophev-border);
+    border-radius: 18px;
+    padding: 16px;
+    margin-top: 14px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    backdrop-filter: blur(10px);
+    overflow-anchor: none;
+  }
+
+  .section-panel.open {
+    display: flex;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: -0.01em;
+  }
+
+  .section-title svg {
+    width: 17px;
+    height: 17px;
+    color: #38bdf8;
+  }
+
+  /* Subtabs Bar (Timers: Charge vs Climate) */
+  .subtabs-bar {
+    display: flex;
+    gap: 6px;
+    background: rgba(9, 13, 22, 0.72);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--ophev-border);
+  }
+
+  .subtab-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--ophev-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+
+  .subtab-btn:hover {
+    color: #f1f5f9;
+  }
+
+  .subtab-btn.active {
+    background: rgba(14, 165, 233, 0.22);
+    color: #e0f2fe;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Timer Slots Pills (1..5) */
+  .slots-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .slot-pill {
+    padding: 7px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(15, 23, 42, 0.7);
+    color: var(--ophev-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+
+  .slot-pill:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #f1f5f9;
+  }
+
+  .slot-pill.active {
+    background: rgba(14, 165, 233, 0.22);
+    border-color: rgba(56, 189, 248, 0.65);
+    color: #f0f9ff;
+    box-shadow: 0 0 10px -2px rgba(14, 165, 233, 0.35);
+  }
+
+  .slot-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #64748b;
+    flex-shrink: 0;
+  }
+
+  .slot-pill.enabled .slot-dot {
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+  }
+
+  /* Master Schedule Banner */
+  .timer-master-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.78);
+    border: 1px solid var(--ophev-border);
+  }
+
+  .timer-master-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .timer-master-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  /* Timer Slot Editor Card */
+  .timer-editor-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--ophev-border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .timer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .timer-row-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+  }
+
+  .timer-input {
+    background: rgba(9, 13, 22, 0.88);
+    border: 1px solid var(--ophev-border-strong);
+    border-radius: 8px;
+    color: #f8fafc;
+    padding: 6px 11px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .timer-input:focus {
+    border-color: #38bdf8;
+  }
+
+  .days-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .days-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .day-chip {
+    width: 33px;
+    height: 33px;
+    border-radius: 9px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(9, 13, 22, 0.75);
+    color: var(--ophev-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+    font-family: inherit;
+  }
+
+  .day-chip:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #f1f5f9;
+  }
+
+  .day-chip.active {
+    background: rgba(16, 185, 129, 0.24);
+    border-color: rgba(52, 211, 153, 0.65);
+    color: #a7f3d0;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.22);
+  }
+
+  .preset-chip {
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(9, 13, 22, 0.65);
+    color: var(--ophev-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-family: inherit;
+  }
+
+  .preset-chip:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #f1f5f9;
+  }
+
+  /* Quick Pre-AC Auxiliary Options (Duration / Delay / Stop Time) */
+  .pre-ac-aux-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .pre-ac-aux-tile {
+    background: rgba(15, 23, 42, 0.68);
+    border: 1px solid var(--ophev-border);
+    border-radius: 11px;
+    padding: 8px 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pre-ac-aux-lbl {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+  }
+
+  .pre-ac-aux-val {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  /* =========================================================
+     DIAGNOSTICS & SYSTEM TELEMETRY PANEL
+     ========================================================= */
+  .diag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 11px;
+  }
+
+  .diag-card {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid var(--ophev-border);
+    border-radius: 14px;
+    padding: 13px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .diag-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .diag-card-title {
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ophev-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .diag-card-title svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Ignition Status Badge */
+  .ignition-badge {
+    padding: 4px 11px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ignition-badge.ready {
+    background: rgba(16, 185, 129, 0.22);
+    border: 1px solid rgba(52, 211, 153, 0.65);
+    color: #34d399;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+  }
+
+  .ignition-badge.on {
+    background: rgba(14, 165, 233, 0.22);
+    border: 1px solid rgba(56, 189, 248, 0.65);
+    color: #38bdf8;
+  }
+
+  .ignition-badge.acc {
+    background: rgba(245, 158, 11, 0.22);
+    border: 1px solid rgba(251, 191, 36, 0.65);
+    color: #fbbf24;
+  }
+
+  .ignition-badge.off {
+    background: rgba(100, 116, 139, 0.18);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    color: #94a3b8;
+  }
+
+  /* Alarm Alert Banner */
+  .alarm-banner {
+    padding: 9px 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.76rem;
+  }
+
+  .alarm-banner.triggered {
+    background: rgba(239, 68, 68, 0.25);
+    border: 1px solid rgba(248, 113, 113, 0.6);
+    color: #fca5a5;
+    animation: connOfflineGlow 2s ease-in-out infinite;
+  }
+
+  .alarm-banner.armed {
+    background: rgba(16, 185, 129, 0.16);
+    border: 1px solid rgba(52, 211, 153, 0.45);
+    color: #a7f3d0;
+  }
+
+  .alarm-banner.disarmed {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--ophev-border);
+    color: var(--ophev-muted);
+  }
+
+  .diag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.78rem;
+  }
+
+  .diag-row-lbl {
+    color: var(--ophev-muted);
+  }
+
+  .diag-row-val {
+    font-weight: 700;
+    color: #f8fafc;
+    text-align: right;
+  }
+
+  .diag-action-btn {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 9px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    background: rgba(14, 165, 233, 0.16);
+    color: #e0f2fe;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+
+  .diag-action-btn:hover {
+    background: rgba(14, 165, 233, 0.28);
+    border-color: rgba(56, 189, 248, 0.65);
+    transform: translateY(-1px);
+  }
+
+  /* =========================================================
+     VEHICLE CUSTOMIZATION SETTINGS MODAL DIALOG (ETACS / AC)
+     ========================================================= */
+  .settings-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 9, 16, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .settings-modal-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .settings-modal-card {
+    width: 100%;
+    max-width: 820px;
+    max-height: 88vh;
+    background: linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(11, 15, 25, 0.99));
+    border: 1px solid var(--ophev-border-strong);
+    border-radius: 22px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(14, 165, 233, 0.12);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.96);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .settings-modal-backdrop.open .settings-modal-card {
+    transform: scale(1);
+  }
+
+  .modal-head {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--ophev-border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .modal-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .modal-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #f8fafc;
+    margin: 0;
+  }
+
+  .modal-sub {
+    font-size: 0.74rem;
+    color: var(--ophev-muted);
+    margin: 0;
+  }
+
+  .modal-head-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .modal-btn-reset {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.14);
+    color: #fca5a5;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .modal-btn-reset:hover {
+    background: rgba(239, 68, 68, 0.24);
+    border-color: rgba(239, 68, 68, 0.65);
+  }
+
+  .modal-btn-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(15, 23, 42, 0.8);
+    color: var(--ophev-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .modal-btn-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+  }
+
+  .modal-controls-bar {
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--ophev-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(9, 13, 22, 0.4);
+  }
+
+  .modal-search-input {
+    width: 100%;
+    padding: 9px 13px;
+    border-radius: 11px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid var(--ophev-border-strong);
+    color: #f8fafc;
+    font-size: 0.82rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .modal-search-input:focus {
+    border-color: #38bdf8;
+  }
+
+  .cat-chips-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .cat-chip {
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(15, 23, 42, 0.7);
+    color: var(--ophev-muted);
+    font-size: 0.73rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-family: inherit;
+  }
+
+  .cat-chip:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #f1f5f9;
+  }
+
+  .cat-chip.active {
+    background: rgba(14, 165, 233, 0.22);
+    border-color: rgba(56, 189, 248, 0.65);
+    color: #e0f2fe;
+    box-shadow: 0 0 10px -2px rgba(14, 165, 233, 0.35);
+  }
+
+  .modal-body {
+    padding: 16px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    overscroll-behavior: contain;
+  }
+
+  .setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--ophev-border);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .setting-item:hover {
+    background: rgba(22, 33, 54, 0.7);
+    border-color: rgba(56, 189, 248, 0.35);
+  }
+
+  .setting-left {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .setting-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .setting-cat-badge {
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #38bdf8;
+  }
+
+  .setting-select {
+    background: rgba(9, 13, 22, 0.92);
+    border: 1px solid var(--ophev-border-strong);
+    border-radius: 8px;
+    color: #f8fafc;
+    padding: 7px 11px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    max-width: 250px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .setting-select:focus {
+    border-color: #38bdf8;
+  }
 `;
 
   // --- src/editor.js ---
@@ -3626,6 +4893,13 @@ const ICONS = {
   bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.6 1 1.4 1 2.3h6c0-.9.4-1.7 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
   counter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><line x1="12" y1="5" x2="12" y2="19"/><path d="M6.3 10.2 7.8 9v6"/><path d="M15.2 10.2a1.8 1.8 0 0 1 3.4.8c0 1.4-3.4 2.8-3.4 4h3.6"/></svg>`,
   batteryClock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h4"/><path d="M10.5 19H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.2"/><circle cx="16.5" cy="16.5" r="4.5"/><path d="M16.5 14.3v2.3l1.5 1"/></svg>`,
+  cog: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  gauge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>`,
+  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  key: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.8 12.2 20 3l3 3-2 2-2-2-2 2 2 2-1.5 1.5"/></svg>`,
+  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`,
 };
 
 let instanceCounter = 0;
@@ -3667,6 +4941,14 @@ class OutlanderPhevCard extends HTMLElement {
     this._autoDiscoveredCache = null;
     this._lastValidSoc = 88;
     this._drawerOpen = false;
+    this._timersPanelOpen = false;
+    this._diagPanelOpen = false;
+    this._settingsModalOpen = false;
+    this._settingsCategoryFilter = 'all';
+    this._settingsSearchTerm = '';
+    this._activeTimerSubtab = 'climate';
+    this._activeClimateSlot = 1;
+    this._activeChargeSlot = 1;
     this._wifiConfirmTimer = null;
     this._wifiSentTimer = null;
     this._timerSentTimer = null;
@@ -3713,16 +4995,60 @@ class OutlanderPhevCard extends HTMLElement {
   }
 
   set hass(hass) {
+    const oldHass = this._hass;
     this._hass = hass;
     if (!this._config) return;
     if (!this.$.card) {
       this._buildDom();
+      this._updateState();
+      return;
     }
-    this._updateState();
+    if (this._haveMonitoredEntitiesChanged(oldHass, hass)) {
+      this._updateState();
+    }
+  }
+
+  _haveMonitoredEntitiesChanged(oldHass, newHass) {
+    if (!oldHass || !newHass || !oldHass.states || !newHass.states) return true;
+    if (oldHass.language !== newHass.language) return true;
+
+    // 1. Monitored known entity keys
+    const ents = this._resolveEntities();
+    for (const key of ENTITY_KEYS) {
+      const eid = ents[key];
+      if (eid && oldHass.states[eid] !== newHass.states[eid]) {
+        return true;
+      }
+    }
+
+    // 2. Timers slots 1..5
+    for (let s = 1; s <= 5; s++) {
+      const prefixes = [`climate_timer_${s}`, `charge_timer_${s}`];
+      for (const prefix of prefixes) {
+        for (const eid of Object.keys(newHass.states)) {
+          if (eid.includes(prefix)) {
+            if (oldHass.states[eid] !== newHass.states[eid]) return true;
+          }
+        }
+      }
+    }
+
+    // 3. Settings selects
+    for (const eid of Object.keys(newHass.states)) {
+      if (eid.startsWith('select.') && (eid.includes('_setting_') || eid.includes('phev_settings_'))) {
+        if (oldHass.states[eid] !== newHass.states[eid]) return true;
+      }
+    }
+
+    return false;
   }
 
   getCardSize() {
-    return 7;
+    let size = 16;
+    if (this._timersPanelOpen) size += 8;
+    if (this._diagPanelOpen) size += 8;
+    if (this._drawerOpen) size += 6;
+    return size;
   }
 
   getGridOptions() {
@@ -3982,6 +5308,22 @@ class OutlanderPhevCard extends HTMLElement {
             </div>
 
             <div class="header-pills">
+              <!-- Quick Action Extension Buttons: Timers, Diagnostics, Settings -->
+              <div class="hdr-actions-wrap">
+                <button type="button" class="hdr-action-btn" id="btn-toggle-timers" title="${localize(lang, 'timers_btn')}">
+                  ${ICONS.clock}
+                  <span>${localize(lang, 'timers_btn')}</span>
+                </button>
+                <button type="button" class="hdr-action-btn" id="btn-toggle-diag" title="${localize(lang, 'diag_btn')}">
+                  ${ICONS.gauge}
+                  <span>${localize(lang, 'diag_btn')}</span>
+                </button>
+                <button type="button" class="hdr-action-btn" id="btn-open-settings" title="${localize(lang, 'settings_btn')}">
+                  ${ICONS.cog}
+                  <span>${localize(lang, 'settings_btn')}</span>
+                </button>
+              </div>
+
               <div class="daily-hdr-badges" id="hdr-daily-wrap" style="display:none">
                 <div class="daily-hdr-badge" id="hdr-daily-energy" style="display:none">
                   <div class="daily-hdr-icon">${ICONS.counter}</div>
@@ -4215,8 +5557,176 @@ class OutlanderPhevCard extends HTMLElement {
             </div>
           </div>
 
+          <!-- TIMERS PANEL -->
+          <div class="section-panel" id="panel-timers">
+            <div class="section-head">
+              <div class="section-title">
+                ${ICONS.clock}
+                <span>${localize(lang, 'timers_title')}</span>
+              </div>
+              <div class="subtabs-bar">
+                <button type="button" class="subtab-btn active" id="btn-subtab-climate">
+                  ${ICONS.cool}
+                  <span>${localize(lang, 'climate_tab')}</span>
+                </button>
+                <button type="button" class="subtab-btn" id="btn-subtab-charge">
+                  ${ICONS.bolt}
+                  <span>${localize(lang, 'charge_tab')}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Master Schedule Banner -->
+            <div class="timer-master-banner" id="timer-master-banner">
+              <div class="timer-master-left">
+                <span id="timer-master-icon">${ICONS.clock}</span>
+                <span class="timer-master-text" id="timer-master-text">${localize(lang, 'climate_timer_master')}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <select class="setting-select" id="sel-timer-master-mode" style="display:none;width:auto;padding:4px 8px;font-size:0.75rem;"></select>
+                <button type="button" class="hdr-action-btn" id="btn-toggle-master-timer" style="padding:4px 10px;">
+                  <span id="txt-toggle-master-timer">${localize(lang, 'timer_enabled')}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Slots pills (1..5) -->
+            <div class="slots-bar" id="timer-slots-bar"></div>
+
+            <!-- Active Slot Editor Card -->
+            <div class="timer-editor-card" id="timer-editor-card"></div>
+          </div>
+
+          <!-- DIAGNOSTICS & SYSTEM TELEMETRY PANEL -->
+          <div class="section-panel" id="panel-diag">
+            <div class="section-head">
+              <div class="section-title">
+                ${ICONS.gauge}
+                <span>${localize(lang, 'diag_title')}</span>
+              </div>
+              <div class="hdr-actions-wrap">
+                <button type="button" class="diag-action-btn" id="btn-diag-locate" style="width:auto;padding:5px 11px;">
+                  ${ICONS.bulb}
+                  <span>${localize(lang, 'locate_car')}</span>
+                </button>
+                <button type="button" class="diag-action-btn" id="btn-diag-sync-clock" style="width:auto;padding:5px 11px;">
+                  ${ICONS.refresh}
+                  <span>${localize(lang, 'sync_clock')}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="diag-grid">
+              <!-- 1. Ignition & Security -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.key} ${localize(lang, 'ignition_title')}</span>
+                  <span class="ignition-badge off" id="diag-ignition-badge">OFF</span>
+                </div>
+                <div class="alarm-banner disarmed" id="diag-alarm-banner">
+                  <span id="diag-alarm-text">${localize(lang, 'alarm_disarmed')}</span>
+                  <button type="button" class="modal-btn-reset" id="btn-clear-alarm" style="display:none;padding:3px 8px;font-size:0.7rem;">
+                    ${localize(lang, 'clear_alarm')}
+                  </button>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'theft_alarm')}</span>
+                  <span class="diag-row-val" id="diag-alarm-val">--</span>
+                </div>
+                <div class="diag-row" id="diag-last-alarm-row" style="display:none;">
+                  <span class="diag-row-lbl">${localize(lang, 'alarm_last_event')}</span>
+                  <span class="diag-row-val" id="diag-last-alarm-val">--</span>
+                </div>
+              </div>
+
+              <!-- 2. Car Clock & Wi-Fi Telemetry -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.clock} ${localize(lang, 'clock_title')}</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'car_clock')}</span>
+                  <span class="diag-row-val" id="diag-clock-val">--:--:--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'wifi_channel')}</span>
+                  <span class="diag-row-val" id="diag-wifi-channel-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'wifi_always_on')}</span>
+                  <span class="diag-row-val" id="diag-wifi-always-val">--</span>
+                </div>
+              </div>
+
+              <!-- 3. Battery Health & Warming -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.bolt} ${localize(lang, 'thermal_title')}</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'batt_thermal_state')}</span>
+                  <span class="diag-row-val" id="diag-thermal-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'batt_warming')}</span>
+                  <span class="diag-row-val" id="diag-warming-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'batt_warning_active')}</span>
+                  <span class="diag-row-val" id="diag-warning-val">--</span>
+                </div>
+              </div>
+
+              <!-- 4. Vehicle Specs & VIN -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.mitsubishi} ${localize(lang, 'vehicle_specs')}</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'vin')}</span>
+                  <span class="diag-row-val" id="diag-vin-val" style="font-family:monospace;font-size:0.7rem;">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'firmware_version')}</span>
+                  <span class="diag-row-val" id="diag-firmware-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'registered_phones')}</span>
+                  <span class="diag-row-val" id="diag-phones-val">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- COLLAPSIBLE ALL-SENSORS DRAWER -->
           <div class="sensors-drawer" id="sensors-drawer"></div>
+        </div>
+
+        <!-- SETTINGS POPUP MODAL (ETACS & AC CUSTOMIZATION) -->
+        <div class="settings-modal-backdrop" id="modal-settings">
+          <div class="settings-modal-card">
+            <div class="modal-head">
+              <div class="modal-title-group">
+                <h3 class="modal-title">${localize(lang, 'settings_title')}</h3>
+                <p class="modal-sub">${localize(lang, 'settings_sub')}</p>
+              </div>
+              <div class="modal-head-btns">
+                <button type="button" class="modal-btn-reset" id="btn-settings-factory-reset">
+                  ${localize(lang, 'settings_reset_all')}
+                </button>
+                <button type="button" class="modal-btn-close" id="btn-settings-close" title="${localize(lang, 'close')}">
+                  ${ICONS.close}
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-controls-bar">
+              <input type="text" class="modal-search-input" id="input-settings-search" placeholder="${localize(lang, 'settings_search')}..." />
+              <div class="cat-chips-bar" id="settings-cat-chips"></div>
+            </div>
+
+            <div class="modal-body" id="settings-modal-list"></div>
+          </div>
         </div>
       </ha-card>
     `;
@@ -4229,6 +5739,9 @@ class OutlanderPhevCard extends HTMLElement {
       hdrConnDot: q('hdr-conn-dot'),
       hdrConnIcon: q('hdr-conn-icon'),
       hdrConnText: q('hdr-conn-text'),
+      btnToggleTimers: q('btn-toggle-timers'),
+      btnToggleDiag: q('btn-toggle-diag'),
+      btnOpenSettings: q('btn-open-settings'),
       hdrDailyWrap: q('hdr-daily-wrap'),
       hdrDailyEnergy: q('hdr-daily-energy'),
       lblHdrDailyEnergy: q('lbl-hdr-daily-energy'),
@@ -4307,6 +5820,41 @@ class OutlanderPhevCard extends HTMLElement {
       btnDrawerToggle: q('btn-drawer-toggle'),
       txtDrawerToggle: q('txt-drawer-toggle'),
       sensorsDrawer: q('sensors-drawer'),
+      panelTimers: q('panel-timers'),
+      btnSubtabClimate: q('btn-subtab-climate'),
+      btnSubtabCharge: q('btn-subtab-charge'),
+      timerMasterBanner: q('timer-master-banner'),
+      timerMasterText: q('timer-master-text'),
+      selTimerMasterMode: q('sel-timer-master-mode'),
+      btnToggleMasterTimer: q('btn-toggle-master-timer'),
+      txtToggleMasterTimer: q('txt-toggle-master-timer'),
+      timerSlotsBar: q('timer-slots-bar'),
+      timerEditorCard: q('timer-editor-card'),
+      panelDiag: q('panel-diag'),
+      btnDiagLocate: q('btn-diag-locate'),
+      btnDiagSyncClock: q('btn-diag-sync-clock'),
+      diagIgnitionBadge: q('diag-ignition-badge'),
+      diagAlarmBanner: q('diag-alarm-banner'),
+      diagAlarmText: q('diag-alarm-text'),
+      btnClearAlarm: q('btn-clear-alarm'),
+      diagAlarmVal: q('diag-alarm-val'),
+      diagLastAlarmRow: q('diag-last-alarm-row'),
+      diagLastAlarmVal: q('diag-last-alarm-val'),
+      diagClockVal: q('diag-clock-val'),
+      diagWifiChannelVal: q('diag-wifi-channel-val'),
+      diagWifiAlwaysVal: q('diag-wifi-always-val'),
+      diagThermalVal: q('diag-thermal-val'),
+      diagWarmingVal: q('diag-warming-val'),
+      diagWarningVal: q('diag-warning-val'),
+      diagVinVal: q('diag-vin-val'),
+      diagFirmwareVal: q('diag-firmware-val'),
+      diagPhonesVal: q('diag-phones-val'),
+      modalSettings: q('modal-settings'),
+      btnSettingsClose: q('btn-settings-close'),
+      btnSettingsFactoryReset: q('btn-settings-factory-reset'),
+      inputSettingsSearch: q('input-settings-search'),
+      settingsCatChips: q('settings-cat-chips'),
+      settingsModalList: q('settings-modal-list'),
     };
 
     this._attachListeners();
@@ -4409,6 +5957,138 @@ class OutlanderPhevCard extends HTMLElement {
         rr: eMap.rear_right_door_entity,
       };
       this._openMoreInfo(map[chip.dataset.door]);
+    });
+
+    // Header Extension Action Buttons
+    $.btnToggleTimers.addEventListener('click', () => {
+      this._timersPanelOpen = !this._timersPanelOpen;
+      this._updateState();
+    });
+
+    $.btnToggleDiag.addEventListener('click', () => {
+      this._diagPanelOpen = !this._diagPanelOpen;
+      this._updateState();
+    });
+
+    $.btnOpenSettings.addEventListener('click', () => {
+      this._settingsModalOpen = true;
+      this._updateState();
+    });
+
+    // Settings Modal Listeners
+    $.btnSettingsClose.addEventListener('click', () => {
+      this._settingsModalOpen = false;
+      this._updateState();
+    });
+
+    $.modalSettings.addEventListener('click', (ev) => {
+      if (ev.target === $.modalSettings) {
+        this._settingsModalOpen = false;
+        this._updateState();
+      }
+    });
+
+    $.inputSettingsSearch.addEventListener('input', (ev) => {
+      this._settingsSearchTerm = ev.target.value.toLowerCase().trim();
+      this._renderSettingsList();
+    });
+
+    $.btnSettingsFactoryReset.addEventListener('click', () => {
+      const lang = this._lang();
+      if (!window.confirm(localize(lang, 'settings_reset_confirm'))) return;
+      if (!this._hass) return;
+      const resetEnt = Object.keys(this._hass.states).find(
+        (id) => id.includes('restore_factory') || id.includes('factory_reset')
+      );
+      if (resetEnt) {
+        const dom = resetEnt.split('.')[0];
+        if (dom === 'button') this._hass.callService('button', 'press', { entity_id: resetEnt });
+        else this._hass.callService('switch', 'turn_on', { entity_id: resetEnt });
+      } else {
+        const settings = getPhevCustomizationSettings(this._hass, lang);
+        for (const s of settings) {
+          if (s.options && s.options.length > 0) {
+            this._hass.callService('select', 'select_option', { entity_id: s.entity_id, option: s.options[0] });
+          }
+        }
+      }
+    });
+
+    $.settingsCatChips.addEventListener('click', (ev) => {
+      const chip = ev.target.closest('.cat-chip');
+      if (!chip) return;
+      this._settingsCategoryFilter = chip.dataset.cat;
+      this._renderSettingsChips();
+      this._renderSettingsList();
+    });
+
+    // Timers Panel Listeners
+    $.btnSubtabClimate.addEventListener('click', () => {
+      this._activeTimerSubtab = 'climate';
+      this._updateTimersPanel();
+    });
+
+    $.btnSubtabCharge.addEventListener('click', () => {
+      this._activeTimerSubtab = 'charge';
+      this._updateTimersPanel();
+    });
+
+    $.btnToggleMasterTimer.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      if (this._activeTimerSubtab === 'climate' && e.climate_timer_master_entity) {
+        this._toggleEntity(e.climate_timer_master_entity);
+      }
+    });
+
+    $.selTimerMasterMode.addEventListener('change', (ev) => {
+      const e = this._resolveEntities();
+      const opt = ev.target.value;
+      if (e.climate_timer_mode_entity && this._hass) {
+        this._hass.callService('select', 'select_option', {
+          entity_id: e.climate_timer_mode_entity,
+          option: opt,
+        });
+      }
+    });
+
+    $.timerSlotsBar.addEventListener('click', (ev) => {
+      const pill = ev.target.closest('.slot-pill');
+      if (!pill) return;
+      const slot = Number(pill.dataset.slot) || 1;
+      if (this._activeTimerSubtab === 'climate') {
+        this._activeClimateSlot = slot;
+      } else {
+        this._activeChargeSlot = slot;
+      }
+      this._updateTimersPanel();
+    });
+
+    // Diagnostics Panel Listeners
+    $.btnDiagLocate.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      const ent = e.locate_car_entity;
+      if (!ent || !this._hass) return;
+      const dom = ent.split('.')[0];
+      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+      else this._toggleEntity(ent);
+    });
+
+    $.btnDiagSyncClock.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      const ent = e.sync_car_clock_entity;
+      if (!ent || !this._hass) return;
+      const dom = ent.split('.')[0];
+      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+      else this._toggleEntity(ent);
+    });
+
+    $.btnClearAlarm.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      const ent = e.clear_alarm_entity;
+      if (!ent || !this._hass) return;
+      const dom = ent.split('.')[0];
+      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+      else this._toggleEntity(ent);
     });
   }
 
@@ -4840,6 +6520,452 @@ class OutlanderPhevCard extends HTMLElement {
         el.addEventListener('click', () => this._openMoreInfo(el.dataset.ent));
       });
     }
+
+    // 8. Extension Panels & Settings Modal
+    $.btnToggleTimers.classList.toggle('active', this._timersPanelOpen);
+    $.btnToggleDiag.classList.toggle('active', this._diagPanelOpen);
+    $.btnOpenSettings.classList.toggle('active', this._settingsModalOpen);
+    $.panelTimers.classList.toggle('open', this._timersPanelOpen);
+    $.panelDiag.classList.toggle('open', this._diagPanelOpen);
+    $.modalSettings.classList.toggle('open', this._settingsModalOpen);
+
+    if (this._timersPanelOpen) {
+      this._updateTimersPanel();
+    }
+    if (this._diagPanelOpen) {
+      this._updateDiagPanel();
+    }
+    if (this._settingsModalOpen) {
+      this._updateSettingsModal();
+    }
+  }
+
+  _updateTimersPanel() {
+    if (!this._hass || !this.$.panelTimers) return;
+    const $ = this.$;
+    const lang = this._lang();
+    const ents = this._resolveEntities();
+    const isClimate = this._activeTimerSubtab === 'climate';
+
+    $.btnSubtabClimate.classList.toggle('active', isClimate);
+    $.btnSubtabCharge.classList.toggle('active', !isClimate);
+
+    if (isClimate) {
+      $.timerMasterBanner.style.display = 'flex';
+      $.timerMasterText.textContent = localize(lang, 'climate_timer_master');
+      const masterEnt = ents.climate_timer_master_entity;
+      const isMasterOn = masterEnt ? isBinaryOn(this._getState(masterEnt)) : false;
+      $.btnToggleMasterTimer.classList.toggle('active', isMasterOn);
+      $.txtToggleMasterTimer.textContent = isMasterOn
+        ? localize(lang, 'timer_enabled')
+        : localize(lang, 'timer_disabled');
+
+      const modeEnt = ents.climate_timer_mode_entity;
+      const modeObj = this._getState(modeEnt);
+      if (modeObj && Array.isArray(modeObj.attributes?.options)) {
+        $.selTimerMasterMode.style.display = 'inline-block';
+        const opts = modeObj.attributes.options;
+        const sig = opts.join('|');
+        if ($.selTimerMasterMode.dataset.sig !== sig) {
+          $.selTimerMasterMode.dataset.sig = sig;
+          $.selTimerMasterMode.innerHTML = opts
+            .map((o) => `<option value="${o}" ${o === modeObj.state ? 'selected' : ''}>${o}</option>`)
+            .join('');
+        }
+        $.selTimerMasterMode.value = modeObj.state;
+      } else {
+        $.selTimerMasterMode.style.display = 'none';
+      }
+
+      const slots = getPhevClimateTimers(this._hass);
+      $.timerSlotsBar.innerHTML = slots
+        .map(
+          (sl) => `
+        <button type="button" class="slot-pill ${sl.slot === this._activeClimateSlot ? 'active' : ''} ${sl.enabled ? 'enabled' : ''}" data-slot="${sl.slot}">
+          <span class="slot-dot"></span>
+          <span>${localize(lang, 'slot_num', { num: sl.slot })}</span>
+          ${sl.time && sl.time !== '--:--' ? `<span style="font-size:0.68rem;opacity:0.75">(${sl.time})</span>` : ''}
+        </button>
+      `
+        )
+        .join('');
+
+      const activeSlot = slots[this._activeClimateSlot - 1] || slots[0];
+      const slotNum = activeSlot ? activeSlot.slot : 1;
+      const daysArr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const daysHu = ['Hét', 'Kedd', 'Sze', 'Csüt', 'Pén', 'Szo', 'Vas'];
+      const currentDays = String(activeSlot?.days || '');
+      const isDayActive = (d) => currentDays.includes(d) || currentDays.toLowerCase() === 'everyday';
+
+      $.timerEditorCard.innerHTML = `
+        <div class="timer-row">
+          <span class="timer-row-label"><strong>${localize(lang, 'slot_num', { num: slotNum })}</strong> - ${localize(lang, 'climate_tab')}</span>
+          <button type="button" class="hdr-action-btn ${activeSlot?.enabled ? 'active' : ''}" id="btn-slot-enable">
+            ${activeSlot?.enabled ? localize(lang, 'timer_enabled') : localize(lang, 'timer_disabled')}
+          </button>
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'ready_time')}</span>
+          <input type="time" class="timer-input" id="input-slot-time" value="${activeSlot?.time && activeSlot.time !== '--:--' ? activeSlot.time.substring(0, 5) : '07:30'}" />
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'duration')}</span>
+          <select class="setting-select" id="sel-slot-duration">
+            <option value="10" ${String(activeSlot?.duration).includes('10') ? 'selected' : ''}>10 ${localize(lang, 'min_short')}</option>
+            <option value="20" ${String(activeSlot?.duration).includes('20') ? 'selected' : ''}>20 ${localize(lang, 'min_short')}</option>
+            <option value="30" ${String(activeSlot?.duration).includes('30') ? 'selected' : ''}>30 ${localize(lang, 'min_short')}</option>
+          </select>
+        </div>
+        <div class="days-wrap">
+          <span class="timer-row-label">${localize(lang, 'days_active')}</span>
+          <div class="days-row">
+            ${daysArr
+              .map(
+                (d, idx) => `
+              <button type="button" class="day-chip ${isDayActive(d) ? 'active' : ''}" data-day="${d}" title="${d}">
+                ${lang === 'hu' ? daysHu[idx] : d.substring(0, 2)}
+              </button>
+            `
+              )
+              .join('')}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button type="button" class="preset-chip" data-preset="Everyday">${localize(lang, 'preset_everyday')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekdays">${localize(lang, 'preset_weekdays')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekends">${localize(lang, 'preset_weekends')}</button>
+          </div>
+        </div>
+      `;
+
+      const btnSlotEnable = $.timerEditorCard.querySelector('#btn-slot-enable');
+      btnSlotEnable?.addEventListener('click', () => {
+        if (activeSlot?.enabledEntity) this._toggleEntity(activeSlot.enabledEntity);
+      });
+
+      const inputSlotTime = $.timerEditorCard.querySelector('#input-slot-time');
+      inputSlotTime?.addEventListener('change', (e) => {
+        if (!activeSlot?.timeEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.timeEntity.split('.')[0];
+        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.timeEntity, time: val });
+        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.timeEntity, value: val });
+        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.timeEntity, time: val + ':00' });
+      });
+
+      const selSlotDuration = $.timerEditorCard.querySelector('#sel-slot-duration');
+      selSlotDuration?.addEventListener('change', (e) => {
+        if (!activeSlot?.durationEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.durationEntity.split('.')[0];
+        if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.durationEntity, option: val });
+        else if (dom === 'number' || dom === 'input_number') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.durationEntity, value: Number(val) });
+      });
+
+      $.timerEditorCard.querySelectorAll('.preset-chip').forEach((pChip) => {
+        pChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const preset = pChip.dataset.preset;
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+        });
+      });
+
+      $.timerEditorCard.querySelectorAll('.day-chip').forEach((dChip) => {
+        dChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const clickedDay = dChip.dataset.day;
+          let currentList = currentDays.toLowerCase() === 'everyday' ? [...daysArr] : currentDays.split(/[, ]+/).filter(Boolean);
+          if (currentList.includes(clickedDay)) {
+            currentList = currentList.filter((d) => d !== clickedDay);
+          } else {
+            currentList.push(clickedDay);
+          }
+          const nextVal = currentList.length === 7 ? 'Everyday' : currentList.join(', ');
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+        });
+      });
+    } else {
+      $.timerMasterBanner.style.display = 'none';
+
+      const slots = getPhevChargeTimers(this._hass);
+      $.timerSlotsBar.innerHTML = slots
+        .map(
+          (sl) => `
+        <button type="button" class="slot-pill ${sl.slot === this._activeChargeSlot ? 'active' : ''} ${sl.enabled ? 'enabled' : ''}" data-slot="${sl.slot}">
+          <span class="slot-dot"></span>
+          <span>${localize(lang, 'slot_num', { num: sl.slot })}</span>
+          ${sl.start && sl.start !== '--:--' ? `<span style="font-size:0.68rem;opacity:0.75">(${sl.start})</span>` : ''}
+        </button>
+      `
+        )
+        .join('');
+
+      const activeSlot = slots[this._activeChargeSlot - 1] || slots[0];
+      const slotNum = activeSlot ? activeSlot.slot : 1;
+      const daysArr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const daysHu = ['Hét', 'Kedd', 'Sze', 'Csüt', 'Pén', 'Szo', 'Vas'];
+      const currentDays = String(activeSlot?.days || '');
+      const isDayActive = (d) => currentDays.includes(d) || currentDays.toLowerCase() === 'everyday';
+
+      $.timerEditorCard.innerHTML = `
+        <div class="timer-row">
+          <span class="timer-row-label"><strong>${localize(lang, 'slot_num', { num: slotNum })}</strong> - ${localize(lang, 'charge_tab')}</span>
+          <button type="button" class="hdr-action-btn ${activeSlot?.enabled ? 'active' : ''}" id="btn-slot-enable">
+            ${activeSlot?.enabled ? localize(lang, 'timer_enabled') : localize(lang, 'timer_disabled')}
+          </button>
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'start_time')}</span>
+          <input type="time" class="timer-input" id="input-slot-start" value="${activeSlot?.start && activeSlot.start !== '--:--' ? activeSlot.start.substring(0, 5) : '22:00'}" />
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'stop_time')}</span>
+          <input type="time" class="timer-input" id="input-slot-end" value="${activeSlot?.end && activeSlot.end !== '--:--' ? activeSlot.end.substring(0, 5) : '06:00'}" />
+        </div>
+        <div class="days-wrap">
+          <span class="timer-row-label">${localize(lang, 'days_active')}</span>
+          <div class="days-row">
+            ${daysArr
+              .map(
+                (d, idx) => `
+              <button type="button" class="day-chip ${isDayActive(d) ? 'active' : ''}" data-day="${d}" title="${d}">
+                ${lang === 'hu' ? daysHu[idx] : d.substring(0, 2)}
+              </button>
+            `
+              )
+              .join('')}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button type="button" class="preset-chip" data-preset="Everyday">${localize(lang, 'preset_everyday')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekdays">${localize(lang, 'preset_weekdays')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekends">${localize(lang, 'preset_weekends')}</button>
+          </div>
+        </div>
+      `;
+
+      const btnSlotEnable = $.timerEditorCard.querySelector('#btn-slot-enable');
+      btnSlotEnable?.addEventListener('click', () => {
+        if (activeSlot?.enabledEntity) this._toggleEntity(activeSlot.enabledEntity);
+      });
+
+      const inputSlotStart = $.timerEditorCard.querySelector('#input-slot-start');
+      inputSlotStart?.addEventListener('change', (e) => {
+        if (!activeSlot?.startEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.startEntity.split('.')[0];
+        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.startEntity, time: val });
+        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.startEntity, value: val });
+        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.startEntity, time: val + ':00' });
+      });
+
+      const inputSlotEnd = $.timerEditorCard.querySelector('#input-slot-end');
+      inputSlotEnd?.addEventListener('change', (e) => {
+        if (!activeSlot?.endEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.endEntity.split('.')[0];
+        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.endEntity, time: val });
+        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.endEntity, value: val });
+        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.endEntity, time: val + ':00' });
+      });
+
+      $.timerEditorCard.querySelectorAll('.preset-chip').forEach((pChip) => {
+        pChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const preset = pChip.dataset.preset;
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+        });
+      });
+
+      $.timerEditorCard.querySelectorAll('.day-chip').forEach((dChip) => {
+        dChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const clickedDay = dChip.dataset.day;
+          let currentList = currentDays.toLowerCase() === 'everyday' ? [...daysArr] : currentDays.split(/[, ]+/).filter(Boolean);
+          if (currentList.includes(clickedDay)) {
+            currentList = currentList.filter((d) => d !== clickedDay);
+          } else {
+            currentList.push(clickedDay);
+          }
+          const nextVal = currentList.length === 7 ? 'Everyday' : currentList.join(', ');
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+        });
+      });
+    }
+  }
+
+  _updateDiagPanel() {
+    if (!this._hass || !this.$.panelDiag) return;
+    const $ = this.$;
+    const lang = this._lang();
+    const ents = this._resolveEntities();
+
+    const ignObj = this._getState(ents.ignition_state_entity);
+    const ignRaw = String(ignObj?.state || 'off').toLowerCase().trim();
+    const ignVal = ['ready', 'on', 'acc', 'off'].includes(ignRaw) ? ignRaw : 'off';
+    $.diagIgnitionBadge.className = `ignition-badge ${ignVal}`;
+    $.diagIgnitionBadge.textContent = ignVal.toUpperCase();
+
+    const alarmObj = this._getState(ents.theft_alarm_entity);
+    const alarmRaw = String(alarmObj?.state || 'disarmed').toLowerCase().trim();
+    const isAlarmTriggered = ['triggered', 'alarm', 'on', 'true'].includes(alarmRaw);
+    const isAlarmArmed = ['armed', 'active'].includes(alarmRaw);
+    let bannerCls = 'alarm-banner disarmed';
+    let bannerTxt = localize(lang, 'alarm_disarmed');
+    if (isAlarmTriggered) {
+      bannerCls = 'alarm-banner triggered';
+      bannerTxt = localize(lang, 'alarm_triggered');
+    } else if (isAlarmArmed) {
+      bannerCls = 'alarm-banner armed';
+      bannerTxt = localize(lang, 'alarm_armed');
+    }
+    $.diagAlarmBanner.className = bannerCls;
+    $.diagAlarmText.textContent = bannerTxt;
+    $.btnClearAlarm.style.display = isAlarmTriggered && ents.clear_alarm_entity ? 'inline-block' : 'none';
+    $.diagAlarmVal.textContent = alarmObj ? alarmObj.state : '--';
+
+    const lastAlarmObj = this._getState(ents.theft_alarm_last_event_entity);
+    if (lastAlarmObj && lastAlarmObj.state && lastAlarmObj.state !== 'unknown' && lastAlarmObj.state !== 'unavailable') {
+      $.diagLastAlarmRow.style.display = 'flex';
+      $.diagLastAlarmVal.textContent = lastAlarmObj.state;
+    } else {
+      $.diagLastAlarmRow.style.display = 'none';
+    }
+
+    const clockObj = this._getState(ents.car_clock_entity);
+    $.diagClockVal.textContent = clockObj ? clockObj.state : '--:--:--';
+
+    const chObj = this._getState(ents.wifi_channel_entity);
+    $.diagWifiChannelVal.textContent = chObj ? `CH ${chObj.state}` : '--';
+
+    const awObj = this._getState(ents.wifi_always_on_entity);
+    $.diagWifiAlwaysVal.textContent = awObj
+      ? isBinaryOn(awObj)
+        ? localize(lang, 'active')
+        : localize(lang, 'inactive')
+      : '--';
+
+    const thObj = this._getState(ents.battery_thermal_entity);
+    $.diagThermalVal.textContent = thObj ? thObj.state : '--';
+
+    const warmObj = this._getState(ents.battery_warming_entity);
+    $.diagWarmingVal.textContent = warmObj
+      ? isBinaryOn(warmObj)
+        ? localize(lang, 'active')
+        : localize(lang, 'inactive')
+      : '--';
+
+    const warnObj = this._getState(ents.battery_warning_entity);
+    $.diagWarningVal.textContent = warnObj
+      ? isBinaryOn(warnObj)
+        ? localize(lang, 'active')
+        : localize(lang, 'inactive')
+      : '--';
+
+    const vinObj = this._getState(ents.vin_entity);
+    $.diagVinVal.textContent = vinObj ? vinObj.state : '--';
+
+    const fwObj = this._getState(ents.ecu_version_entity);
+    $.diagFirmwareVal.textContent = fwObj ? fwObj.state : '--';
+
+    const phObj = this._getState(ents.registered_phones_entity);
+    $.diagPhonesVal.textContent = phObj ? `${phObj.state} / 2` : '--';
+  }
+
+  _updateSettingsModal() {
+    if (!this._hass || !this.$.modalSettings) return;
+    this._renderSettingsChips();
+    this._renderSettingsList();
+  }
+
+  _renderSettingsChips() {
+    const $ = this.$;
+    const lang = this._lang();
+    const cats = [
+      { id: 'all', label: localize(lang, 'cat_all') },
+      { id: 'wipers', label: localize(lang, 'cat_wipers') },
+      { id: 'turn_signal', label: localize(lang, 'cat_turn_signal') },
+      { id: 'keyless', label: localize(lang, 'cat_keyless') },
+      { id: 'lights', label: localize(lang, 'cat_lights') },
+      { id: 'mirrors', label: localize(lang, 'cat_mirrors') },
+      { id: 'locks', label: localize(lang, 'cat_locks') },
+      { id: 'windows', label: localize(lang, 'cat_windows') },
+      { id: 'ac', label: localize(lang, 'cat_ac') },
+      { id: 'other', label: localize(lang, 'cat_other') },
+    ];
+
+    $.settingsCatChips.innerHTML = cats
+      .map(
+        (c) => `
+      <button type="button" class="cat-chip ${this._settingsCategoryFilter === c.id ? 'active' : ''}" data-cat="${c.id}">
+        ${c.label}
+      </button>
+    `
+      )
+      .join('');
+  }
+
+  _renderSettingsList() {
+    const $ = this.$;
+    const lang = this._lang();
+    if (!this._hass) return;
+    const all = getPhevCustomizationSettings(this._hass, lang);
+    const filter = this._settingsCategoryFilter || 'all';
+    const term = this._settingsSearchTerm || '';
+
+    const filtered = all.filter((s) => {
+      if (filter !== 'all' && s.cat !== filter) return false;
+      if (term) {
+        const text = `${s.label} ${s.entity_id} ${s.cat}`.toLowerCase();
+        if (!text.includes(term)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      $.settingsModalList.innerHTML = `
+        <div style="text-align:center;padding:32px;color:var(--ophev-muted);font-size:0.86rem;">
+          ${localize(lang, 'offline_stale_hint')}
+        </div>
+      `;
+      return;
+    }
+
+    $.settingsModalList.innerHTML = filtered
+      .map(
+        (s) => `
+      <div class="setting-item">
+        <div class="setting-left">
+          <span class="setting-cat-badge">${localize(lang, `cat_${s.cat}`) || s.cat}</span>
+          <span class="setting-label">${s.label}</span>
+        </div>
+        <select class="setting-select" data-ent="${s.entity_id}">
+          ${s.options
+            .map(
+              (opt) => `<option value="${opt}" ${opt === s.state ? 'selected' : ''}>${opt}</option>`
+            )
+            .join('')}
+        </select>
+      </div>
+    `
+      )
+      .join('');
+
+    $.settingsModalList.querySelectorAll('.setting-select').forEach((sel) => {
+      sel.addEventListener('change', (e) => {
+        const ent = e.target.dataset.ent;
+        const opt = e.target.value;
+        if (ent && opt && this._hass) {
+          this._hass.callService('select', 'select_option', { entity_id: ent, option: opt });
+        }
+      });
+    });
   }
 }
 

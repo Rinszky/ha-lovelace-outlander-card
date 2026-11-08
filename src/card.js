@@ -15,6 +15,10 @@ import {
   autoDiscoverPhevEntities,
   buildSparklinePaths,
   ENTITY_KEYS,
+  getPhevCustomizationSettings,
+  getPhevClimateTimers,
+  getPhevChargeTimers,
+  SETTING_DEFINITIONS,
 } from './helpers.js';
 import { renderOutlanderSvg, CAR_NOSE_Y, CAR_REAR_Y, CAR_BODY_LEN } from './car-svg.js';
 import { CARD_STYLES } from './styles.js';
@@ -40,6 +44,13 @@ const ICONS = {
   bulb: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.6 1 1.4 1 2.3h6c0-.9.4-1.7 1-2.3A7 7 0 0 0 12 2z"/></svg>`,
   counter: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><line x1="12" y1="5" x2="12" y2="19"/><path d="M6.3 10.2 7.8 9v6"/><path d="M15.2 10.2a1.8 1.8 0 0 1 3.4.8c0 1.4-3.4 2.8-3.4 4h3.6"/></svg>`,
   batteryClock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h4"/><path d="M10.5 19H7a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3.2"/><circle cx="16.5" cy="16.5" r="4.5"/><path d="M16.5 14.3v2.3l1.5 1"/></svg>`,
+  cog: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+  clock: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,
+  gauge: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 14l4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>`,
+  shield: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
+  key: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.8 12.2 20 3l3 3-2 2-2-2-2 2 2 2-1.5 1.5"/></svg>`,
+  close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>`,
 };
 
 let instanceCounter = 0;
@@ -82,6 +93,14 @@ export class OutlanderPhevCard extends HTMLElement {
     this._autoDiscoveredCache = null;
     this._lastValidSoc = 88;
     this._drawerOpen = false;
+    this._timersPanelOpen = false;
+    this._diagPanelOpen = false;
+    this._settingsModalOpen = false;
+    this._settingsCategoryFilter = 'all';
+    this._settingsSearchTerm = '';
+    this._activeTimerSubtab = 'climate';
+    this._activeClimateSlot = 1;
+    this._activeChargeSlot = 1;
     this._wifiConfirmTimer = null;
     this._wifiSentTimer = null;
     this._timerSentTimer = null;
@@ -128,16 +147,60 @@ export class OutlanderPhevCard extends HTMLElement {
   }
 
   set hass(hass) {
+    const oldHass = this._hass;
     this._hass = hass;
     if (!this._config) return;
     if (!this.$.card) {
       this._buildDom();
+      this._updateState();
+      return;
     }
-    this._updateState();
+    if (this._haveMonitoredEntitiesChanged(oldHass, hass)) {
+      this._updateState();
+    }
+  }
+
+  _haveMonitoredEntitiesChanged(oldHass, newHass) {
+    if (!oldHass || !newHass || !oldHass.states || !newHass.states) return true;
+    if (oldHass.language !== newHass.language) return true;
+
+    // 1. Monitored known entity keys
+    const ents = this._resolveEntities();
+    for (const key of ENTITY_KEYS) {
+      const eid = ents[key];
+      if (eid && oldHass.states[eid] !== newHass.states[eid]) {
+        return true;
+      }
+    }
+
+    // 2. Timers slots 1..5
+    for (let s = 1; s <= 5; s++) {
+      const prefixes = [`climate_timer_${s}`, `charge_timer_${s}`];
+      for (const prefix of prefixes) {
+        for (const eid of Object.keys(newHass.states)) {
+          if (eid.includes(prefix)) {
+            if (oldHass.states[eid] !== newHass.states[eid]) return true;
+          }
+        }
+      }
+    }
+
+    // 3. Settings selects
+    for (const eid of Object.keys(newHass.states)) {
+      if (eid.startsWith('select.') && (eid.includes('_setting_') || eid.includes('phev_settings_'))) {
+        if (oldHass.states[eid] !== newHass.states[eid]) return true;
+      }
+    }
+
+    return false;
   }
 
   getCardSize() {
-    return 7;
+    let size = 16;
+    if (this._timersPanelOpen) size += 8;
+    if (this._diagPanelOpen) size += 8;
+    if (this._drawerOpen) size += 6;
+    return size;
   }
 
   getGridOptions() {
@@ -397,6 +460,22 @@ export class OutlanderPhevCard extends HTMLElement {
             </div>
 
             <div class="header-pills">
+              <!-- Quick Action Extension Buttons: Timers, Diagnostics, Settings -->
+              <div class="hdr-actions-wrap">
+                <button type="button" class="hdr-action-btn" id="btn-toggle-timers" title="${localize(lang, 'timers_btn')}">
+                  ${ICONS.clock}
+                  <span>${localize(lang, 'timers_btn')}</span>
+                </button>
+                <button type="button" class="hdr-action-btn" id="btn-toggle-diag" title="${localize(lang, 'diag_btn')}">
+                  ${ICONS.gauge}
+                  <span>${localize(lang, 'diag_btn')}</span>
+                </button>
+                <button type="button" class="hdr-action-btn" id="btn-open-settings" title="${localize(lang, 'settings_btn')}">
+                  ${ICONS.cog}
+                  <span>${localize(lang, 'settings_btn')}</span>
+                </button>
+              </div>
+
               <div class="daily-hdr-badges" id="hdr-daily-wrap" style="display:none">
                 <div class="daily-hdr-badge" id="hdr-daily-energy" style="display:none">
                   <div class="daily-hdr-icon">${ICONS.counter}</div>
@@ -630,8 +709,176 @@ export class OutlanderPhevCard extends HTMLElement {
             </div>
           </div>
 
+          <!-- TIMERS PANEL -->
+          <div class="section-panel" id="panel-timers">
+            <div class="section-head">
+              <div class="section-title">
+                ${ICONS.clock}
+                <span>${localize(lang, 'timers_title')}</span>
+              </div>
+              <div class="subtabs-bar">
+                <button type="button" class="subtab-btn active" id="btn-subtab-climate">
+                  ${ICONS.cool}
+                  <span>${localize(lang, 'climate_tab')}</span>
+                </button>
+                <button type="button" class="subtab-btn" id="btn-subtab-charge">
+                  ${ICONS.bolt}
+                  <span>${localize(lang, 'charge_tab')}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Master Schedule Banner -->
+            <div class="timer-master-banner" id="timer-master-banner">
+              <div class="timer-master-left">
+                <span id="timer-master-icon">${ICONS.clock}</span>
+                <span class="timer-master-text" id="timer-master-text">${localize(lang, 'climate_timer_master')}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <select class="setting-select" id="sel-timer-master-mode" style="display:none;width:auto;padding:4px 8px;font-size:0.75rem;"></select>
+                <button type="button" class="hdr-action-btn" id="btn-toggle-master-timer" style="padding:4px 10px;">
+                  <span id="txt-toggle-master-timer">${localize(lang, 'timer_enabled')}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Slots pills (1..5) -->
+            <div class="slots-bar" id="timer-slots-bar"></div>
+
+            <!-- Active Slot Editor Card -->
+            <div class="timer-editor-card" id="timer-editor-card"></div>
+          </div>
+
+          <!-- DIAGNOSTICS & SYSTEM TELEMETRY PANEL -->
+          <div class="section-panel" id="panel-diag">
+            <div class="section-head">
+              <div class="section-title">
+                ${ICONS.gauge}
+                <span>${localize(lang, 'diag_title')}</span>
+              </div>
+              <div class="hdr-actions-wrap">
+                <button type="button" class="diag-action-btn" id="btn-diag-locate" style="width:auto;padding:5px 11px;">
+                  ${ICONS.bulb}
+                  <span>${localize(lang, 'locate_car')}</span>
+                </button>
+                <button type="button" class="diag-action-btn" id="btn-diag-sync-clock" style="width:auto;padding:5px 11px;">
+                  ${ICONS.refresh}
+                  <span>${localize(lang, 'sync_clock')}</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="diag-grid">
+              <!-- 1. Ignition & Security -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.key} ${localize(lang, 'ignition_title')}</span>
+                  <span class="ignition-badge off" id="diag-ignition-badge">OFF</span>
+                </div>
+                <div class="alarm-banner disarmed" id="diag-alarm-banner">
+                  <span id="diag-alarm-text">${localize(lang, 'alarm_disarmed')}</span>
+                  <button type="button" class="modal-btn-reset" id="btn-clear-alarm" style="display:none;padding:3px 8px;font-size:0.7rem;">
+                    ${localize(lang, 'clear_alarm')}
+                  </button>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'theft_alarm')}</span>
+                  <span class="diag-row-val" id="diag-alarm-val">--</span>
+                </div>
+                <div class="diag-row" id="diag-last-alarm-row" style="display:none;">
+                  <span class="diag-row-lbl">${localize(lang, 'alarm_last_event')}</span>
+                  <span class="diag-row-val" id="diag-last-alarm-val">--</span>
+                </div>
+              </div>
+
+              <!-- 2. Car Clock & Wi-Fi Telemetry -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.clock} ${localize(lang, 'clock_title')}</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'car_clock')}</span>
+                  <span class="diag-row-val" id="diag-clock-val">--:--:--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'wifi_channel')}</span>
+                  <span class="diag-row-val" id="diag-wifi-channel-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'wifi_always_on')}</span>
+                  <span class="diag-row-val" id="diag-wifi-always-val">--</span>
+                </div>
+              </div>
+
+              <!-- 3. Battery Health & Warming -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.bolt} ${localize(lang, 'thermal_title')}</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'batt_thermal_state')}</span>
+                  <span class="diag-row-val" id="diag-thermal-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'batt_warming')}</span>
+                  <span class="diag-row-val" id="diag-warming-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'batt_warning_active')}</span>
+                  <span class="diag-row-val" id="diag-warning-val">--</span>
+                </div>
+              </div>
+
+              <!-- 4. Vehicle Specs & VIN -->
+              <div class="diag-card">
+                <div class="diag-card-top">
+                  <span class="diag-card-title">${ICONS.mitsubishi} ${localize(lang, 'vehicle_specs')}</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'vin')}</span>
+                  <span class="diag-row-val" id="diag-vin-val" style="font-family:monospace;font-size:0.7rem;">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'firmware_version')}</span>
+                  <span class="diag-row-val" id="diag-firmware-val">--</span>
+                </div>
+                <div class="diag-row">
+                  <span class="diag-row-lbl">${localize(lang, 'registered_phones')}</span>
+                  <span class="diag-row-val" id="diag-phones-val">--</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- COLLAPSIBLE ALL-SENSORS DRAWER -->
           <div class="sensors-drawer" id="sensors-drawer"></div>
+        </div>
+
+        <!-- SETTINGS POPUP MODAL (ETACS & AC CUSTOMIZATION) -->
+        <div class="settings-modal-backdrop" id="modal-settings">
+          <div class="settings-modal-card">
+            <div class="modal-head">
+              <div class="modal-title-group">
+                <h3 class="modal-title">${localize(lang, 'settings_title')}</h3>
+                <p class="modal-sub">${localize(lang, 'settings_sub')}</p>
+              </div>
+              <div class="modal-head-btns">
+                <button type="button" class="modal-btn-reset" id="btn-settings-factory-reset">
+                  ${localize(lang, 'settings_reset_all')}
+                </button>
+                <button type="button" class="modal-btn-close" id="btn-settings-close" title="${localize(lang, 'close')}">
+                  ${ICONS.close}
+                </button>
+              </div>
+            </div>
+
+            <div class="modal-controls-bar">
+              <input type="text" class="modal-search-input" id="input-settings-search" placeholder="${localize(lang, 'settings_search')}..." />
+              <div class="cat-chips-bar" id="settings-cat-chips"></div>
+            </div>
+
+            <div class="modal-body" id="settings-modal-list"></div>
+          </div>
         </div>
       </ha-card>
     `;
@@ -644,6 +891,9 @@ export class OutlanderPhevCard extends HTMLElement {
       hdrConnDot: q('hdr-conn-dot'),
       hdrConnIcon: q('hdr-conn-icon'),
       hdrConnText: q('hdr-conn-text'),
+      btnToggleTimers: q('btn-toggle-timers'),
+      btnToggleDiag: q('btn-toggle-diag'),
+      btnOpenSettings: q('btn-open-settings'),
       hdrDailyWrap: q('hdr-daily-wrap'),
       hdrDailyEnergy: q('hdr-daily-energy'),
       lblHdrDailyEnergy: q('lbl-hdr-daily-energy'),
@@ -722,6 +972,41 @@ export class OutlanderPhevCard extends HTMLElement {
       btnDrawerToggle: q('btn-drawer-toggle'),
       txtDrawerToggle: q('txt-drawer-toggle'),
       sensorsDrawer: q('sensors-drawer'),
+      panelTimers: q('panel-timers'),
+      btnSubtabClimate: q('btn-subtab-climate'),
+      btnSubtabCharge: q('btn-subtab-charge'),
+      timerMasterBanner: q('timer-master-banner'),
+      timerMasterText: q('timer-master-text'),
+      selTimerMasterMode: q('sel-timer-master-mode'),
+      btnToggleMasterTimer: q('btn-toggle-master-timer'),
+      txtToggleMasterTimer: q('txt-toggle-master-timer'),
+      timerSlotsBar: q('timer-slots-bar'),
+      timerEditorCard: q('timer-editor-card'),
+      panelDiag: q('panel-diag'),
+      btnDiagLocate: q('btn-diag-locate'),
+      btnDiagSyncClock: q('btn-diag-sync-clock'),
+      diagIgnitionBadge: q('diag-ignition-badge'),
+      diagAlarmBanner: q('diag-alarm-banner'),
+      diagAlarmText: q('diag-alarm-text'),
+      btnClearAlarm: q('btn-clear-alarm'),
+      diagAlarmVal: q('diag-alarm-val'),
+      diagLastAlarmRow: q('diag-last-alarm-row'),
+      diagLastAlarmVal: q('diag-last-alarm-val'),
+      diagClockVal: q('diag-clock-val'),
+      diagWifiChannelVal: q('diag-wifi-channel-val'),
+      diagWifiAlwaysVal: q('diag-wifi-always-val'),
+      diagThermalVal: q('diag-thermal-val'),
+      diagWarmingVal: q('diag-warming-val'),
+      diagWarningVal: q('diag-warning-val'),
+      diagVinVal: q('diag-vin-val'),
+      diagFirmwareVal: q('diag-firmware-val'),
+      diagPhonesVal: q('diag-phones-val'),
+      modalSettings: q('modal-settings'),
+      btnSettingsClose: q('btn-settings-close'),
+      btnSettingsFactoryReset: q('btn-settings-factory-reset'),
+      inputSettingsSearch: q('input-settings-search'),
+      settingsCatChips: q('settings-cat-chips'),
+      settingsModalList: q('settings-modal-list'),
     };
 
     this._attachListeners();
@@ -824,6 +1109,138 @@ export class OutlanderPhevCard extends HTMLElement {
         rr: eMap.rear_right_door_entity,
       };
       this._openMoreInfo(map[chip.dataset.door]);
+    });
+
+    // Header Extension Action Buttons
+    $.btnToggleTimers.addEventListener('click', () => {
+      this._timersPanelOpen = !this._timersPanelOpen;
+      this._updateState();
+    });
+
+    $.btnToggleDiag.addEventListener('click', () => {
+      this._diagPanelOpen = !this._diagPanelOpen;
+      this._updateState();
+    });
+
+    $.btnOpenSettings.addEventListener('click', () => {
+      this._settingsModalOpen = true;
+      this._updateState();
+    });
+
+    // Settings Modal Listeners
+    $.btnSettingsClose.addEventListener('click', () => {
+      this._settingsModalOpen = false;
+      this._updateState();
+    });
+
+    $.modalSettings.addEventListener('click', (ev) => {
+      if (ev.target === $.modalSettings) {
+        this._settingsModalOpen = false;
+        this._updateState();
+      }
+    });
+
+    $.inputSettingsSearch.addEventListener('input', (ev) => {
+      this._settingsSearchTerm = ev.target.value.toLowerCase().trim();
+      this._renderSettingsList();
+    });
+
+    $.btnSettingsFactoryReset.addEventListener('click', () => {
+      const lang = this._lang();
+      if (!window.confirm(localize(lang, 'settings_reset_confirm'))) return;
+      if (!this._hass) return;
+      const resetEnt = Object.keys(this._hass.states).find(
+        (id) => id.includes('restore_factory') || id.includes('factory_reset')
+      );
+      if (resetEnt) {
+        const dom = resetEnt.split('.')[0];
+        if (dom === 'button') this._hass.callService('button', 'press', { entity_id: resetEnt });
+        else this._hass.callService('switch', 'turn_on', { entity_id: resetEnt });
+      } else {
+        const settings = getPhevCustomizationSettings(this._hass, lang);
+        for (const s of settings) {
+          if (s.options && s.options.length > 0) {
+            this._hass.callService('select', 'select_option', { entity_id: s.entity_id, option: s.options[0] });
+          }
+        }
+      }
+    });
+
+    $.settingsCatChips.addEventListener('click', (ev) => {
+      const chip = ev.target.closest('.cat-chip');
+      if (!chip) return;
+      this._settingsCategoryFilter = chip.dataset.cat;
+      this._renderSettingsChips();
+      this._renderSettingsList();
+    });
+
+    // Timers Panel Listeners
+    $.btnSubtabClimate.addEventListener('click', () => {
+      this._activeTimerSubtab = 'climate';
+      this._updateTimersPanel();
+    });
+
+    $.btnSubtabCharge.addEventListener('click', () => {
+      this._activeTimerSubtab = 'charge';
+      this._updateTimersPanel();
+    });
+
+    $.btnToggleMasterTimer.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      if (this._activeTimerSubtab === 'climate' && e.climate_timer_master_entity) {
+        this._toggleEntity(e.climate_timer_master_entity);
+      }
+    });
+
+    $.selTimerMasterMode.addEventListener('change', (ev) => {
+      const e = this._resolveEntities();
+      const opt = ev.target.value;
+      if (e.climate_timer_mode_entity && this._hass) {
+        this._hass.callService('select', 'select_option', {
+          entity_id: e.climate_timer_mode_entity,
+          option: opt,
+        });
+      }
+    });
+
+    $.timerSlotsBar.addEventListener('click', (ev) => {
+      const pill = ev.target.closest('.slot-pill');
+      if (!pill) return;
+      const slot = Number(pill.dataset.slot) || 1;
+      if (this._activeTimerSubtab === 'climate') {
+        this._activeClimateSlot = slot;
+      } else {
+        this._activeChargeSlot = slot;
+      }
+      this._updateTimersPanel();
+    });
+
+    // Diagnostics Panel Listeners
+    $.btnDiagLocate.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      const ent = e.locate_car_entity;
+      if (!ent || !this._hass) return;
+      const dom = ent.split('.')[0];
+      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+      else this._toggleEntity(ent);
+    });
+
+    $.btnDiagSyncClock.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      const ent = e.sync_car_clock_entity;
+      if (!ent || !this._hass) return;
+      const dom = ent.split('.')[0];
+      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+      else this._toggleEntity(ent);
+    });
+
+    $.btnClearAlarm.addEventListener('click', () => {
+      const e = this._resolveEntities();
+      const ent = e.clear_alarm_entity;
+      if (!ent || !this._hass) return;
+      const dom = ent.split('.')[0];
+      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+      else this._toggleEntity(ent);
     });
   }
 
@@ -1255,6 +1672,452 @@ export class OutlanderPhevCard extends HTMLElement {
         el.addEventListener('click', () => this._openMoreInfo(el.dataset.ent));
       });
     }
+
+    // 8. Extension Panels & Settings Modal
+    $.btnToggleTimers.classList.toggle('active', this._timersPanelOpen);
+    $.btnToggleDiag.classList.toggle('active', this._diagPanelOpen);
+    $.btnOpenSettings.classList.toggle('active', this._settingsModalOpen);
+    $.panelTimers.classList.toggle('open', this._timersPanelOpen);
+    $.panelDiag.classList.toggle('open', this._diagPanelOpen);
+    $.modalSettings.classList.toggle('open', this._settingsModalOpen);
+
+    if (this._timersPanelOpen) {
+      this._updateTimersPanel();
+    }
+    if (this._diagPanelOpen) {
+      this._updateDiagPanel();
+    }
+    if (this._settingsModalOpen) {
+      this._updateSettingsModal();
+    }
+  }
+
+  _updateTimersPanel() {
+    if (!this._hass || !this.$.panelTimers) return;
+    const $ = this.$;
+    const lang = this._lang();
+    const ents = this._resolveEntities();
+    const isClimate = this._activeTimerSubtab === 'climate';
+
+    $.btnSubtabClimate.classList.toggle('active', isClimate);
+    $.btnSubtabCharge.classList.toggle('active', !isClimate);
+
+    if (isClimate) {
+      $.timerMasterBanner.style.display = 'flex';
+      $.timerMasterText.textContent = localize(lang, 'climate_timer_master');
+      const masterEnt = ents.climate_timer_master_entity;
+      const isMasterOn = masterEnt ? isBinaryOn(this._getState(masterEnt)) : false;
+      $.btnToggleMasterTimer.classList.toggle('active', isMasterOn);
+      $.txtToggleMasterTimer.textContent = isMasterOn
+        ? localize(lang, 'timer_enabled')
+        : localize(lang, 'timer_disabled');
+
+      const modeEnt = ents.climate_timer_mode_entity;
+      const modeObj = this._getState(modeEnt);
+      if (modeObj && Array.isArray(modeObj.attributes?.options)) {
+        $.selTimerMasterMode.style.display = 'inline-block';
+        const opts = modeObj.attributes.options;
+        const sig = opts.join('|');
+        if ($.selTimerMasterMode.dataset.sig !== sig) {
+          $.selTimerMasterMode.dataset.sig = sig;
+          $.selTimerMasterMode.innerHTML = opts
+            .map((o) => `<option value="${o}" ${o === modeObj.state ? 'selected' : ''}>${o}</option>`)
+            .join('');
+        }
+        $.selTimerMasterMode.value = modeObj.state;
+      } else {
+        $.selTimerMasterMode.style.display = 'none';
+      }
+
+      const slots = getPhevClimateTimers(this._hass);
+      $.timerSlotsBar.innerHTML = slots
+        .map(
+          (sl) => `
+        <button type="button" class="slot-pill ${sl.slot === this._activeClimateSlot ? 'active' : ''} ${sl.enabled ? 'enabled' : ''}" data-slot="${sl.slot}">
+          <span class="slot-dot"></span>
+          <span>${localize(lang, 'slot_num', { num: sl.slot })}</span>
+          ${sl.time && sl.time !== '--:--' ? `<span style="font-size:0.68rem;opacity:0.75">(${sl.time})</span>` : ''}
+        </button>
+      `
+        )
+        .join('');
+
+      const activeSlot = slots[this._activeClimateSlot - 1] || slots[0];
+      const slotNum = activeSlot ? activeSlot.slot : 1;
+      const daysArr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const daysHu = ['Hét', 'Kedd', 'Sze', 'Csüt', 'Pén', 'Szo', 'Vas'];
+      const currentDays = String(activeSlot?.days || '');
+      const isDayActive = (d) => currentDays.includes(d) || currentDays.toLowerCase() === 'everyday';
+
+      $.timerEditorCard.innerHTML = `
+        <div class="timer-row">
+          <span class="timer-row-label"><strong>${localize(lang, 'slot_num', { num: slotNum })}</strong> - ${localize(lang, 'climate_tab')}</span>
+          <button type="button" class="hdr-action-btn ${activeSlot?.enabled ? 'active' : ''}" id="btn-slot-enable">
+            ${activeSlot?.enabled ? localize(lang, 'timer_enabled') : localize(lang, 'timer_disabled')}
+          </button>
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'ready_time')}</span>
+          <input type="time" class="timer-input" id="input-slot-time" value="${activeSlot?.time && activeSlot.time !== '--:--' ? activeSlot.time.substring(0, 5) : '07:30'}" />
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'duration')}</span>
+          <select class="setting-select" id="sel-slot-duration">
+            <option value="10" ${String(activeSlot?.duration).includes('10') ? 'selected' : ''}>10 ${localize(lang, 'min_short')}</option>
+            <option value="20" ${String(activeSlot?.duration).includes('20') ? 'selected' : ''}>20 ${localize(lang, 'min_short')}</option>
+            <option value="30" ${String(activeSlot?.duration).includes('30') ? 'selected' : ''}>30 ${localize(lang, 'min_short')}</option>
+          </select>
+        </div>
+        <div class="days-wrap">
+          <span class="timer-row-label">${localize(lang, 'days_active')}</span>
+          <div class="days-row">
+            ${daysArr
+              .map(
+                (d, idx) => `
+              <button type="button" class="day-chip ${isDayActive(d) ? 'active' : ''}" data-day="${d}" title="${d}">
+                ${lang === 'hu' ? daysHu[idx] : d.substring(0, 2)}
+              </button>
+            `
+              )
+              .join('')}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button type="button" class="preset-chip" data-preset="Everyday">${localize(lang, 'preset_everyday')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekdays">${localize(lang, 'preset_weekdays')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekends">${localize(lang, 'preset_weekends')}</button>
+          </div>
+        </div>
+      `;
+
+      const btnSlotEnable = $.timerEditorCard.querySelector('#btn-slot-enable');
+      btnSlotEnable?.addEventListener('click', () => {
+        if (activeSlot?.enabledEntity) this._toggleEntity(activeSlot.enabledEntity);
+      });
+
+      const inputSlotTime = $.timerEditorCard.querySelector('#input-slot-time');
+      inputSlotTime?.addEventListener('change', (e) => {
+        if (!activeSlot?.timeEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.timeEntity.split('.')[0];
+        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.timeEntity, time: val });
+        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.timeEntity, value: val });
+        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.timeEntity, time: val + ':00' });
+      });
+
+      const selSlotDuration = $.timerEditorCard.querySelector('#sel-slot-duration');
+      selSlotDuration?.addEventListener('change', (e) => {
+        if (!activeSlot?.durationEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.durationEntity.split('.')[0];
+        if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.durationEntity, option: val });
+        else if (dom === 'number' || dom === 'input_number') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.durationEntity, value: Number(val) });
+      });
+
+      $.timerEditorCard.querySelectorAll('.preset-chip').forEach((pChip) => {
+        pChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const preset = pChip.dataset.preset;
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+        });
+      });
+
+      $.timerEditorCard.querySelectorAll('.day-chip').forEach((dChip) => {
+        dChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const clickedDay = dChip.dataset.day;
+          let currentList = currentDays.toLowerCase() === 'everyday' ? [...daysArr] : currentDays.split(/[, ]+/).filter(Boolean);
+          if (currentList.includes(clickedDay)) {
+            currentList = currentList.filter((d) => d !== clickedDay);
+          } else {
+            currentList.push(clickedDay);
+          }
+          const nextVal = currentList.length === 7 ? 'Everyday' : currentList.join(', ');
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+        });
+      });
+    } else {
+      $.timerMasterBanner.style.display = 'none';
+
+      const slots = getPhevChargeTimers(this._hass);
+      $.timerSlotsBar.innerHTML = slots
+        .map(
+          (sl) => `
+        <button type="button" class="slot-pill ${sl.slot === this._activeChargeSlot ? 'active' : ''} ${sl.enabled ? 'enabled' : ''}" data-slot="${sl.slot}">
+          <span class="slot-dot"></span>
+          <span>${localize(lang, 'slot_num', { num: sl.slot })}</span>
+          ${sl.start && sl.start !== '--:--' ? `<span style="font-size:0.68rem;opacity:0.75">(${sl.start})</span>` : ''}
+        </button>
+      `
+        )
+        .join('');
+
+      const activeSlot = slots[this._activeChargeSlot - 1] || slots[0];
+      const slotNum = activeSlot ? activeSlot.slot : 1;
+      const daysArr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const daysHu = ['Hét', 'Kedd', 'Sze', 'Csüt', 'Pén', 'Szo', 'Vas'];
+      const currentDays = String(activeSlot?.days || '');
+      const isDayActive = (d) => currentDays.includes(d) || currentDays.toLowerCase() === 'everyday';
+
+      $.timerEditorCard.innerHTML = `
+        <div class="timer-row">
+          <span class="timer-row-label"><strong>${localize(lang, 'slot_num', { num: slotNum })}</strong> - ${localize(lang, 'charge_tab')}</span>
+          <button type="button" class="hdr-action-btn ${activeSlot?.enabled ? 'active' : ''}" id="btn-slot-enable">
+            ${activeSlot?.enabled ? localize(lang, 'timer_enabled') : localize(lang, 'timer_disabled')}
+          </button>
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'start_time')}</span>
+          <input type="time" class="timer-input" id="input-slot-start" value="${activeSlot?.start && activeSlot.start !== '--:--' ? activeSlot.start.substring(0, 5) : '22:00'}" />
+        </div>
+        <div class="timer-row">
+          <span class="timer-row-label">${localize(lang, 'stop_time')}</span>
+          <input type="time" class="timer-input" id="input-slot-end" value="${activeSlot?.end && activeSlot.end !== '--:--' ? activeSlot.end.substring(0, 5) : '06:00'}" />
+        </div>
+        <div class="days-wrap">
+          <span class="timer-row-label">${localize(lang, 'days_active')}</span>
+          <div class="days-row">
+            ${daysArr
+              .map(
+                (d, idx) => `
+              <button type="button" class="day-chip ${isDayActive(d) ? 'active' : ''}" data-day="${d}" title="${d}">
+                ${lang === 'hu' ? daysHu[idx] : d.substring(0, 2)}
+              </button>
+            `
+              )
+              .join('')}
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button type="button" class="preset-chip" data-preset="Everyday">${localize(lang, 'preset_everyday')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekdays">${localize(lang, 'preset_weekdays')}</button>
+            <button type="button" class="preset-chip" data-preset="Weekends">${localize(lang, 'preset_weekends')}</button>
+          </div>
+        </div>
+      `;
+
+      const btnSlotEnable = $.timerEditorCard.querySelector('#btn-slot-enable');
+      btnSlotEnable?.addEventListener('click', () => {
+        if (activeSlot?.enabledEntity) this._toggleEntity(activeSlot.enabledEntity);
+      });
+
+      const inputSlotStart = $.timerEditorCard.querySelector('#input-slot-start');
+      inputSlotStart?.addEventListener('change', (e) => {
+        if (!activeSlot?.startEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.startEntity.split('.')[0];
+        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.startEntity, time: val });
+        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.startEntity, value: val });
+        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.startEntity, time: val + ':00' });
+      });
+
+      const inputSlotEnd = $.timerEditorCard.querySelector('#input-slot-end');
+      inputSlotEnd?.addEventListener('change', (e) => {
+        if (!activeSlot?.endEntity || !this._hass) return;
+        const val = e.target.value;
+        const dom = activeSlot.endEntity.split('.')[0];
+        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.endEntity, time: val });
+        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.endEntity, value: val });
+        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.endEntity, time: val + ':00' });
+      });
+
+      $.timerEditorCard.querySelectorAll('.preset-chip').forEach((pChip) => {
+        pChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const preset = pChip.dataset.preset;
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+        });
+      });
+
+      $.timerEditorCard.querySelectorAll('.day-chip').forEach((dChip) => {
+        dChip.addEventListener('click', () => {
+          if (!activeSlot?.daysEntity || !this._hass) return;
+          const clickedDay = dChip.dataset.day;
+          let currentList = currentDays.toLowerCase() === 'everyday' ? [...daysArr] : currentDays.split(/[, ]+/).filter(Boolean);
+          if (currentList.includes(clickedDay)) {
+            currentList = currentList.filter((d) => d !== clickedDay);
+          } else {
+            currentList.push(clickedDay);
+          }
+          const nextVal = currentList.length === 7 ? 'Everyday' : currentList.join(', ');
+          const dom = activeSlot.daysEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
+          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+        });
+      });
+    }
+  }
+
+  _updateDiagPanel() {
+    if (!this._hass || !this.$.panelDiag) return;
+    const $ = this.$;
+    const lang = this._lang();
+    const ents = this._resolveEntities();
+
+    const ignObj = this._getState(ents.ignition_state_entity);
+    const ignRaw = String(ignObj?.state || 'off').toLowerCase().trim();
+    const ignVal = ['ready', 'on', 'acc', 'off'].includes(ignRaw) ? ignRaw : 'off';
+    $.diagIgnitionBadge.className = `ignition-badge ${ignVal}`;
+    $.diagIgnitionBadge.textContent = ignVal.toUpperCase();
+
+    const alarmObj = this._getState(ents.theft_alarm_entity);
+    const alarmRaw = String(alarmObj?.state || 'disarmed').toLowerCase().trim();
+    const isAlarmTriggered = ['triggered', 'alarm', 'on', 'true'].includes(alarmRaw);
+    const isAlarmArmed = ['armed', 'active'].includes(alarmRaw);
+    let bannerCls = 'alarm-banner disarmed';
+    let bannerTxt = localize(lang, 'alarm_disarmed');
+    if (isAlarmTriggered) {
+      bannerCls = 'alarm-banner triggered';
+      bannerTxt = localize(lang, 'alarm_triggered');
+    } else if (isAlarmArmed) {
+      bannerCls = 'alarm-banner armed';
+      bannerTxt = localize(lang, 'alarm_armed');
+    }
+    $.diagAlarmBanner.className = bannerCls;
+    $.diagAlarmText.textContent = bannerTxt;
+    $.btnClearAlarm.style.display = isAlarmTriggered && ents.clear_alarm_entity ? 'inline-block' : 'none';
+    $.diagAlarmVal.textContent = alarmObj ? alarmObj.state : '--';
+
+    const lastAlarmObj = this._getState(ents.theft_alarm_last_event_entity);
+    if (lastAlarmObj && lastAlarmObj.state && lastAlarmObj.state !== 'unknown' && lastAlarmObj.state !== 'unavailable') {
+      $.diagLastAlarmRow.style.display = 'flex';
+      $.diagLastAlarmVal.textContent = lastAlarmObj.state;
+    } else {
+      $.diagLastAlarmRow.style.display = 'none';
+    }
+
+    const clockObj = this._getState(ents.car_clock_entity);
+    $.diagClockVal.textContent = clockObj ? clockObj.state : '--:--:--';
+
+    const chObj = this._getState(ents.wifi_channel_entity);
+    $.diagWifiChannelVal.textContent = chObj ? `CH ${chObj.state}` : '--';
+
+    const awObj = this._getState(ents.wifi_always_on_entity);
+    $.diagWifiAlwaysVal.textContent = awObj
+      ? isBinaryOn(awObj)
+        ? localize(lang, 'active')
+        : localize(lang, 'inactive')
+      : '--';
+
+    const thObj = this._getState(ents.battery_thermal_entity);
+    $.diagThermalVal.textContent = thObj ? thObj.state : '--';
+
+    const warmObj = this._getState(ents.battery_warming_entity);
+    $.diagWarmingVal.textContent = warmObj
+      ? isBinaryOn(warmObj)
+        ? localize(lang, 'active')
+        : localize(lang, 'inactive')
+      : '--';
+
+    const warnObj = this._getState(ents.battery_warning_entity);
+    $.diagWarningVal.textContent = warnObj
+      ? isBinaryOn(warnObj)
+        ? localize(lang, 'active')
+        : localize(lang, 'inactive')
+      : '--';
+
+    const vinObj = this._getState(ents.vin_entity);
+    $.diagVinVal.textContent = vinObj ? vinObj.state : '--';
+
+    const fwObj = this._getState(ents.ecu_version_entity);
+    $.diagFirmwareVal.textContent = fwObj ? fwObj.state : '--';
+
+    const phObj = this._getState(ents.registered_phones_entity);
+    $.diagPhonesVal.textContent = phObj ? `${phObj.state} / 2` : '--';
+  }
+
+  _updateSettingsModal() {
+    if (!this._hass || !this.$.modalSettings) return;
+    this._renderSettingsChips();
+    this._renderSettingsList();
+  }
+
+  _renderSettingsChips() {
+    const $ = this.$;
+    const lang = this._lang();
+    const cats = [
+      { id: 'all', label: localize(lang, 'cat_all') },
+      { id: 'wipers', label: localize(lang, 'cat_wipers') },
+      { id: 'turn_signal', label: localize(lang, 'cat_turn_signal') },
+      { id: 'keyless', label: localize(lang, 'cat_keyless') },
+      { id: 'lights', label: localize(lang, 'cat_lights') },
+      { id: 'mirrors', label: localize(lang, 'cat_mirrors') },
+      { id: 'locks', label: localize(lang, 'cat_locks') },
+      { id: 'windows', label: localize(lang, 'cat_windows') },
+      { id: 'ac', label: localize(lang, 'cat_ac') },
+      { id: 'other', label: localize(lang, 'cat_other') },
+    ];
+
+    $.settingsCatChips.innerHTML = cats
+      .map(
+        (c) => `
+      <button type="button" class="cat-chip ${this._settingsCategoryFilter === c.id ? 'active' : ''}" data-cat="${c.id}">
+        ${c.label}
+      </button>
+    `
+      )
+      .join('');
+  }
+
+  _renderSettingsList() {
+    const $ = this.$;
+    const lang = this._lang();
+    if (!this._hass) return;
+    const all = getPhevCustomizationSettings(this._hass, lang);
+    const filter = this._settingsCategoryFilter || 'all';
+    const term = this._settingsSearchTerm || '';
+
+    const filtered = all.filter((s) => {
+      if (filter !== 'all' && s.cat !== filter) return false;
+      if (term) {
+        const text = `${s.label} ${s.entity_id} ${s.cat}`.toLowerCase();
+        if (!text.includes(term)) return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      $.settingsModalList.innerHTML = `
+        <div style="text-align:center;padding:32px;color:var(--ophev-muted);font-size:0.86rem;">
+          ${localize(lang, 'offline_stale_hint')}
+        </div>
+      `;
+      return;
+    }
+
+    $.settingsModalList.innerHTML = filtered
+      .map(
+        (s) => `
+      <div class="setting-item">
+        <div class="setting-left">
+          <span class="setting-cat-badge">${localize(lang, `cat_${s.cat}`) || s.cat}</span>
+          <span class="setting-label">${s.label}</span>
+        </div>
+        <select class="setting-select" data-ent="${s.entity_id}">
+          ${s.options
+            .map(
+              (opt) => `<option value="${opt}" ${opt === s.state ? 'selected' : ''}>${opt}</option>`
+            )
+            .join('')}
+        </select>
+      </div>
+    `
+      )
+      .join('');
+
+    $.settingsModalList.querySelectorAll('.setting-select').forEach((sel) => {
+      sel.addEventListener('change', (e) => {
+        const ent = e.target.dataset.ent;
+        const opt = e.target.value;
+        if (ent && opt && this._hass) {
+          this._hass.callService('select', 'select_option', { entity_id: ent, option: opt });
+        }
+      });
+    });
   }
 }
 

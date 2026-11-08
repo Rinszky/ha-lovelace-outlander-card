@@ -40,6 +40,36 @@ export const ENTITY_KEYS = [
   'interior_lights_entity',
   'connected_entity',
   'restart_wifi_entity',
+  // New Diagnostics & Telemetry
+  'ignition_state_entity',
+  'theft_alarm_entity',
+  'theft_alarm_last_event_entity',
+  'clear_alarm_entity',
+  'locate_car_entity',
+  'car_clock_entity',
+  'sync_car_clock_entity',
+  'battery_warning_entity',
+  'battery_thermal_entity',
+  'battery_warming_entity',
+  'wifi_ssid_entity',
+  'wifi_channel_entity',
+  'wifi_always_on_entity',
+  'refresh_status_entity',
+  'vin_entity',
+  'ecu_version_entity',
+  'steering_side_entity',
+  'registered_phones_entity',
+  'last_seen_entity',
+  // New Climate & Charge Timers
+  'climate_timer_master_entity',
+  'climate_timer_mode_entity',
+  'charge_timer_master_entity',
+  'charge_now_entity',
+  'waiting_charge_timer_entity',
+  'climate_duration_min_entity',
+  'climate_start_delay_min_entity',
+  'climate_stop_time_entity',
+  'reset_climate_error_entity',
 ];
 
 function clamp(val, min, max) {
@@ -501,9 +531,284 @@ export function autoDiscoverPhevEntities(hass) {
         id.includes('duration');
       return isDaily && isDuration;
     })?.entity_id,
+
+    // Diagnostics & System Telemetry
+    ignition_state_entity: pick(['sensor'], (id, fn) =>
+      id.includes('ignition_state') || id.includes('ignition') || fn.includes('ignition')
+    ),
+    theft_alarm_entity: pick(['sensor', 'binary_sensor'], (id, fn) =>
+      id.includes('theft_alarm') || id.includes('alarm_state') || fn.includes('theft alarm')
+    ),
+    theft_alarm_last_event_entity: pick(['sensor'], (id, fn) =>
+      id.includes('last_theft_alarm') || id.includes('alarm_last_event') || fn.includes('last alarm')
+    ),
+    clear_alarm_entity: pick(['button', 'switch'], (id, fn) =>
+      (id.includes('clear') && id.includes('alarm')) ||
+      id.includes('alarm_clear') ||
+      (fn.includes('clear') && fn.includes('alarm'))
+    ),
+    locate_car_entity: pick(['button', 'switch'], (id, fn) =>
+      id.includes('locate_car') || id.includes('locate') || fn.includes('locate')
+    ),
+    car_clock_entity: pick(['sensor'], (id, fn) =>
+      id.includes('car_clock') || id.includes('phev_clock') || fn.includes('car clock')
+    ),
+    sync_car_clock_entity: pick(['button', 'switch'], (id, fn) =>
+      (id.includes('sync') && (id.includes('clock') || id.includes('time'))) ||
+      id.includes('synctime') ||
+      (fn.includes('sync') && (fn.includes('clock') || fn.includes('time')))
+    ),
+    battery_warning_entity: pick(['binary_sensor'], (id, fn) =>
+      id.includes('battery_warning') || fn.includes('battery warning')
+    ),
+    battery_thermal_entity: pick(['sensor'], (id, fn) =>
+      id.includes('battery_thermal') || id.includes('battery_warning_active') || fn.includes('thermal')
+    ),
+    battery_warming_entity: pick(['binary_sensor'], (id, fn) =>
+      id.includes('battery_warming') || fn.includes('battery warming')
+    ),
+    wifi_ssid_entity: pick(['sensor'], (id, fn) =>
+      id.includes('wifi_ssid') || fn.includes('wifi ssid')
+    ),
+    wifi_channel_entity: pick(['select', 'sensor'], (id, fn) =>
+      id.includes('wifi_channel') || fn.includes('wifi channel')
+    ),
+    wifi_always_on_entity: pick(['switch'], (id, fn) =>
+      id.includes('keep_wifi_always_active') || id.includes('wifi_always_on') || fn.includes('always active')
+    ),
+    refresh_status_entity: pick(['button'], (id, fn) =>
+      id.includes('refresh_vehicle_status') || id.includes('refresh') || fn.includes('refresh')
+    ),
+    vin_entity: pick(['sensor'], (id, fn) =>
+      id.includes('phev_vin') || fn === 'vin' || fn.includes('vin')
+    ),
+    ecu_version_entity: pick(['sensor'], (id, fn) =>
+      id.includes('ecu_version') || id.includes('ecuversion') || fn.includes('ecu version')
+    ),
+    steering_side_entity: pick(['sensor'], (id, fn) =>
+      id.includes('steering_side') || id.includes('steering') || fn.includes('steering')
+    ),
+    registered_phones_entity: pick(['sensor'], (id, fn) =>
+      id.includes('registered_smartphones') || id.includes('registrations') || fn.includes('registered')
+    ),
+    last_seen_entity: pick(['sensor'], (id, fn) =>
+      id.includes('phev_last_seen') || fn.includes('last seen')
+    ),
+
+    // Timers & Pre-AC Extensions
+    climate_timer_master_entity: pick(['switch'], (id, fn) =>
+      id.includes('climate_timer_master') || fn.includes('climate timer master')
+    ),
+    climate_timer_mode_entity: pick(['select'], (id, fn) =>
+      id.includes('climate_timer_mode') || fn.includes('climate timer mode')
+    ),
+    charge_timer_master_entity: pick(['switch'], (id, fn) =>
+      id.includes('charge_timer_master') || fn.includes('charge timer master')
+    ),
+    charge_now_entity: pick(['button', 'switch'], (id, fn) =>
+      id.includes('charge_now') || id.includes('override_timer') || fn.includes('charge immediately')
+    ),
+    waiting_charge_timer_entity: pick(['binary_sensor'], (id, fn) =>
+      id.includes('waiting_for_charge_timer') || id.includes('timer_inhibited') || fn.includes('waiting for timer')
+    ),
+    climate_duration_min_entity: pick(['select'], (id, fn) =>
+      id.includes('climate_duration_min') || fn.includes('duration')
+    ),
+    climate_start_delay_min_entity: pick(['select'], (id, fn) =>
+      id.includes('climate_start_delay_min') || fn.includes('start delay')
+    ),
+    climate_stop_time_entity: pick(['sensor'], (id, fn) =>
+      id.includes('climate_stop_time') || fn.includes('stop time')
+    ),
+    reset_climate_error_entity: pick(['button'], (id, fn) =>
+      id.includes('reset_climate_error') || fn.includes('clear termination')
+    ),
   };
 
   return Object.fromEntries(Object.entries(result).filter(([, v]) => Boolean(v)));
+}
+
+/**
+ * Metadata catalog for ETACS & AC Customization Settings (0x01..0x3c)
+ */
+export const SETTING_DEFINITIONS = {
+  wipers_key_position: { cat: 'wipers', hu: 'Ablaktörlő működése gyújtáskapcsoló állásban', en: 'Wipers Operation in Key Position' },
+  front_wiper_intermittent: { cat: 'wipers', hu: 'Első ablaktörlő szakaszos működése', en: 'Windshield Wipers Intermittent Operation' },
+  wipers_linked_to_washer: { cat: 'wipers', hu: 'Ablakmosóhoz kapcsolt törlés', en: 'Wipers Linked to Washer' },
+  rear_wiper_interval: { cat: 'wipers', hu: 'Hátsó ablaktörlő intervallum', en: 'Rear Wiper Intermittent Interval' },
+  comfort_washer: { cat: 'wipers', hu: 'Komfort ablakmosó funkció', en: 'Comfort Washer' },
+  rear_wiper_in_reverse: { cat: 'wipers', hu: 'Hátsó ablaktörlő hátramenetben', en: 'Rear Wiper Activated in Reverse' },
+
+  lane_change_3flash: { cat: 'turn_signal', hu: 'Sávváltó 3-villanásos komfort irányjelző', en: 'Lane-change 3-Flash Turn Signal' },
+  lane_change_activation_time: { cat: 'turn_signal', hu: 'Sávváltó irányjelző aktiválási ideje', en: 'Activation Time for Lane-change Signals' },
+
+  turn_signal_answerback: { cat: 'keyless', hu: 'Irányjelző villogás nyitáskor/záráskor', en: 'Turn Signal Lights Answerback' },
+  horn_answerback_lock: { cat: 'keyless', hu: 'Kürt visszajelzés záráskor', en: 'Horn Answerback at Keyless Lock' },
+  kos_answerback_beep: { cat: 'keyless', hu: 'Kulcsnélküli hangjelzés (Beep)', en: 'Keyless Answerback Beep' },
+  auto_relock_time: { cat: 'keyless', hu: 'Automatikus visszazárási idő feloldás után', en: 'Automatic Relocking After Remote Unlock' },
+  multi_mode_keyless: { cat: 'keyless', hu: 'Multi Mode kulcsnélküli ablak/tükör vezérlés', en: 'Multi Mode Keyless Entry System' },
+  horn_answerback_duration: { cat: 'keyless', hu: 'Kürt visszajelzés hanghossza', en: 'Duration of Horn Answerback' },
+  remote_unlock_inactivation: { cat: 'keyless', hu: 'Nyitás letiltási késleltetés zárás után', en: 'Remote Unlock Inactivation After Locking' },
+  horn_remote_start: { cat: 'keyless', hu: 'Kürt visszajelzés távindításkor', en: 'Horn Answerback at Remote Start' },
+
+  charging_lid_light_cutout: { cat: 'lights', hu: 'Töltőfedél világítás automatikus lekapcsolása', en: 'Charging Lid Light Auto Cut-out' },
+  auto_light_sensitivity: { cat: 'lights', hu: 'Automata fényszóró fényérzékenysége', en: 'Sensitivity for Auto Light' },
+  auto_light_linked_wiper: { cat: 'lights', hu: 'Automata fényszóró ablaktörlőhöz kapcsolása', en: 'Auto Light Linked to Wiper' },
+  dome_light_delay: { cat: 'lights', hu: 'Belső mennyezetvilágítás késleltetése ajtózárás után', en: 'Dome Light Duration After Door Closed' },
+  headlight_auto_cutout: { cat: 'lights', hu: 'Fényszóró automatikus lekapcsolása kiszálláskor', en: 'Headlight Auto-cutout Function' },
+  interior_light_auto_cutout: { cat: 'lights', hu: 'Belső világítás energiatakarékos lekapcsolása', en: 'Interior Light Auto-cutout Time' },
+  headlights_on_exit: { cat: 'lights', hu: 'Hazakísérő fény (Coming Home) időtartama', en: 'Headlights ON When Exiting Vehicle' },
+  exterior_lights_remote_unlock: { cat: 'lights', hu: 'Külső fények felkapcsolása távoli nyitáskor (Welcome Light)', en: 'Exterior Lights ON with Remote Unlock' },
+
+  auto_fold_mirrors: { cat: 'mirrors', hu: 'Visszapillantó tükrök automatikus behajtása', en: 'Auto Fold Mirrors' },
+
+  automatic_door_unlock: { cat: 'locks', hu: 'Automatikus ajtónyitás (P fokozat / leállítás)', en: 'Automatic Door Unlock' },
+  selective_door_unlock: { cat: 'locks', hu: 'Szelektív ajtónyitás (csak vezető / összes ajtó)', en: 'Unlock Operation' },
+  deadlock_button_pushes: { cat: 'locks', hu: 'Reteszelő zár (Deadlock) gombnyomások', en: 'Lock Button Pushes for Dead Lock' },
+
+  power_window_keyoff_timer: { cat: 'windows', hu: 'Ablakemelő működtetési idő gyújtás levétele után', en: 'Power Window Timer After IG Off' },
+  window_open_after_ig_off: { cat: 'windows', hu: 'Ablaknyitás engedélyezése leállítás után', en: 'Window Open Operation After IG Off' },
+  window_lock_switch_scope: { cat: 'windows', hu: 'Ablakzár kapcsoló hatóköre', en: 'Power Window Lock-switch Scope' },
+
+  ac_recirculation_control: { cat: 'ac', hu: 'Belső levegőkeringetés automatikus vezérlése', en: 'Recirculation Control' },
+  ac_switch_control: { cat: 'ac', hu: 'A/C kompresszor kapcsoló vezérlése', en: 'A/C Switch Control' },
+  ac_eco_mode: { cat: 'ac', hu: 'A/C Eco / Comfort üzemmód', en: 'A/C Eco Mode' },
+  foot_defroster_airflow_ratio: { cat: 'ac', hu: 'Lábtér / Szélvédő légáramlás aránya', en: 'Foot / Defroster Airflow Ratio' },
+  face_foot_airflow_ratio: { cat: 'ac', hu: 'Mellkas / Lábtér légáramlás aránya', en: 'Face / Foot Airflow Ratio' },
+  auto_rear_defrost_at_start: { cat: 'ac', hu: 'Automatikus hátsó szélvédőfűtés induláskor', en: 'Automatic Rear Defrost at Start' },
+  start_ac_at_door_unlock: { cat: 'ac', hu: 'Klíma / Fűtés indítása ajtónyitáskor', en: 'Start A/C or Heater at Door Unlock' },
+  foot_mode_defroster_bleed: { cat: 'ac', hu: 'Szélvédő mikrolevegőzés lábtér üzemmódban', en: 'Slight Defroster Airflow in Foot Mode' },
+  fast_idle_heater_boost: { cat: 'ac', hu: 'Megnövelt alapjárat magasabb fűtési teljesítményhez', en: 'Fast Idle for Higher Heater Performance' },
+
+  acc_power_auto_cutout: { cat: 'other', hu: 'ACC fogyasztók automatikus lekapcsolása', en: 'Auto Cut of ACC Power' },
+};
+
+/**
+ * Discovers and groups all ETACS/AC customization settings from Home Assistant.
+ */
+export function getPhevCustomizationSettings(hass, lang = 'hu') {
+  if (!hass || !hass.states) return [];
+  const entries = [];
+
+  for (const [entityId, st] of Object.entries(hass.states)) {
+    if (!entityId.startsWith('select.')) continue;
+    const lowerId = entityId.toLowerCase();
+    const isSetting =
+      lowerId.includes('_setting_') ||
+      lowerId.includes('phev_settings_') ||
+      Object.keys(SETTING_DEFINITIONS).some((slug) => lowerId.endsWith(`_${slug}`) || lowerId.includes(slug));
+
+    if (!isSetting) continue;
+
+    // Match slug
+    const matchedSlug = Object.keys(SETTING_DEFINITIONS).find(
+      (slug) => lowerId.endsWith(`_${slug}`) || lowerId.includes(slug)
+    );
+    const def = matchedSlug ? SETTING_DEFINITIONS[matchedSlug] : null;
+
+    let cat = def?.cat;
+    if (!cat) {
+      if (lowerId.includes('wiper')) cat = 'wipers';
+      else if (lowerId.includes('turn_signal') || lowerId.includes('flasher')) cat = 'turn_signal';
+      else if (lowerId.includes('mirror')) cat = 'mirrors';
+      else if (lowerId.includes('window')) cat = 'windows';
+      else if (lowerId.includes('lock')) cat = 'locks';
+      else if (lowerId.includes('light') || lowerId.includes('lamp')) cat = 'lights';
+      else if (lowerId.includes('keyless') || lowerId.includes('alarm') || lowerId.includes('remote')) cat = 'keyless';
+      else if (lowerId.includes('ac') || lowerId.includes('air_conditioning') || lowerId.includes('climate')) cat = 'ac';
+      else cat = 'other';
+    }
+
+    const label = def ? (lang === 'hu' ? def.hu : def.en) : st.attributes?.friendly_name || entityId;
+
+    entries.push({
+      entity_id: entityId,
+      slug: matchedSlug || entityId.replace('select.', ''),
+      cat,
+      label,
+      state: st.state,
+      options: Array.isArray(st.attributes?.options) ? st.attributes.options : [],
+    });
+  }
+
+  // Sort by category order then label
+  const catOrder = ['wipers', 'turn_signal', 'keyless', 'lights', 'mirrors', 'locks', 'windows', 'ac', 'other'];
+  return entries.sort((a, b) => {
+    const ca = catOrder.indexOf(a.cat);
+    const cb = catOrder.indexOf(b.cat);
+    if (ca !== cb) return ca - cb;
+    return a.label.localeCompare(b.label, lang === 'hu' ? 'hu' : 'en');
+  });
+}
+
+/**
+ * Discovers climate timer slot entities (1..5).
+ */
+export function getPhevClimateTimers(hass) {
+  if (!hass || !hass.states) return [];
+  const slots = [];
+  for (let s = 1; s <= 5; s++) {
+    const prefix = `climate_timer_${s}`;
+    const enabledEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('enabled'));
+    const timeEnt = Object.keys(hass.states).find(
+      (id) =>
+        id.includes(prefix) &&
+        !id.includes('enabled') &&
+        (id.endsWith('_time') || id.endsWith('time') || (id.includes('_time_') && !id.includes('_timer_')) || id.startsWith('time.'))
+    );
+    const durEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('duration'));
+    const daysEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('days'));
+    const summaryEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('summary'));
+
+    slots.push({
+      slot: s,
+      enabledEntity: enabledEnt,
+      timeEntity: timeEnt,
+      durationEntity: durEnt,
+      daysEntity: daysEnt,
+      summaryEntity: summaryEnt,
+      enabled: enabledEnt ? hass.states[enabledEnt]?.state === 'on' : false,
+      time: timeEnt ? hass.states[timeEnt]?.state || '--:--' : '--:--',
+      duration: durEnt ? hass.states[durEnt]?.state || '20' : '20',
+      days: daysEnt ? hass.states[daysEnt]?.state || 'Everyday' : 'Everyday',
+      summary: summaryEnt ? hass.states[summaryEnt]?.state : null,
+    });
+  }
+  return slots;
+}
+
+/**
+ * Discovers charge timer slot entities (1..5).
+ */
+export function getPhevChargeTimers(hass) {
+  if (!hass || !hass.states) return [];
+  const slots = [];
+  for (let s = 1; s <= 5; s++) {
+    const prefix = `charge_timer_${s}`;
+    const enabledEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('enabled'));
+    const startEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('start'));
+    const endEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('end'));
+    const fullEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('full_charge'));
+    const daysEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('days'));
+    const summaryEnt = Object.keys(hass.states).find((id) => id.includes(prefix) && id.includes('summary'));
+
+    slots.push({
+      slot: s,
+      enabledEntity: enabledEnt,
+      startEntity: startEnt,
+      endEntity: endEnt,
+      fullChargeEntity: fullEnt,
+      daysEntity: daysEnt,
+      summaryEntity: summaryEnt,
+      enabled: enabledEnt ? hass.states[enabledEnt]?.state === 'on' : false,
+      start: startEnt ? hass.states[startEnt]?.state || '--:--' : '--:--',
+      end: endEnt ? hass.states[endEnt]?.state || '--:--' : '--:--',
+      fullCharge: fullEnt ? hass.states[fullEnt]?.state === 'on' : true,
+      days: daysEnt ? hass.states[daysEnt]?.state || 'Everyday' : 'Everyday',
+      summary: summaryEnt ? hass.states[summaryEnt]?.state : null,
+    });
+  }
+  return slots;
 }
 
 /**

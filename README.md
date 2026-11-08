@@ -2,12 +2,13 @@
 
 # 🚗 Mitsubishi Outlander PHEV Lovelace Card (`phev2mqtt`)
 
-**Fotorealisztikus, interaktív felülnézeti Home Assistant Lovelace kártya a Mitsubishi Outlander PHEV (`phev2mqtt`) összes érzékelőjéhez és vezérlőjéhez**
+**Fotorealisztikus, interaktív felülnézeti Home Assistant Lovelace kártya a Mitsubishi Outlander PHEV (`phev2mqtt` és [`Rinszky/phev2mqtt`](https://github.com/Rinszky/phev2mqtt)) összes érzékelőjéhez, vezérlőjéhez, ETACS beállításához és időzítőjéhez**
 
 [![Verzió](https://img.shields.io/badge/verzi%C3%B3-v1.3.0-0ea5e9?style=for-the-badge)](./package.json)
 [![HACS](https://img.shields.io/badge/HACS-Custom-10b981?style=for-the-badge)](https://hacs.xyz)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Lovelace-38bdf8?style=for-the-badge&logo=homeassistant&logoColor=white)](https://www.home-assistant.io/)
-[![phev2mqtt](https://img.shields.io/badge/Gateway-buxtronix%2Fphev2mqtt-6366f1?style=for-the-badge&logo=github)](https://github.com/buxtronix/phev2mqtt)
+[![phev2mqtt Fork](https://img.shields.io/badge/Gateway-Rinszky%2Fphev2mqtt-8b5cf6?style=for-the-badge&logo=github)](https://github.com/Rinszky/phev2mqtt)
+[![buxtronix/phev2mqtt](https://img.shields.io/badge/Upstream-buxtronix%2Fphev2mqtt-6366f1?style=for-the-badge&logo=github)](https://github.com/buxtronix/phev2mqtt)
 [![Élő Demó](https://img.shields.io/badge/%F0%9F%8E%AE_%C3%89l%C5%91_Dem%C3%B3-Kipr%C3%B3b%C3%A1l%C3%A1s-f59e0b?style=for-the-badge)](https://rinszky.github.io/ha-lovelace-outlander-card/demo/)
 
 <br />
@@ -69,14 +70,36 @@
   - **Világítás**: Felkapcsolt **tompított fényszórónál** dupla xenon fénycsóva vetül az autó elé; **helyzetjelzőnél** világítanak az első LED menetfények és a hátsó rubinvörös lámpák; **elakadásjelzőnél** ütemesen villog a 4 sarokindex és a tükörindex; **belső világításnál** meleg fény dereng az utastérben.
   - **Klíma-animáció**: Hűtésnél jeges kék légáramlás, fűtésnél meleg narancs hőáramlás az utastérben, szélvédő-páramentesítésnél pedig hullámzó fűtőszál-effekt a szélvédőn.
   - **Jobb hátsó töltőcsatlakozó**: Csatlakoztatott kábelnél kinyílik a töltőfedél és megjelenik a töltőkábel, aktív töltésnél pedig pulzáló energiaimpulzusok futnak be az autóba.
+- **⚙️ ETACS & Klíma Beállítások Popup Modal ([`Rinszky/phev2mqtt`](https://github.com/Rinszky/phev2mqtt))**
+  - Közvetlen fejléc-ikonnal nyitható üveghatású felugró ablak.
+  - **Kategorizált szűrőkapszulák**: *Ablaktörlők*, *Irányjelző* (komfort 3-villanás), *Kulcsnélküli & Riasztó*, *Világítás* (hazakísérő fény késleltetés), *Tükrök* (automatikus behajtás zárásra/nyitásra), *Ajtózárak* (sebességfüggő automatikus zárás), *Ablakok*, *Klíma* (külső levegő / belső keringetés prioritás), *Egyéb*.
+  - **Élő keresőmező** a beállítások azonnali szűrésére.
+  - **Gyári beállítások visszaállítása (Factory Reset)** egy kattintással megerősítéssel.
+- **⏰ Töltés és Előfűtés Időzítők Kezelése (Timers 1–5)**
+  - Külön alfülek a **Klíma & Fűtés időzítőknek** és a **Töltési időzítőknek**.
+  - **Slot-választó kapszulák (1..5)** aktív állapotjelző ponttal és mentett időponttal.
+  - Részletes slot-szerkesztő: indulási idő, töltési kezdet/vége, időtartam választó (10/20/30 perc), nap-kiválasztó gombok (Hét..Vas) és gyors presetek (*Minden nap*, *Hétköznapok*, *Hétvégék*).
+  - Főkapcsoló és üzemmód (hűtés/fűtés/szélvédő) közvetlen eléréssel.
+- **🔍 Dedikált Diagnosztika Blokk (Diagnostics & Security)**
+  - **Gyújtás állapot**: `OFF`, `ACC`, `ON`, `READY` dinamikus állapotjelző jelvény.
+  - **Lopásgátló riasztó**: Élesítve / Hatástalanítva banner, riasztás esetén villogó riasztási sáv és egyérintéses **Riasztás törlése** gomb.
+  - **Jármű belső órája** valós idejű kijelzéssel és **Óra szinkronizálása a Home Assistanttal** gombbal.
+  - **Autó keresése (Fénykürt)**: Gombnyomásra villogtatja a fényszórókat.
+  - **Wi-Fi telemetria**: Wi-Fi csatorna, folyamatos ébrentartás (`keep_wifi_always_active`).
+  - **Akkumulátor védelem**: Akku hőmérséklet állapot és akkumulátorfűtés jelzés.
+  - **Jármű azonosítók**: Alvázszám (VIN), ECU verzió és regisztrált telefonok száma.
+- **🛡️ Ugrásmentes Gördülés (Scroll Stability Fix)**
+  - Megszüntetve az oldal aljára görgetéskor jelentkező 1–2 másodperces felugrási hiba.
+  - Intelligens entitás-változás figyelés: a más helyiségekben frissülő szenzorok nem okoznak felesleges DOM újrarendezést és layout reflow-t.
+  - `overflow-anchor: none` védelem és optimális kártyaméret (`getCardSize: 16`) a Lovelace Masonry rácshoz.
 - **Külső és Napi töltésmérő segéd-entitások támogatása**
-  - Opcionálisan beköthető **Napi töltés energiában (`kWh` / `kW`)** és **Napi töltési idő órában (`h` / `perc` / `history_stats`)** segéd-entitás, amely választhatóan a kártya felső fejlécében (jelvényként), a töltési panelen kiemelt kártyaként, vagy mindkét helyen megjeleníthető.
+  - Opcionálisan beköthető **Napi töltés energiában (`kWh` / `kW`)** és **Napi töltési idő órában (`h` / `perc` / `history_stats`)** segéd-entitás.
   - Opcionálisan beköthető külső fali töltő / okoskonnektor **Teljesítmény (`W` / `kW`)** és **Elfogyasztott energia (`kWh`)** szenzor 24 órás Home Assistant előzmény-grafikonnal (sparkline).
 - **Látványos Kapcsolati / Offline (Alvó) Állapotjelzés**
   - Fejlécben pulzáló telemetria-kapszula (`Kapcsolódva` / `Nincs kapcsolat`).
-  - Ha megszakad a Wi-Fi kapcsolat az autóval (`phev2mqtt`), az autó elszürkül és egy üveghatású **Offline HUD kártya** jelenik meg rajta hullámzó radar-animációval, az utolsó elérhetőség idejével és közvetlen **Wi-Fi újracsatlakozás** gombbal; az elérhetetlen autó-vezérlők elhalványulnak, miközben a külső töltő- és napi mérők aktívak maradnak.
+  - Ha megszakad a Wi-Fi kapcsolat az autóval, az autó elszürkül és egy üveghatású **Offline HUD kártya** jelenik meg rajta hullámzó radar-animációval és közvetlen **Wi-Fi újracsatlakozás** gombbal.
 - **✨ 1-kattintásos `phev2mqtt` automatikus felismerés és Vizuális Szerkesztő**
-  - Nincs szükség kézi YAML írásra: a kártya hozzáadásakor vagy a szerkesztőben lévő gombbal automatikusan megkeresi a Mitsubishi Outlander PHEV eszközt és beállítja az összes entitást.
+  - Automatikusan megkeresi az összes Outlander PHEV entitást (mind az alap `buxtronix/phev2mqtt`, mind a bővített `Rinszky/phev2mqtt` integrációból).
 
 ---
 

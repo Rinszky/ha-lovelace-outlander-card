@@ -205,6 +205,14 @@
         </div>
 
         <div class="sim-group">
+          <h3>Diagnosztika & Riasztó szimuláció</h3>
+          <div class="sim-btns">
+            <button class="sim-chip on" id="sim-ign">🔑 Gyújtás: READY</button>
+            <button class="sim-chip on" id="sim-alarm">🛡️ Riasztó: Élesítve</button>
+          </div>
+        </div>
+
+        <div class="sim-group">
           <h3>Utolsó Home Assistant esemény / szolgáltatáshívás</h3>
           <div class="toast-log" id="event-log">Készen áll — kattints a kártya gombjaira vagy közvetlenül az autóra!</div>
         </div>
@@ -250,6 +258,63 @@
       'binary_sensor.phev_interior_lights': { state: 'off', attributes: { friendly_name: 'PHEV Interior Lights', device_class: 'light' } },
       'binary_sensor.phev_connected': { state: 'on', attributes: { friendly_name: 'PHEV Connected', device_class: 'connectivity' } },
       'button.phev_restart_wifi_connetion': { state: 'unknown', attributes: { friendly_name: 'PHEV Restart Wifi connetion' } },
+
+      // Rinszky/phev2mqtt - Diagnostics & Security
+      'sensor.phev_ignition_state': { state: 'ready', attributes: { friendly_name: 'PHEV Gyújtás állapot' } },
+      'sensor.phev_theft_alarm_state': { state: 'armed', attributes: { friendly_name: 'PHEV Riasztó állapot' } },
+      'sensor.phev_theft_alarm_last_event': { state: '2026-11-08 08:32', attributes: { friendly_name: 'Utolsó riasztás esemény' } },
+      'button.phev_clear_theft_alarm': { state: 'unknown', attributes: { friendly_name: 'PHEV Riasztás törlése' } },
+      'button.phev_locate_car': { state: 'unknown', attributes: { friendly_name: 'PHEV Jármű keresése' } },
+      'sensor.phev_car_clock': { state: '10:15:30', attributes: { friendly_name: 'PHEV Autó órája' } },
+      'button.phev_sync_car_clock': { state: 'unknown', attributes: { friendly_name: 'PHEV Óra szinkronizálás' } },
+      'sensor.phev_wifi_channel': { state: '6', attributes: { friendly_name: 'PHEV Wi-Fi csatorna' } },
+      'switch.phev_keep_wifi_always_active': { state: 'on', attributes: { friendly_name: 'PHEV Wi-Fi állandóan aktív' } },
+      'sensor.phev_battery_thermal': { state: 'Normál', attributes: { friendly_name: 'Akkumulátor hőmérséklet' } },
+      'binary_sensor.phev_battery_warming': { state: 'off', attributes: { friendly_name: 'Akkumulátor fűtés' } },
+      'binary_sensor.phev_battery_warning': { state: 'off', attributes: { friendly_name: 'Akkumulátor figyelmeztetés' } },
+      'sensor.phev_vin': { state: 'JMBXDGG2WEZ014829', attributes: { friendly_name: 'Alvázszám (VIN)' } },
+      'sensor.phev_ecu_version': { state: 'ETACS 2.04', attributes: { friendly_name: 'ECU Firmware verzió' } },
+      'sensor.phev_registered_smartphones': { state: '1', attributes: { friendly_name: 'Regisztrált telefonok' } },
+
+      // Rinszky/phev2mqtt - Timers (Climate & Charge)
+      'switch.phev_climate_timer_master': { state: 'on', attributes: { friendly_name: 'PHEV Klíma időzítő főkapcsoló' } },
+      'select.phev_climate_timer_mode': { state: 'heat', attributes: { friendly_name: 'PHEV Klíma időzítő mód', options: ['cool', 'heat', 'windscreen'] } },
+      'switch.phev_climate_timer_1_enabled': { state: 'on', attributes: { friendly_name: 'Klíma időzítő #1' } },
+      'time.phev_climate_timer_1_time': { state: '07:15', attributes: { friendly_name: 'Klíma #1 Idő' } },
+      'select.phev_climate_timer_1_duration': { state: '20', attributes: { friendly_name: 'Klíma #1 Időtartam', options: ['10', '20', '30'] } },
+      'select.phev_climate_timer_1_days': { state: 'Weekdays', attributes: { friendly_name: 'Klíma #1 Napok' } },
+
+      'switch.phev_climate_timer_2_enabled': { state: 'off', attributes: { friendly_name: 'Klíma időzítő #2' } },
+      'time.phev_climate_timer_2_time': { state: '16:30', attributes: { friendly_name: 'Klíma #2 Idő' } },
+      'select.phev_climate_timer_2_duration': { state: '10', attributes: { friendly_name: 'Klíma #2 Időtartam', options: ['10', '20', '30'] } },
+      'select.phev_climate_timer_2_days': { state: 'Mon, Tue, Wed, Thu, Fri', attributes: { friendly_name: 'Klíma #2 Napok' } },
+
+      'switch.phev_climate_timer_3_enabled': { state: 'off', attributes: { friendly_name: 'Klíma időzítő #3' } },
+      'time.phev_climate_timer_3_time': { state: '08:00', attributes: { friendly_name: 'Klíma #3 Idő' } },
+      'select.phev_climate_timer_3_duration': { state: '20', attributes: { friendly_name: 'Klíma #3 Időtartam', options: ['10', '20', '30'] } },
+      'select.phev_climate_timer_3_days': { state: 'Everyday', attributes: { friendly_name: 'Klíma #3 Napok' } },
+
+      'switch.phev_charge_timer_1_enabled': { state: 'on', attributes: { friendly_name: 'Töltés időzítő #1' } },
+      'time.phev_charge_timer_1_start_time': { state: '22:30', attributes: { friendly_name: 'Töltés #1 Kezdés' } },
+      'time.phev_charge_timer_1_end_time': { state: '06:00', attributes: { friendly_name: 'Töltés #1 Befejezés' } },
+      'select.phev_charge_timer_1_days': { state: 'Everyday', attributes: { friendly_name: 'Töltés #1 Napok' } },
+
+      'switch.phev_charge_timer_2_enabled': { state: 'off', attributes: { friendly_name: 'Töltés időzítő #2' } },
+      'time.phev_charge_timer_2_start_time': { state: '13:00', attributes: { friendly_name: 'Töltés #2 Kezdés' } },
+      'time.phev_charge_timer_2_end_time': { state: '17:00', attributes: { friendly_name: 'Töltés #2 Befejezés' } },
+      'select.phev_charge_timer_2_days': { state: 'Weekends', attributes: { friendly_name: 'Töltés #2 Napok' } },
+
+      // Rinszky/phev2mqtt - Vehicle Customization Settings (ETACS & AC)
+      'select.phev_setting_turn_signal_flasher_mode': { state: 'Mode 1 (3 villantás)', attributes: { friendly_name: 'Irányjelző komfort villantás', options: ['Mode 1 (3 villantás)', 'Mode 2 (Kikapcsolva)', 'Mode 3 (5 villantás)'] } },
+      'select.phev_setting_front_wiper_operation': { state: 'Járműsebesség-függő', attributes: { friendly_name: 'Első ablaktörlő működés', options: ['Járműsebesség-függő', 'Esőérzékelős', 'Szakaszos', 'Kikapcsolva'] } },
+      'select.phev_setting_rear_wiper_reverse_gear_operation': { state: 'Szakaszos', attributes: { friendly_name: 'Hátsó törlő tolatáskor', options: ['Folyamatos', 'Szakaszos', 'Kikapcsolva'] } },
+      'select.phev_setting_headlight_auto_off_delay': { state: '30 másodperc', attributes: { friendly_name: 'Fényszóró lekapcsolási késleltetés', options: ['Kikapcsolva', '30 másodperc', '1 perc', '3 perc'] } },
+      'select.phev_setting_mirror_auto_fold': { state: 'Ajtózáráshoz kötve', attributes: { friendly_name: 'Tükör automatikus behajtás', options: ['Ajtózáráshoz kötve', 'Ajtónyitáshoz kötve', 'Gyújtáskapcsolóhoz kötve', 'Kikapcsolva'] } },
+      'select.phev_setting_keyless_entry_hazard_answerback': { state: '1 / 2 villantás', attributes: { friendly_name: 'Kulcs nélküli zárás visszajelzés', options: ['1 / 2 villantás', 'Kikapcsolva'] } },
+      'select.phev_setting_auto_door_lock_by_speed': { state: 'Bekapcsolva (20 km/h felett)', attributes: { friendly_name: 'Automatikus ajtózár sebességre', options: ['Bekapcsolva (20 km/h felett)', 'Kikapcsolva', 'P fokozatba váltáskor nyit'] } },
+      'select.phev_setting_power_window_timer': { state: '30 másodperc', attributes: { friendly_name: 'Elektromos ablak időzítő', options: ['30 másodperc', 'Kikapcsolva', '3 perc'] } },
+      'select.phev_setting_air_conditioning_inlet_mode': { state: 'Automatikus (külső levegő)', attributes: { friendly_name: 'Klíma levegőbemenet', options: ['Automatikus (külső levegő)', 'Manuális', 'Belső keringetés'] } },
+      'button.phev_restore_factory_settings': { state: 'unknown', attributes: { friendly_name: 'Gyári beállítások visszaállítása' } },
     };
 
     const logEl = document.getElementById('event-log');
@@ -308,15 +373,38 @@
           } else if (service === 'select_option') {
             const opt = data.option;
             stateStore[ent].state = opt;
-            stateStore['switch.phev_cool'].state = opt === 'cool' ? 'on' : 'off';
-            stateStore['switch.phev_heat'].state = opt === 'heat' ? 'on' : 'off';
-            stateStore['switch.phev_windscreen'].state = opt === 'windscreen' ? 'on' : 'off';
-          } else if (service === 'press' && ent === 'button.phev_restart_wifi_connetion') {
-            setTimeout(() => {
-              stateStore['binary_sensor.phev_connected'].state = 'on';
-              stateStore['binary_sensor.phev_connected'].last_changed = new Date().toISOString();
+            if (ent === 'select.phev_climate_state') {
+              stateStore['switch.phev_cool'].state = opt === 'cool' ? 'on' : 'off';
+              stateStore['switch.phev_heat'].state = opt === 'heat' ? 'on' : 'off';
+              stateStore['switch.phev_windscreen'].state = opt === 'windscreen' ? 'on' : 'off';
+            }
+          } else if (service === 'set_value') {
+            stateStore[ent].state = String(data.value ?? data.time ?? '');
+          } else if (service === 'set_datetime') {
+            stateStore[ent].state = String(data.time ?? data.datetime ?? '');
+          } else if (service === 'press') {
+            if (ent === 'button.phev_restart_wifi_connetion') {
+              setTimeout(() => {
+                stateStore['binary_sensor.phev_connected'].state = 'on';
+                stateStore['binary_sensor.phev_connected'].last_changed = new Date().toISOString();
+                refreshAll();
+              }, 900);
+            } else if (ent === 'button.phev_clear_theft_alarm') {
+              stateStore['sensor.phev_theft_alarm_state'].state = 'disarmed';
               refreshAll();
-            }, 900);
+            } else if (ent === 'button.phev_sync_car_clock') {
+              stateStore['sensor.phev_car_clock'].state = new Date().toLocaleTimeString('hu-HU');
+              refreshAll();
+            } else if (ent === 'button.phev_locate_car') {
+              stateStore['light.phev_head_lights'].state = 'on';
+              refreshAll();
+              setTimeout(() => {
+                stateStore['light.phev_head_lights'].state = 'off';
+                refreshAll();
+              }, 3500);
+            } else if (ent === 'button.phev_restore_factory_settings') {
+              logMsg('Gyári beállítások visszaállítva az összes paraméterre!');
+            }
           }
           refreshAll();
         },
@@ -414,7 +502,45 @@
       const wifiBtn = document.getElementById('sim-wifi');
       wifiBtn.className = `sim-chip ${isWifiOn ? 'on' : 'warn'}`;
       wifiBtn.textContent = isWifiOn ? '📶 Wi-Fi Online' : '📵 Wi-Fi Offline (Alvó mód)';
+
+      const ignState = stateStore['sensor.phev_ignition_state']?.state || 'ready';
+      const ignBtn = document.getElementById('sim-ign');
+      if (ignBtn) {
+        ignBtn.textContent = `🔑 Gyújtás: ${ignState.toUpperCase()}`;
+        ignBtn.className = `sim-chip ${ignState === 'ready' || ignState === 'on' ? 'on' : ''}`;
+      }
+
+      const alarmState = stateStore['sensor.phev_theft_alarm_state']?.state || 'disarmed';
+      const alarmBtn = document.getElementById('sim-alarm');
+      if (alarmBtn) {
+        if (alarmState === 'triggered') {
+          alarmBtn.className = 'sim-chip warn';
+          alarmBtn.textContent = '🚨 Riasztás: AKTÍV!';
+        } else if (alarmState === 'armed') {
+          alarmBtn.className = 'sim-chip on';
+          alarmBtn.textContent = '🛡️ Riasztó: Élesítve';
+        } else {
+          alarmBtn.className = 'sim-chip';
+          alarmBtn.textContent = '🛡️ Riasztó: Kikapcsolva';
+        }
+      }
     }
+
+    document.getElementById('sim-ign')?.addEventListener('click', () => {
+      const order = ['off', 'acc', 'on', 'ready'];
+      const cur = stateStore['sensor.phev_ignition_state'].state;
+      const next = order[(order.indexOf(cur) + 1) % order.length];
+      stateStore['sensor.phev_ignition_state'].state = next;
+      refreshAll();
+    });
+
+    document.getElementById('sim-alarm')?.addEventListener('click', () => {
+      const order = ['disarmed', 'armed', 'triggered'];
+      const cur = stateStore['sensor.phev_theft_alarm_state'].state;
+      const next = order[(order.indexOf(cur) + 1) % order.length];
+      stateStore['sensor.phev_theft_alarm_state'].state = next;
+      refreshAll();
+    });
 
     // Bind Simulator Controls
     document.getElementById('sim-soc').addEventListener('input', (e) => {

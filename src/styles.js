@@ -24,6 +24,7 @@ export const CARD_STYLES = `
   ha-card.ophev-card {
     position: relative;
     overflow: hidden;
+    overflow-anchor: none;
     background: var(--ophev-bg);
     color: var(--ophev-text);
     border-radius: var(--ha-card-border-radius, 22px);
@@ -1527,5 +1528,734 @@ export const CARD_STYLES = `
     border-color: rgba(56, 189, 248, 0.48);
     background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(30, 41, 59, 0.82));
     box-shadow: 0 0 16px -4px rgba(14, 165, 233, 0.3);
+  }
+
+  /* =========================================================
+     HEADER EXTENSION ACTIONS (SETTINGS, TIMERS, DIAGNOSTICS)
+     ========================================================= */
+  .hdr-actions-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .hdr-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: rgba(30, 41, 59, 0.75);
+    border: 1px solid var(--ophev-border-strong);
+    color: var(--ophev-text);
+    font-size: 0.74rem;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .hdr-action-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .hdr-action-btn:hover {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: rgba(56, 189, 248, 0.5);
+    transform: translateY(-1px);
+  }
+
+  .hdr-action-btn.active {
+    background: rgba(14, 165, 233, 0.28);
+    border-color: rgba(56, 189, 248, 0.7);
+    color: #38bdf8;
+    box-shadow: 0 0 12px -2px rgba(14, 165, 233, 0.4);
+  }
+
+  /* =========================================================
+     COLLAPSIBLE PANELS (TIMERS & DIAGNOSTICS)
+     ========================================================= */
+  .section-panel {
+    background: var(--ophev-panel);
+    border: 1px solid var(--ophev-border);
+    border-radius: 18px;
+    padding: 16px;
+    margin-top: 14px;
+    display: none;
+    flex-direction: column;
+    gap: 14px;
+    backdrop-filter: blur(10px);
+    overflow-anchor: none;
+  }
+
+  .section-panel.open {
+    display: flex;
+  }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: #f8fafc;
+    letter-spacing: -0.01em;
+  }
+
+  .section-title svg {
+    width: 17px;
+    height: 17px;
+    color: #38bdf8;
+  }
+
+  /* Subtabs Bar (Timers: Charge vs Climate) */
+  .subtabs-bar {
+    display: flex;
+    gap: 6px;
+    background: rgba(9, 13, 22, 0.72);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--ophev-border);
+  }
+
+  .subtab-btn {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: var(--ophev-muted);
+    font-size: 0.76rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+
+  .subtab-btn:hover {
+    color: #f1f5f9;
+  }
+
+  .subtab-btn.active {
+    background: rgba(14, 165, 233, 0.22);
+    color: #e0f2fe;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  }
+
+  /* Timer Slots Pills (1..5) */
+  .slots-bar {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .slot-pill {
+    padding: 7px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(15, 23, 42, 0.7);
+    color: var(--ophev-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+
+  .slot-pill:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #f1f5f9;
+  }
+
+  .slot-pill.active {
+    background: rgba(14, 165, 233, 0.22);
+    border-color: rgba(56, 189, 248, 0.65);
+    color: #f0f9ff;
+    box-shadow: 0 0 10px -2px rgba(14, 165, 233, 0.35);
+  }
+
+  .slot-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #64748b;
+    flex-shrink: 0;
+  }
+
+  .slot-pill.enabled .slot-dot {
+    background: #10b981;
+    box-shadow: 0 0 6px #10b981;
+  }
+
+  /* Master Schedule Banner */
+  .timer-master-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.78);
+    border: 1px solid var(--ophev-border);
+  }
+
+  .timer-master-left {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .timer-master-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  /* Timer Slot Editor Card */
+  .timer-editor-card {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid var(--ophev-border);
+    border-radius: 14px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .timer-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .timer-row-label {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+  }
+
+  .timer-input {
+    background: rgba(9, 13, 22, 0.88);
+    border: 1px solid var(--ophev-border-strong);
+    border-radius: 8px;
+    color: #f8fafc;
+    padding: 6px 11px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .timer-input:focus {
+    border-color: #38bdf8;
+  }
+
+  .days-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .days-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .day-chip {
+    width: 33px;
+    height: 33px;
+    border-radius: 9px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(9, 13, 22, 0.75);
+    color: var(--ophev-muted);
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    user-select: none;
+    font-family: inherit;
+  }
+
+  .day-chip:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #f1f5f9;
+  }
+
+  .day-chip.active {
+    background: rgba(16, 185, 129, 0.24);
+    border-color: rgba(52, 211, 153, 0.65);
+    color: #a7f3d0;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.22);
+  }
+
+  .preset-chip {
+    padding: 5px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(9, 13, 22, 0.65);
+    color: var(--ophev-muted);
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-family: inherit;
+  }
+
+  .preset-chip:hover {
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #f1f5f9;
+  }
+
+  /* Quick Pre-AC Auxiliary Options (Duration / Delay / Stop Time) */
+  .pre-ac-aux-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .pre-ac-aux-tile {
+    background: rgba(15, 23, 42, 0.68);
+    border: 1px solid var(--ophev-border);
+    border-radius: 11px;
+    padding: 8px 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pre-ac-aux-lbl {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+  }
+
+  .pre-ac-aux-val {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  /* =========================================================
+     DIAGNOSTICS & SYSTEM TELEMETRY PANEL
+     ========================================================= */
+  .diag-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 11px;
+  }
+
+  .diag-card {
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid var(--ophev-border);
+    border-radius: 14px;
+    padding: 13px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .diag-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .diag-card-title {
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ophev-muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .diag-card-title svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Ignition Status Badge */
+  .ignition-badge {
+    padding: 4px 11px;
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ignition-badge.ready {
+    background: rgba(16, 185, 129, 0.22);
+    border: 1px solid rgba(52, 211, 153, 0.65);
+    color: #34d399;
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+  }
+
+  .ignition-badge.on {
+    background: rgba(14, 165, 233, 0.22);
+    border: 1px solid rgba(56, 189, 248, 0.65);
+    color: #38bdf8;
+  }
+
+  .ignition-badge.acc {
+    background: rgba(245, 158, 11, 0.22);
+    border: 1px solid rgba(251, 191, 36, 0.65);
+    color: #fbbf24;
+  }
+
+  .ignition-badge.off {
+    background: rgba(100, 116, 139, 0.18);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    color: #94a3b8;
+  }
+
+  /* Alarm Alert Banner */
+  .alarm-banner {
+    padding: 9px 12px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.76rem;
+  }
+
+  .alarm-banner.triggered {
+    background: rgba(239, 68, 68, 0.25);
+    border: 1px solid rgba(248, 113, 113, 0.6);
+    color: #fca5a5;
+    animation: connOfflineGlow 2s ease-in-out infinite;
+  }
+
+  .alarm-banner.armed {
+    background: rgba(16, 185, 129, 0.16);
+    border: 1px solid rgba(52, 211, 153, 0.45);
+    color: #a7f3d0;
+  }
+
+  .alarm-banner.disarmed {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--ophev-border);
+    color: var(--ophev-muted);
+  }
+
+  .diag-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.78rem;
+  }
+
+  .diag-row-lbl {
+    color: var(--ophev-muted);
+  }
+
+  .diag-row-val {
+    font-weight: 700;
+    color: #f8fafc;
+    text-align: right;
+  }
+
+  .diag-action-btn {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 9px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    background: rgba(14, 165, 233, 0.16);
+    color: #e0f2fe;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+  }
+
+  .diag-action-btn:hover {
+    background: rgba(14, 165, 233, 0.28);
+    border-color: rgba(56, 189, 248, 0.65);
+    transform: translateY(-1px);
+  }
+
+  /* =========================================================
+     VEHICLE CUSTOMIZATION SETTINGS MODAL DIALOG (ETACS / AC)
+     ========================================================= */
+  .settings-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 9, 16, 0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .settings-modal-backdrop.open {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .settings-modal-card {
+    width: 100%;
+    max-width: 820px;
+    max-height: 88vh;
+    background: linear-gradient(160deg, rgba(17, 24, 39, 0.98), rgba(11, 15, 25, 0.99));
+    border: 1px solid var(--ophev-border-strong);
+    border-radius: 22px;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), 0 0 30px rgba(14, 165, 233, 0.12);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transform: scale(0.96);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .settings-modal-backdrop.open .settings-modal-card {
+    transform: scale(1);
+  }
+
+  .modal-head {
+    padding: 18px 22px 14px;
+    border-bottom: 1px solid var(--ophev-border);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+  }
+
+  .modal-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .modal-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: #f8fafc;
+    margin: 0;
+  }
+
+  .modal-sub {
+    font-size: 0.74rem;
+    color: var(--ophev-muted);
+    margin: 0;
+  }
+
+  .modal-head-btns {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .modal-btn-reset {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.14);
+    color: #fca5a5;
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: inherit;
+  }
+
+  .modal-btn-reset:hover {
+    background: rgba(239, 68, 68, 0.24);
+    border-color: rgba(239, 68, 68, 0.65);
+  }
+
+  .modal-btn-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(15, 23, 42, 0.8);
+    color: var(--ophev-muted);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .modal-btn-close:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fca5a5;
+  }
+
+  .modal-controls-bar {
+    padding: 12px 22px;
+    border-bottom: 1px solid var(--ophev-border);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(9, 13, 22, 0.4);
+  }
+
+  .modal-search-input {
+    width: 100%;
+    padding: 9px 13px;
+    border-radius: 11px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid var(--ophev-border-strong);
+    color: #f8fafc;
+    font-size: 0.82rem;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s ease;
+  }
+
+  .modal-search-input:focus {
+    border-color: #38bdf8;
+  }
+
+  .cat-chips-bar {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .cat-chip {
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--ophev-border);
+    background: rgba(15, 23, 42, 0.7);
+    color: var(--ophev-muted);
+    font-size: 0.73rem;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-family: inherit;
+  }
+
+  .cat-chip:hover {
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #f1f5f9;
+  }
+
+  .cat-chip.active {
+    background: rgba(14, 165, 233, 0.22);
+    border-color: rgba(56, 189, 248, 0.65);
+    color: #e0f2fe;
+    box-shadow: 0 0 10px -2px rgba(14, 165, 233, 0.35);
+  }
+
+  .modal-body {
+    padding: 16px 22px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    overscroll-behavior: contain;
+  }
+
+  .setting-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid var(--ophev-border);
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .setting-item:hover {
+    background: rgba(22, 33, 54, 0.7);
+    border-color: rgba(56, 189, 248, 0.35);
+  }
+
+  .setting-left {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .setting-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+
+  .setting-cat-badge {
+    font-size: 0.66rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #38bdf8;
+  }
+
+  .setting-select {
+    background: rgba(9, 13, 22, 0.92);
+    border: 1px solid var(--ophev-border-strong);
+    border-radius: 8px;
+    color: #f8fafc;
+    padding: 7px 11px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    max-width: 250px;
+    cursor: pointer;
+    transition: border-color 0.2s ease;
+  }
+
+  .setting-select:focus {
+    border-color: #38bdf8;
   }
 `;
