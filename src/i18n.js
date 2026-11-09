@@ -60,6 +60,8 @@ export const TRANSLATIONS = {
     heat_btn: 'Fűtés',
     windscreen_btn: 'Szélvédő',
     climate_stop: 'Leállítás',
+    climate_remaining: 'Hátralévő idő',
+    climate_stop_time: 'Várható leállás',
 
     // Lights & System
     lights_system_title: 'Világítás és rendszer',
@@ -309,6 +311,8 @@ export const TRANSLATIONS = {
     heat_btn: 'Heat',
     windscreen_btn: 'Defrost',
     climate_stop: 'Turn Off',
+    climate_remaining: 'Remaining Time',
+    climate_stop_time: 'Est. Stop Time',
 
     lights_system_title: 'Lights & System',
     head_lights: 'Head Lights',

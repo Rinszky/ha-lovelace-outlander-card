@@ -1214,6 +1214,122 @@ export const CARD_STYLES = `
     to { transform: rotate(360deg); }
   }
 
+  /* Climate Telemetry Row (Remaining Time & Est. Stop Time) */
+  .climate-telemetry-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .climate-telemetry-tile {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    cursor: pointer;
+    transition: all 0.22s ease;
+    user-select: none;
+    min-width: 0;
+  }
+
+  .climate-telemetry-tile:hover {
+    background: rgba(22, 33, 54, 0.78);
+    border-color: rgba(56, 189, 248, 0.35);
+    transform: translateY(-1px);
+  }
+
+  .climate-telemetry-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: var(--ophev-muted);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: all 0.22s ease;
+  }
+
+  .climate-telemetry-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .climate-telemetry-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.15;
+  }
+
+  .climate-telemetry-lbl {
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .climate-telemetry-val {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+    transition: color 0.22s ease;
+  }
+
+  /* Active glow variations on telemetry tiles */
+  .climate-telemetry-tile.active-cool {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(15, 23, 42, 0.72));
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 0 14px -3px rgba(14, 165, 233, 0.28);
+  }
+  .climate-telemetry-tile.active-cool .climate-telemetry-icon {
+    background: rgba(14, 165, 233, 0.22);
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #38bdf8;
+  }
+  .climate-telemetry-tile.active-cool .climate-telemetry-val {
+    color: #e0f2fe;
+  }
+
+  .climate-telemetry-tile.active-heat {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(15, 23, 42, 0.72));
+    border-color: rgba(251, 146, 60, 0.45);
+    box-shadow: 0 0 14px -3px rgba(249, 115, 22, 0.28);
+  }
+  .climate-telemetry-tile.active-heat .climate-telemetry-icon {
+    background: rgba(249, 115, 22, 0.22);
+    border-color: rgba(251, 146, 60, 0.5);
+    color: #fb923c;
+  }
+  .climate-telemetry-tile.active-heat .climate-telemetry-val {
+    color: #ffedd5;
+  }
+
+  .climate-telemetry-tile.active-windscreen {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 42, 0.72));
+    border-color: rgba(251, 191, 36, 0.45);
+    box-shadow: 0 0 14px -3px rgba(245, 158, 11, 0.28);
+  }
+  .climate-telemetry-tile.active-windscreen .climate-telemetry-icon {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(251, 191, 36, 0.5);
+    color: #fbbf24;
+  }
+  .climate-telemetry-tile.active-windscreen .climate-telemetry-val {
+    color: #fef9c3;
+  }
+
   /* Climate Select Row (optional) */
   .climate-select-row {
     margin-top: 8px;

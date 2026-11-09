@@ -252,6 +252,8 @@
       'switch.phev_cool': { state: 'off', attributes: { friendly_name: 'PHEV Cool' } },
       'switch.phev_heat': { state: 'off', attributes: { friendly_name: 'PHEV Heat' } },
       'switch.phev_windscreen': { state: 'off', attributes: { friendly_name: 'PHEV Windscreen' } },
+      'sensor.phev_climate_remaining': { state: '0', attributes: { friendly_name: 'PHEV Klíma hátralévő idő', unit_of_measurement: 'min', device_class: 'duration' } },
+      'sensor.phev_climate_stop_time': { state: '--:--', attributes: { friendly_name: 'PHEV Klíma várható leállás' } },
       'light.phev_head_lights': { state: 'off', attributes: { friendly_name: 'PHEV Head Lights' } },
       'light.phev_park_lights': { state: 'off', attributes: { friendly_name: 'PHEV Park Lights' } },
       'binary_sensor.phev_hazard_lights': { state: 'off', attributes: { friendly_name: 'PHEV Hazard Lights', device_class: 'light' } },
@@ -377,14 +379,27 @@
             if (ent === 'switch.phev_cool') {
               stateStore['switch.phev_cool'].state = 'on';
               stateStore['switch.phev_heat'].state = 'off';
+              stateStore['switch.phev_windscreen'].state = 'off';
               stateStore['select.phev_climate_state'].state = 'cool';
+              stateStore['sensor.phev_climate_remaining'].state = '20';
+              const stopDt = new Date(Date.now() + 20 * 60 * 1000);
+              stateStore['sensor.phev_climate_stop_time'].state = stopDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (ent === 'switch.phev_heat') {
               stateStore['switch.phev_heat'].state = 'on';
               stateStore['switch.phev_cool'].state = 'off';
+              stateStore['switch.phev_windscreen'].state = 'off';
               stateStore['select.phev_climate_state'].state = 'heat';
+              stateStore['sensor.phev_climate_remaining'].state = '20';
+              const stopDt = new Date(Date.now() + 20 * 60 * 1000);
+              stateStore['sensor.phev_climate_stop_time'].state = stopDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (ent === 'switch.phev_windscreen') {
               stateStore['switch.phev_windscreen'].state = 'on';
+              stateStore['switch.phev_cool'].state = 'off';
+              stateStore['switch.phev_heat'].state = 'off';
               stateStore['select.phev_climate_state'].state = 'windscreen';
+              stateStore['sensor.phev_climate_remaining'].state = '10';
+              const stopDt = new Date(Date.now() + 10 * 60 * 1000);
+              stateStore['sensor.phev_climate_stop_time'].state = stopDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (ent === 'switch.phev_disable_charge_timer') {
               // Start charging if plugged in!
               stateStore['binary_sensor.phev_charger_connected'].state = 'on';
@@ -401,6 +416,8 @@
                 stateStore['switch.phev_windscreen'].state === 'off'
               ) {
                 stateStore['select.phev_climate_state'].state = 'off';
+                stateStore['sensor.phev_climate_remaining'].state = '0';
+                stateStore['sensor.phev_climate_stop_time'].state = '--:--';
               }
             }
           } else if (service === 'select_option') {
@@ -410,6 +427,14 @@
               stateStore['switch.phev_cool'].state = opt === 'cool' ? 'on' : 'off';
               stateStore['switch.phev_heat'].state = opt === 'heat' ? 'on' : 'off';
               stateStore['switch.phev_windscreen'].state = opt === 'windscreen' ? 'on' : 'off';
+              if (opt === 'off') {
+                stateStore['sensor.phev_climate_remaining'].state = '0';
+                stateStore['sensor.phev_climate_stop_time'].state = '--:--';
+              } else {
+                stateStore['sensor.phev_climate_remaining'].state = '20';
+                const stopDt = new Date(Date.now() + 20 * 60 * 1000);
+                stateStore['sensor.phev_climate_stop_time'].state = stopDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              }
             }
           } else if (service === 'set_value') {
             stateStore[ent].state = String(data.value ?? data.time ?? '');

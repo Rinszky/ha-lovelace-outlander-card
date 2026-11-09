@@ -43,6 +43,8 @@ const ENTITY_GROUPS = [
       { key: 'heat_entity', labelHu: 'Fűtés kapcsoló (Heat)', labelEn: 'Heat Switch', domains: ['switch', 'input_boolean'] },
       { key: 'windscreen_entity', labelHu: 'Szélvédő páramentesítés (Windscreen)', labelEn: 'Windscreen Defrost Switch', domains: ['switch', 'input_boolean'] },
       { key: 'climate_state_entity', labelHu: 'Klíma mód választó (Climate state)', labelEn: 'Climate State Select', domains: ['select', 'input_select', 'sensor'] },
+      { key: 'climate_remaining_entity', labelHu: 'Klíma hátralévő idő (Climate Remaining)', labelEn: 'Climate Remaining Time', domains: ['sensor'] },
+      { key: 'climate_stop_time_entity', labelHu: 'Klíma becsült leállási idő (Climate Stop Time)', labelEn: 'Climate Estimated Stop Time', domains: ['sensor'] },
     ],
   },
   {

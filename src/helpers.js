@@ -34,6 +34,8 @@ export const ENTITY_KEYS = [
   'cool_entity',
   'heat_entity',
   'windscreen_entity',
+  'climate_remaining_entity',
+  'climate_stop_time_entity',
   'head_lights_entity',
   'park_lights_entity',
   'hazard_lights_entity',
@@ -68,7 +70,6 @@ export const ENTITY_KEYS = [
   'waiting_charge_timer_entity',
   'climate_duration_min_entity',
   'climate_start_delay_min_entity',
-  'climate_stop_time_entity',
   'reset_climate_error_entity',
 ];
 
@@ -257,6 +258,63 @@ export function formatEstimatedCompletion(estObj, remainingObj, isCharging, lang
     }
   }
   return localize(lang, 'not_charging');
+}
+
+export function formatClimateRemaining(stateObj, lang = 'hu') {
+  if (!stateObj) return '--';
+  const raw = String(stateObj.state ?? '').trim();
+  if (!raw || raw === 'unknown' || raw === 'unavailable') return '--';
+
+  const mins = parseFloat(raw.replace(',', '.'));
+  if (Number.isFinite(mins)) {
+    if (mins <= 0) return '--';
+    const total = Math.round(mins);
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h > 0) {
+      return `${h} ${localize(lang, 'hr_short')} ${m} ${localize(lang, 'min_short')}`;
+    }
+    return `${m} ${localize(lang, 'min_short')}`;
+  }
+  const unit = stateObj.attributes?.unit_of_measurement || '';
+  return unit && !raw.includes(unit) ? `${raw} ${unit}` : raw;
+}
+
+export function formatClimateStopTime(stopObj, remObj, isClimateActive = false, lang = 'hu') {
+  if (stopObj) {
+    const raw = String(stopObj.state ?? '').trim();
+    if (raw && raw !== 'unknown' && raw !== 'unavailable' && raw !== '--:--' && raw !== '0') {
+      // Check if ISO timestamp (e.g. 2026-11-09T07:35:00Z)
+      if (/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}/.test(raw)) {
+        const dt = new Date(raw);
+        if (!Number.isNaN(dt.getTime())) {
+          return dt.toLocaleTimeString(lang === 'hu' ? 'hu-HU' : 'en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        }
+      }
+      // If already HH:MM or HH:MM:SS
+      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(raw)) {
+        return raw.length > 5 ? raw.slice(0, 5) : raw;
+      }
+      return raw;
+    }
+  }
+
+  // Fallback: if climate is active and we have remaining minutes, compute estimated finish time
+  if (isClimateActive && remObj) {
+    const mins = parseFloat(String(remObj.state).replace(',', '.'));
+    if (Number.isFinite(mins) && mins > 0 && mins < 1440) {
+      const finish = new Date(Date.now() + mins * 60 * 1000);
+      return `~${finish.toLocaleTimeString(lang === 'hu' ? 'hu-HU' : 'en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`;
+    }
+  }
+
+  return '--:--';
 }
 
 export function formatDailyEnergy(stateObj, hass, lang = 'hu') {
@@ -475,6 +533,14 @@ export function autoDiscoverPhevEntities(hass) {
     windscreen_entity: pick(['switch'], (id, fn) =>
       id.includes('windscreen') || fn.includes('windscreen')
     ),
+    climate_remaining_entity: pick(['sensor'], (id, fn) =>
+      (id.includes('climate') && (id.includes('remaining') || id.includes('rem_time'))) ||
+      (fn.includes('climate') && fn.includes('remaining'))
+    ),
+    climate_stop_time_entity: pick(['sensor'], (id, fn) =>
+      (id.includes('climate') && (id.includes('stop_time') || id.includes('stoptime') || id.includes('completion_time') || id.includes('completion'))) ||
+      (fn.includes('climate') && (fn.includes('stop time') || fn.includes('completion time')))
+    ),
     head_lights_entity: pick(['light', 'switch'], (id, fn) =>
       id.includes('headlights') || id.includes('head_lights') || fn.includes('head lights')
     ),
@@ -616,9 +682,6 @@ export function autoDiscoverPhevEntities(hass) {
     ),
     climate_start_delay_min_entity: pick(['select'], (id, fn) =>
       id.includes('climate_start_delay_min') || fn.includes('start delay')
-    ),
-    climate_stop_time_entity: pick(['sensor'], (id, fn) =>
-      id.includes('climate_stop_time') || fn.includes('stop time')
     ),
     reset_climate_error_entity: pick(['button'], (id, fn) =>
       id.includes('reset_climate_error') || fn.includes('clear termination')

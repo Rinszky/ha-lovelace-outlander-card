@@ -70,6 +70,8 @@ const TRANSLATIONS = {
     heat_btn: 'Fűtés',
     windscreen_btn: 'Szélvédő',
     climate_stop: 'Leállítás',
+    climate_remaining: 'Hátralévő idő',
+    climate_stop_time: 'Várható leállás',
 
     // Lights & System
     lights_system_title: 'Világítás és rendszer',
@@ -319,6 +321,8 @@ const TRANSLATIONS = {
     heat_btn: 'Heat',
     windscreen_btn: 'Defrost',
     climate_stop: 'Turn Off',
+    climate_remaining: 'Remaining Time',
+    climate_stop_time: 'Est. Stop Time',
 
     lights_system_title: 'Lights & System',
     head_lights: 'Head Lights',
@@ -551,6 +555,8 @@ const ENTITY_KEYS = [
   'cool_entity',
   'heat_entity',
   'windscreen_entity',
+  'climate_remaining_entity',
+  'climate_stop_time_entity',
   'head_lights_entity',
   'park_lights_entity',
   'hazard_lights_entity',
@@ -585,7 +591,6 @@ const ENTITY_KEYS = [
   'waiting_charge_timer_entity',
   'climate_duration_min_entity',
   'climate_start_delay_min_entity',
-  'climate_stop_time_entity',
   'reset_climate_error_entity',
 ];
 
@@ -765,6 +770,61 @@ function formatEstimatedCompletion(estObj, remainingObj, isCharging, lang = 'hu'
     }
   }
   return localize(lang, 'not_charging');
+}
+function formatClimateRemaining(stateObj, lang = 'hu') {
+  if (!stateObj) return '--';
+  const raw = String(stateObj.state ?? '').trim();
+  if (!raw || raw === 'unknown' || raw === 'unavailable') return '--';
+
+  const mins = parseFloat(raw.replace(',', '.'));
+  if (Number.isFinite(mins)) {
+    if (mins <= 0) return '--';
+    const total = Math.round(mins);
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    if (h > 0) {
+      return `${h} ${localize(lang, 'hr_short')} ${m} ${localize(lang, 'min_short')}`;
+    }
+    return `${m} ${localize(lang, 'min_short')}`;
+  }
+  const unit = stateObj.attributes?.unit_of_measurement || '';
+  return unit && !raw.includes(unit) ? `${raw} ${unit}` : raw;
+}
+function formatClimateStopTime(stopObj, remObj, isClimateActive = false, lang = 'hu') {
+  if (stopObj) {
+    const raw = String(stopObj.state ?? '').trim();
+    if (raw && raw !== 'unknown' && raw !== 'unavailable' && raw !== '--:--' && raw !== '0') {
+      // Check if ISO timestamp (e.g. 2026-11-09T07:35:00Z)
+      if (/^\d{4}-\d{2}-\d{2}[T\s]\d{2}:\d{2}/.test(raw)) {
+        const dt = new Date(raw);
+        if (!Number.isNaN(dt.getTime())) {
+          return dt.toLocaleTimeString(lang === 'hu' ? 'hu-HU' : 'en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+          });
+        }
+      }
+      // If already HH:MM or HH:MM:SS
+      if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(raw)) {
+        return raw.length > 5 ? raw.slice(0, 5) : raw;
+      }
+      return raw;
+    }
+  }
+
+  // Fallback: if climate is active and we have remaining minutes, compute estimated finish time
+  if (isClimateActive && remObj) {
+    const mins = parseFloat(String(remObj.state).replace(',', '.'));
+    if (Number.isFinite(mins) && mins > 0 && mins < 1440) {
+      const finish = new Date(Date.now() + mins * 60 * 1000);
+      return `~${finish.toLocaleTimeString(lang === 'hu' ? 'hu-HU' : 'en-GB', {
+        hour: '2-digit',
+        minute: '2-digit',
+      })}`;
+    }
+  }
+
+  return '--:--';
 }
 function formatDailyEnergy(stateObj, hass, lang = 'hu') {
   if (!stateObj) return '--';
@@ -980,6 +1040,14 @@ function autoDiscoverPhevEntities(hass) {
     windscreen_entity: pick(['switch'], (id, fn) =>
       id.includes('windscreen') || fn.includes('windscreen')
     ),
+    climate_remaining_entity: pick(['sensor'], (id, fn) =>
+      (id.includes('climate') && (id.includes('remaining') || id.includes('rem_time'))) ||
+      (fn.includes('climate') && fn.includes('remaining'))
+    ),
+    climate_stop_time_entity: pick(['sensor'], (id, fn) =>
+      (id.includes('climate') && (id.includes('stop_time') || id.includes('stoptime') || id.includes('completion_time') || id.includes('completion'))) ||
+      (fn.includes('climate') && (fn.includes('stop time') || fn.includes('completion time')))
+    ),
     head_lights_entity: pick(['light', 'switch'], (id, fn) =>
       id.includes('headlights') || id.includes('head_lights') || fn.includes('head lights')
     ),
@@ -1121,9 +1189,6 @@ function autoDiscoverPhevEntities(hass) {
     ),
     climate_start_delay_min_entity: pick(['select'], (id, fn) =>
       id.includes('climate_start_delay_min') || fn.includes('start delay')
-    ),
-    climate_stop_time_entity: pick(['sensor'], (id, fn) =>
-      id.includes('climate_stop_time') || fn.includes('stop time')
     ),
     reset_climate_error_entity: pick(['button'], (id, fn) =>
       id.includes('reset_climate_error') || fn.includes('clear termination')
@@ -3296,6 +3361,122 @@ const CARD_STYLES = `
     to { transform: rotate(360deg); }
   }
 
+  /* Climate Telemetry Row (Remaining Time & Est. Stop Time) */
+  .climate-telemetry-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .climate-telemetry-tile {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.62);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    cursor: pointer;
+    transition: all 0.22s ease;
+    user-select: none;
+    min-width: 0;
+  }
+
+  .climate-telemetry-tile:hover {
+    background: rgba(22, 33, 54, 0.78);
+    border-color: rgba(56, 189, 248, 0.35);
+    transform: translateY(-1px);
+  }
+
+  .climate-telemetry-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: rgba(30, 41, 59, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    color: var(--ophev-muted);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: all 0.22s ease;
+  }
+
+  .climate-telemetry-icon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .climate-telemetry-content {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.15;
+  }
+
+  .climate-telemetry-lbl {
+    font-size: 0.66rem;
+    font-weight: 600;
+    color: var(--ophev-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .climate-telemetry-val {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #f8fafc;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 1px;
+    transition: color 0.22s ease;
+  }
+
+  /* Active glow variations on telemetry tiles */
+  .climate-telemetry-tile.active-cool {
+    background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(15, 23, 42, 0.72));
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 0 14px -3px rgba(14, 165, 233, 0.28);
+  }
+  .climate-telemetry-tile.active-cool .climate-telemetry-icon {
+    background: rgba(14, 165, 233, 0.22);
+    border-color: rgba(56, 189, 248, 0.5);
+    color: #38bdf8;
+  }
+  .climate-telemetry-tile.active-cool .climate-telemetry-val {
+    color: #e0f2fe;
+  }
+
+  .climate-telemetry-tile.active-heat {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.15), rgba(15, 23, 42, 0.72));
+    border-color: rgba(251, 146, 60, 0.45);
+    box-shadow: 0 0 14px -3px rgba(249, 115, 22, 0.28);
+  }
+  .climate-telemetry-tile.active-heat .climate-telemetry-icon {
+    background: rgba(249, 115, 22, 0.22);
+    border-color: rgba(251, 146, 60, 0.5);
+    color: #fb923c;
+  }
+  .climate-telemetry-tile.active-heat .climate-telemetry-val {
+    color: #ffedd5;
+  }
+
+  .climate-telemetry-tile.active-windscreen {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(15, 23, 42, 0.72));
+    border-color: rgba(251, 191, 36, 0.45);
+    box-shadow: 0 0 14px -3px rgba(245, 158, 11, 0.28);
+  }
+  .climate-telemetry-tile.active-windscreen .climate-telemetry-icon {
+    background: rgba(245, 158, 11, 0.22);
+    border-color: rgba(251, 191, 36, 0.5);
+    color: #fbbf24;
+  }
+  .climate-telemetry-tile.active-windscreen .climate-telemetry-val {
+    color: #fef9c3;
+  }
+
   /* Climate Select Row (optional) */
   .climate-select-row {
     margin-top: 8px;
@@ -4483,6 +4664,8 @@ const ENTITY_GROUPS = [
       { key: 'heat_entity', labelHu: 'Fűtés kapcsoló (Heat)', labelEn: 'Heat Switch', domains: ['switch', 'input_boolean'] },
       { key: 'windscreen_entity', labelHu: 'Szélvédő páramentesítés (Windscreen)', labelEn: 'Windscreen Defrost Switch', domains: ['switch', 'input_boolean'] },
       { key: 'climate_state_entity', labelHu: 'Klíma mód választó (Climate state)', labelEn: 'Climate State Select', domains: ['select', 'input_select', 'sensor'] },
+      { key: 'climate_remaining_entity', labelHu: 'Klíma hátralévő idő (Climate Remaining)', labelEn: 'Climate Remaining Time', domains: ['sensor'] },
+      { key: 'climate_stop_time_entity', labelHu: 'Klíma becsült leállási idő (Climate Stop Time)', labelEn: 'Climate Estimated Stop Time', domains: ['sensor'] },
     ],
   },
   {
@@ -5076,6 +5259,7 @@ const ICONS = {
   windscreen: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7c5-3 13-3 18 0l-2 9c-4-2-10-2-14 0L3 7z"/><path d="M9 19c0-1.5 1.5-2 1.5-3.5S9 13.5 9 12"/><path d="M12 19c0-1.5 1.5-2 1.5-3.5S12 13.5 12 12"/><path d="M15 19c0-1.5 1.5-2 1.5-3.5S15 13.5 15 12"/></svg>`,
   headlight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6c5.5 0 9 2.7 9 6s-3.5 6-9 6V6z"/><path d="M3 8h5"/><path d="M3 12h5"/><path d="M3 16h5"/></svg>`,
   parklight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8c-3 0-5 1.8-5 4s2 4 5 4V8z"/><path d="M15 8c3 0 5 1.8 5 4s-2 4-5 4V8z"/><path d="M1 9l1.5 1"/><path d="M1 15l1.5-1"/><path d="M23 9l-1.5 1"/><path d="M23 15l-1.5-1"/></svg>`,
+  timer: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg>`,
   timerOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="13" r="8"/><path d="M3 3l18 18"/></svg>`,
   wifiSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`,
   wifiOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 12.86a10 10 0 0 1 5.17-2.89"/><circle cx="12" cy="20" r="1"/></svg>`,
@@ -5682,6 +5866,24 @@ class OutlanderPhevCard extends HTMLElement {
                   </button>
                 </div>
 
+                <!-- Climate Telemetry Readouts (Remaining Time & Est. Stop Time) -->
+                <div class="climate-telemetry-row phev-dep" id="climate-telemetry-row">
+                  <div class="climate-telemetry-tile" id="tile-climate-remaining">
+                    <div class="climate-telemetry-icon">${ICONS.timer}</div>
+                    <div class="climate-telemetry-content">
+                      <span class="climate-telemetry-lbl">${localize(lang, 'climate_remaining')}</span>
+                      <span class="climate-telemetry-val" id="val-climate-remaining">--</span>
+                    </div>
+                  </div>
+                  <div class="climate-telemetry-tile" id="tile-climate-stop">
+                    <div class="climate-telemetry-icon">${ICONS.clock}</div>
+                    <div class="climate-telemetry-content">
+                      <span class="climate-telemetry-lbl">${localize(lang, 'climate_stop_time')}</span>
+                      <span class="climate-telemetry-val" id="val-climate-stop">--:--</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="climate-select-row phev-dep" id="climate-select-wrap" style="display:none">
                   <select class="climate-select" id="sel-climate-mode"></select>
                 </div>
@@ -6006,6 +6208,11 @@ class OutlanderPhevCard extends HTMLElement {
       btnCool: q('btn-cool'),
       btnHeat: q('btn-heat'),
       btnWindscreen: q('btn-windscreen'),
+      climateTelemetryRow: q('climate-telemetry-row'),
+      tileClimateRemaining: q('tile-climate-remaining'),
+      valClimateRemaining: q('val-climate-remaining'),
+      tileClimateStop: q('tile-climate-stop'),
+      valClimateStop: q('val-climate-stop'),
       climateSelectWrap: q('climate-select-wrap'),
       selClimateMode: q('sel-climate-mode'),
       btnHeadlights: q('btn-headlights'),
@@ -6102,6 +6309,15 @@ class OutlanderPhevCard extends HTMLElement {
     $.btnCool.addEventListener('click', () => this._toggleEntity(ents().cool_entity));
     $.btnHeat.addEventListener('click', () => this._toggleEntity(ents().heat_entity));
     $.btnWindscreen.addEventListener('click', () => this._toggleEntity(ents().windscreen_entity));
+
+    $.tileClimateRemaining.addEventListener('click', () => {
+      const e = ents().climate_remaining_entity;
+      if (e) this._openMoreInfo(e);
+    });
+    $.tileClimateStop.addEventListener('click', () => {
+      const e = ents().climate_stop_time_entity;
+      if (e) this._openMoreInfo(e);
+    });
 
     $.selClimateMode.addEventListener('change', (e) => {
       const selEnt = ents().climate_state_entity;
@@ -6698,6 +6914,40 @@ class OutlanderPhevCard extends HTMLElement {
     } else {
       $.climateSelectWrap.style.display = 'none';
     }
+
+    // Climate Telemetry Readouts (Remaining time & Stop time)
+    const isClimateActive = !showOfflineDim && (coolOn || heatOn || windscreenOn);
+    const climRemObj = this._getState(ents.climate_remaining_entity);
+    const climStopObj = this._getState(ents.climate_stop_time_entity);
+
+    const climRemFormatted = isClimateActive
+      ? formatClimateRemaining(climRemObj, lang)
+      : (climRemObj && Number(climRemObj.state) > 0 ? formatClimateRemaining(climRemObj, lang) : '--');
+    const climStopFormatted = isClimateActive
+      ? formatClimateStopTime(climStopObj, climRemObj, isClimateActive, lang)
+      : (climStopObj && climStopObj.state && climStopObj.state !== '--:--' && climStopObj.state !== 'unknown' ? formatClimateStopTime(climStopObj, null, false, lang) : '--:--');
+
+    $.valClimateRemaining.textContent = climRemFormatted;
+    $.valClimateStop.textContent = climStopFormatted;
+
+    const tileActiveClass = !showOfflineDim && coolOn
+      ? 'active-cool'
+      : (!showOfflineDim && heatOn
+        ? 'active-heat'
+        : (!showOfflineDim && windscreenOn ? 'active-windscreen' : ''));
+
+    $.tileClimateRemaining.classList.toggle('active-cool', tileActiveClass === 'active-cool');
+    $.tileClimateRemaining.classList.toggle('active-heat', tileActiveClass === 'active-heat');
+    $.tileClimateRemaining.classList.toggle('active-windscreen', tileActiveClass === 'active-windscreen');
+
+    $.tileClimateStop.classList.toggle('active-cool', tileActiveClass === 'active-cool');
+    $.tileClimateStop.classList.toggle('active-heat', tileActiveClass === 'active-heat');
+    $.tileClimateStop.classList.toggle('active-windscreen', tileActiveClass === 'active-windscreen');
+
+    const remTitle = climRemObj?.attributes?.friendly_name || localize(lang, 'climate_remaining');
+    const stopTitle = climStopObj?.attributes?.friendly_name || localize(lang, 'climate_stop_time');
+    $.tileClimateRemaining.title = `${remTitle}: ${climRemFormatted}`;
+    $.tileClimateStop.title = `${stopTitle}: ${climStopFormatted}`;
 
     // 6. Lights & System Controls
     $.btnHeadlights.disabled = !ents.head_lights_entity || showOfflineDim;
