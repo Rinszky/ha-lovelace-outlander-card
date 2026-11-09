@@ -45,6 +45,8 @@ const ENTITY_GROUPS = [
       { key: 'climate_state_entity', labelHu: 'Klíma mód választó (Climate state)', labelEn: 'Climate State Select', domains: ['select', 'input_select', 'sensor'] },
       { key: 'climate_remaining_entity', labelHu: 'Klíma hátralévő idő (Climate Remaining)', labelEn: 'Climate Remaining Time', domains: ['sensor'] },
       { key: 'climate_stop_time_entity', labelHu: 'Klíma becsült leállási idő (Climate Stop Time)', labelEn: 'Climate Estimated Stop Time', domains: ['sensor'] },
+      { key: 'climate_duration_min_entity', labelHu: 'Előfűtés/hűtés időtartama (Duration)', labelEn: 'Pre-conditioning Duration', domains: ['select', 'input_select'] },
+      { key: 'climate_start_delay_min_entity', labelHu: 'Előfűtés/hűtés indítási késleltetés (Delay)', labelEn: 'Pre-conditioning Start Delay', domains: ['select', 'input_select'] },
     ],
   },
   {

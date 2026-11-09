@@ -677,11 +677,19 @@ export function autoDiscoverPhevEntities(hass) {
     waiting_charge_timer_entity: pick(['binary_sensor'], (id, fn) =>
       id.includes('waiting_for_charge_timer') || id.includes('timer_inhibited') || fn.includes('waiting for timer')
     ),
-    climate_duration_min_entity: pick(['select'], (id, fn) =>
-      id.includes('climate_duration_min') || fn.includes('duration')
+    climate_duration_min_entity: pick(['select', 'input_select'], (id, fn) =>
+      id.includes('climate_duration') ||
+      id.includes('duration_min') ||
+      (id.includes('climate') && id.includes('duration')) ||
+      fn.includes('időtartam') ||
+      (fn.includes('duration') && (fn.includes('climate') || fn.includes('pre-conditioning') || fn.includes('előfűtés')))
     ),
-    climate_start_delay_min_entity: pick(['select'], (id, fn) =>
-      id.includes('climate_start_delay_min') || fn.includes('start delay')
+    climate_start_delay_min_entity: pick(['select', 'input_select'], (id, fn) =>
+      id.includes('climate_start_delay') ||
+      id.includes('start_delay') ||
+      (id.includes('climate') && id.includes('delay')) ||
+      fn.includes('késleltetés') ||
+      (fn.includes('start delay') && (fn.includes('climate') || fn.includes('pre-conditioning') || fn.includes('előfűtés')))
     ),
     reset_climate_error_entity: pick(['button'], (id, fn) =>
       id.includes('reset_climate_error') || fn.includes('clear termination')

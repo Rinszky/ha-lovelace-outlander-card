@@ -72,6 +72,8 @@ const TRANSLATIONS = {
     climate_stop: 'Leállítás',
     climate_remaining: 'Hátralévő idő',
     climate_stop_time: 'Várható leállás',
+    climate_duration: 'Időtartam',
+    climate_delay: 'Késleltetés',
 
     // Lights & System
     lights_system_title: 'Világítás és rendszer',
@@ -323,6 +325,8 @@ const TRANSLATIONS = {
     climate_stop: 'Turn Off',
     climate_remaining: 'Remaining Time',
     climate_stop_time: 'Est. Stop Time',
+    climate_duration: 'Duration',
+    climate_delay: 'Start Delay',
 
     lights_system_title: 'Lights & System',
     head_lights: 'Head Lights',
@@ -1184,11 +1188,19 @@ function autoDiscoverPhevEntities(hass) {
     waiting_charge_timer_entity: pick(['binary_sensor'], (id, fn) =>
       id.includes('waiting_for_charge_timer') || id.includes('timer_inhibited') || fn.includes('waiting for timer')
     ),
-    climate_duration_min_entity: pick(['select'], (id, fn) =>
-      id.includes('climate_duration_min') || fn.includes('duration')
+    climate_duration_min_entity: pick(['select', 'input_select'], (id, fn) =>
+      id.includes('climate_duration') ||
+      id.includes('duration_min') ||
+      (id.includes('climate') && id.includes('duration')) ||
+      fn.includes('időtartam') ||
+      (fn.includes('duration') && (fn.includes('climate') || fn.includes('pre-conditioning') || fn.includes('előfűtés')))
     ),
-    climate_start_delay_min_entity: pick(['select'], (id, fn) =>
-      id.includes('climate_start_delay_min') || fn.includes('start delay')
+    climate_start_delay_min_entity: pick(['select', 'input_select'], (id, fn) =>
+      id.includes('climate_start_delay') ||
+      id.includes('start_delay') ||
+      (id.includes('climate') && id.includes('delay')) ||
+      fn.includes('késleltetés') ||
+      (fn.includes('start delay') && (fn.includes('climate') || fn.includes('pre-conditioning') || fn.includes('előfűtés')))
     ),
     reset_climate_error_entity: pick(['button'], (id, fn) =>
       id.includes('reset_climate_error') || fn.includes('clear termination')
@@ -3477,6 +3489,111 @@ const CARD_STYLES = `
     color: #fef9c3;
   }
 
+  /* Climate Pre-conditioning Parameters (Duration & Start Delay) */
+  .climate-params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .climate-param-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    transition: all 0.22s ease;
+    min-width: 0;
+  }
+
+  .climate-param-tile:hover {
+    background: rgba(22, 33, 54, 0.72);
+    border-color: rgba(56, 189, 248, 0.32);
+  }
+
+  .climate-param-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .climate-param-icon {
+    width: 17px;
+    height: 17px;
+    color: #38bdf8;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .climate-param-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .climate-param-lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--ophev-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .climate-param-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .climate-param-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(9, 13, 22, 0.75);
+    color: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 9px;
+    padding: 6px 24px 6px 9px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .climate-param-select:hover:not(:disabled) {
+    border-color: rgba(56, 189, 248, 0.55);
+    background: rgba(14, 21, 35, 0.9);
+  }
+
+  .climate-param-select:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.25);
+  }
+
+  .climate-param-select:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .climate-select-chevron {
+    position: absolute;
+    right: 8px;
+    pointer-events: none;
+    font-size: 0.72rem;
+    color: var(--ophev-muted);
+    line-height: 1;
+  }
+
   /* Climate Select Row (optional) */
   .climate-select-row {
     margin-top: 8px;
@@ -4666,6 +4783,8 @@ const ENTITY_GROUPS = [
       { key: 'climate_state_entity', labelHu: 'Klíma mód választó (Climate state)', labelEn: 'Climate State Select', domains: ['select', 'input_select', 'sensor'] },
       { key: 'climate_remaining_entity', labelHu: 'Klíma hátralévő idő (Climate Remaining)', labelEn: 'Climate Remaining Time', domains: ['sensor'] },
       { key: 'climate_stop_time_entity', labelHu: 'Klíma becsült leállási idő (Climate Stop Time)', labelEn: 'Climate Estimated Stop Time', domains: ['sensor'] },
+      { key: 'climate_duration_min_entity', labelHu: 'Előfűtés/hűtés időtartama (Duration)', labelEn: 'Pre-conditioning Duration', domains: ['select', 'input_select'] },
+      { key: 'climate_start_delay_min_entity', labelHu: 'Előfűtés/hűtés indítási késleltetés (Delay)', labelEn: 'Pre-conditioning Start Delay', domains: ['select', 'input_select'] },
     ],
   },
   {
@@ -5260,6 +5379,8 @@ const ICONS = {
   headlight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6c5.5 0 9 2.7 9 6s-3.5 6-9 6V6z"/><path d="M3 8h5"/><path d="M3 12h5"/><path d="M3 16h5"/></svg>`,
   parklight: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 8c-3 0-5 1.8-5 4s2 4 5 4V8z"/><path d="M15 8c3 0 5 1.8 5 4s-2 4-5 4V8z"/><path d="M1 9l1.5 1"/><path d="M1 15l1.5-1"/><path d="M23 9l-1.5 1"/><path d="M23 15l-1.5-1"/></svg>`,
   timer: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg>`,
+  hourglass: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>`,
+  clockDelay: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/><path d="M16 2.5l5 2.5-2.5 5"/></svg>`,
   timerOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4"/><path d="M12 14l3-3"/><circle cx="12" cy="13" r="8"/><path d="M3 3l18 18"/></svg>`,
   wifiSync: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>`,
   wifiOff: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" y1="2" x2="22" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.76"/><path d="M16.85 11.25a10 10 0 0 1 2.22 1.68"/><path d="M5 12.86a10 10 0 0 1 5.17-2.89"/><circle cx="12" cy="20" r="1"/></svg>`,
@@ -5884,6 +6005,31 @@ class OutlanderPhevCard extends HTMLElement {
                   </div>
                 </div>
 
+                <!-- Climate Parameters: Duration & Start Delay -->
+                <div class="climate-params-grid phev-dep" id="climate-params-wrap" style="display:none">
+                  <div class="climate-param-tile" id="param-tile-duration">
+                    <div class="climate-param-header">
+                      <span class="climate-param-icon">${ICONS.hourglass}</span>
+                      <span class="climate-param-lbl">${localize(lang, 'climate_duration')}</span>
+                    </div>
+                    <div class="climate-param-control">
+                      <select class="climate-param-select" id="sel-climate-duration" title="${localize(lang, 'climate_duration')}"></select>
+                      <span class="climate-select-chevron">▾</span>
+                    </div>
+                  </div>
+
+                  <div class="climate-param-tile" id="param-tile-delay">
+                    <div class="climate-param-header">
+                      <span class="climate-param-icon">${ICONS.clockDelay}</span>
+                      <span class="climate-param-lbl">${localize(lang, 'climate_delay')}</span>
+                    </div>
+                    <div class="climate-param-control">
+                      <select class="climate-param-select" id="sel-climate-delay" title="${localize(lang, 'climate_delay')}"></select>
+                      <span class="climate-select-chevron">▾</span>
+                    </div>
+                  </div>
+                </div>
+
                 <div class="climate-select-row phev-dep" id="climate-select-wrap" style="display:none">
                   <select class="climate-select" id="sel-climate-mode"></select>
                 </div>
@@ -6213,6 +6359,11 @@ class OutlanderPhevCard extends HTMLElement {
       valClimateRemaining: q('val-climate-remaining'),
       tileClimateStop: q('tile-climate-stop'),
       valClimateStop: q('val-climate-stop'),
+      climateParamsWrap: q('climate-params-wrap'),
+      paramTileDuration: q('param-tile-duration'),
+      selClimateDuration: q('sel-climate-duration'),
+      paramTileDelay: q('param-tile-delay'),
+      selClimateDelay: q('sel-climate-delay'),
       climateSelectWrap: q('climate-select-wrap'),
       selClimateMode: q('sel-climate-mode'),
       btnHeadlights: q('btn-headlights'),
@@ -6326,6 +6477,26 @@ class OutlanderPhevCard extends HTMLElement {
       const dom = selEnt.split('.')[0];
       if (dom === 'select' || dom === 'input_select') {
         this._hass.callService(dom, 'select_option', { entity_id: selEnt, option });
+      }
+    });
+
+    $.selClimateDuration.addEventListener('change', (e) => {
+      const durEnt = ents().climate_duration_min_entity;
+      const option = e.target.value;
+      if (!durEnt || !option || !this._hass) return;
+      const dom = durEnt.split('.')[0];
+      if (dom === 'select' || dom === 'input_select') {
+        this._hass.callService(dom, 'select_option', { entity_id: durEnt, option });
+      }
+    });
+
+    $.selClimateDelay.addEventListener('change', (e) => {
+      const delayEnt = ents().climate_start_delay_min_entity;
+      const option = e.target.value;
+      if (!delayEnt || !option || !this._hass) return;
+      const dom = delayEnt.split('.')[0];
+      if (dom === 'select' || dom === 'input_select') {
+        this._hass.callService(dom, 'select_option', { entity_id: delayEnt, option });
       }
     });
 
@@ -6948,6 +7119,63 @@ class OutlanderPhevCard extends HTMLElement {
     const stopTitle = climStopObj?.attributes?.friendly_name || localize(lang, 'climate_stop_time');
     $.tileClimateRemaining.title = `${remTitle}: ${climRemFormatted}`;
     $.tileClimateStop.title = `${stopTitle}: ${climStopFormatted}`;
+
+    // Climate Parameters (Duration & Start Delay)
+    const durEntId = ents.climate_duration_min_entity;
+    const delayEntId = ents.climate_start_delay_min_entity;
+    const durObj = this._getState(durEntId);
+    const delayObj = this._getState(delayEntId);
+
+    const hasDur = Boolean(durObj);
+    const hasDelay = Boolean(delayObj);
+
+    if (hasDur || hasDelay) {
+      $.climateParamsWrap.style.display = 'grid';
+      $.paramTileDuration.style.display = hasDur ? 'flex' : 'none';
+      $.paramTileDelay.style.display = hasDelay ? 'flex' : 'none';
+
+      if (hasDur) {
+        $.selClimateDuration.disabled = showOfflineDim;
+        const durOpts = Array.isArray(durObj.attributes?.options)
+          ? durObj.attributes.options
+          : (durObj.state ? [durObj.state] : ['10', '20', '30']);
+        const durSig = durOpts.join('|');
+        if ($.selClimateDuration.dataset.sig !== durSig) {
+          $.selClimateDuration.dataset.sig = durSig;
+          $.selClimateDuration.innerHTML = durOpts
+            .map((opt) => {
+              const label = /^\d+$/.test(opt) ? `${opt} ${localize(lang, 'min_short')}` : opt;
+              return `<option value="${opt}">${label}</option>`;
+            })
+            .join('');
+        }
+        if (durOpts.includes(durObj.state)) {
+          $.selClimateDuration.value = durObj.state;
+        }
+      }
+
+      if (hasDelay) {
+        $.selClimateDelay.disabled = showOfflineDim;
+        const delayOpts = Array.isArray(delayObj.attributes?.options)
+          ? delayObj.attributes.options
+          : (delayObj.state ? [delayObj.state] : ['0', '10', '20', '30']);
+        const delaySig = delayOpts.join('|');
+        if ($.selClimateDelay.dataset.sig !== delaySig) {
+          $.selClimateDelay.dataset.sig = delaySig;
+          $.selClimateDelay.innerHTML = delayOpts
+            .map((opt) => {
+              const label = /^\d+$/.test(opt) ? `${opt} ${localize(lang, 'min_short')}` : opt;
+              return `<option value="${opt}">${label}</option>`;
+            })
+            .join('');
+        }
+        if (delayOpts.includes(delayObj.state)) {
+          $.selClimateDelay.value = delayObj.state;
+        }
+      }
+    } else {
+      $.climateParamsWrap.style.display = 'none';
+    }
 
     // 6. Lights & System Controls
     $.btnHeadlights.disabled = !ents.head_lights_entity || showOfflineDim;

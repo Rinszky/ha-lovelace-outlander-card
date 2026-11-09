@@ -62,6 +62,8 @@ export const TRANSLATIONS = {
     climate_stop: 'Leállítás',
     climate_remaining: 'Hátralévő idő',
     climate_stop_time: 'Várható leállás',
+    climate_duration: 'Időtartam',
+    climate_delay: 'Késleltetés',
 
     // Lights & System
     lights_system_title: 'Világítás és rendszer',
@@ -313,6 +315,8 @@ export const TRANSLATIONS = {
     climate_stop: 'Turn Off',
     climate_remaining: 'Remaining Time',
     climate_stop_time: 'Est. Stop Time',
+    climate_duration: 'Duration',
+    climate_delay: 'Start Delay',
 
     lights_system_title: 'Lights & System',
     head_lights: 'Head Lights',

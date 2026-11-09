@@ -254,6 +254,8 @@
       'switch.phev_windscreen': { state: 'off', attributes: { friendly_name: 'PHEV Windscreen' } },
       'sensor.phev_climate_remaining': { state: '0', attributes: { friendly_name: 'PHEV Klíma hátralévő idő', unit_of_measurement: 'min', device_class: 'duration' } },
       'sensor.phev_climate_stop_time': { state: '--:--', attributes: { friendly_name: 'PHEV Klíma várható leállás' } },
+      'select.phev_climate_duration_min': { state: '10', attributes: { friendly_name: 'Előfűtés/hűtés időtartama (perc)', options: ['10', '20', '30'] } },
+      'select.phev_climate_start_delay_min': { state: '0', attributes: { friendly_name: 'Előfűtés/hűtés indítási késleltetés (perc)', options: ['0', '10', '20', '30'] } },
       'light.phev_head_lights': { state: 'off', attributes: { friendly_name: 'PHEV Head Lights' } },
       'light.phev_park_lights': { state: 'off', attributes: { friendly_name: 'PHEV Park Lights' } },
       'binary_sensor.phev_hazard_lights': { state: 'off', attributes: { friendly_name: 'PHEV Hazard Lights', device_class: 'light' } },
@@ -381,16 +383,18 @@
               stateStore['switch.phev_heat'].state = 'off';
               stateStore['switch.phev_windscreen'].state = 'off';
               stateStore['select.phev_climate_state'].state = 'cool';
-              stateStore['sensor.phev_climate_remaining'].state = '20';
-              const stopDt = new Date(Date.now() + 20 * 60 * 1000);
+              const durMins = parseInt(stateStore['select.phev_climate_duration_min']?.state || '10', 10);
+              stateStore['sensor.phev_climate_remaining'].state = String(durMins);
+              const stopDt = new Date(Date.now() + durMins * 60 * 1000);
               stateStore['sensor.phev_climate_stop_time'].state = stopDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (ent === 'switch.phev_heat') {
               stateStore['switch.phev_heat'].state = 'on';
               stateStore['switch.phev_cool'].state = 'off';
               stateStore['switch.phev_windscreen'].state = 'off';
               stateStore['select.phev_climate_state'].state = 'heat';
-              stateStore['sensor.phev_climate_remaining'].state = '20';
-              const stopDt = new Date(Date.now() + 20 * 60 * 1000);
+              const durMins = parseInt(stateStore['select.phev_climate_duration_min']?.state || '10', 10);
+              stateStore['sensor.phev_climate_remaining'].state = String(durMins);
+              const stopDt = new Date(Date.now() + durMins * 60 * 1000);
               stateStore['sensor.phev_climate_stop_time'].state = stopDt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             } else if (ent === 'switch.phev_windscreen') {
               stateStore['switch.phev_windscreen'].state = 'on';

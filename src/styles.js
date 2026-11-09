@@ -1330,6 +1330,111 @@ export const CARD_STYLES = `
     color: #fef9c3;
   }
 
+  /* Climate Pre-conditioning Parameters (Duration & Start Delay) */
+  .climate-params-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .climate-param-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 10px;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(148, 163, 184, 0.12);
+    transition: all 0.22s ease;
+    min-width: 0;
+  }
+
+  .climate-param-tile:hover {
+    background: rgba(22, 33, 54, 0.72);
+    border-color: rgba(56, 189, 248, 0.32);
+  }
+
+  .climate-param-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .climate-param-icon {
+    width: 17px;
+    height: 17px;
+    color: #38bdf8;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .climate-param-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .climate-param-lbl {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--ophev-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .climate-param-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .climate-param-select {
+    width: 100%;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(9, 13, 22, 0.75);
+    color: #f8fafc;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 9px;
+    padding: 6px 24px 6px 9px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .climate-param-select:hover:not(:disabled) {
+    border-color: rgba(56, 189, 248, 0.55);
+    background: rgba(14, 21, 35, 0.9);
+  }
+
+  .climate-param-select:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(14, 165, 233, 0.25);
+  }
+
+  .climate-param-select:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .climate-select-chevron {
+    position: absolute;
+    right: 8px;
+    pointer-events: none;
+    font-size: 0.72rem;
+    color: var(--ophev-muted);
+    line-height: 1;
+  }
+
   /* Climate Select Row (optional) */
   .climate-select-row {
     margin-top: 8px;
