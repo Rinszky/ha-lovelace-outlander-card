@@ -136,6 +136,22 @@ export const TRANSLATIONS = {
     ed_confirm_wifi: 'Megerősítés kérése Wi-Fi újraindítás előtt',
     ed_invert_lock: 'Zár állapotának megfordítása (ha ellentétesen jelez)',
 
+    // Connection & MQTT
+    ed_sec_connection: 'Kapcsolódási Mód és MQTT Bróker',
+    ed_conn_mode: 'Működési és kapcsolódási mód',
+    ed_conn_mode_auto: '⚡ Automatikus (HA MQTT / Közvetlen bróker / Entitások)',
+    ed_conn_mode_ha_mqtt: '🏠 Home Assistant beépített MQTT integráció (WebSocket)',
+    ed_conn_mode_direct_mqtt: '🌐 Közvetlen WebSocket MQTT Bróker (ws:// vagy wss://)',
+    ed_conn_mode_entities: '📋 Csak Home Assistant entitások (Hagyományos mód)',
+    ed_mqtt_prefix: 'MQTT téma előtag (Topic prefix)',
+    ed_mqtt_vin: 'Jármű VIN alvázszám (opc. szűrés)',
+    ed_mqtt_url: 'Közvetlen WebSocket MQTT URL (pl. ws://192.168.1.82:8083/mqtt)',
+    ed_mqtt_user: 'MQTT Felhasználónév (opcionális)',
+    ed_mqtt_pass: 'MQTT Jelszó (opcionális)',
+    mqtt_connected: 'MQTT Kapcsolódva',
+    mqtt_connecting: 'MQTT Kapcsolódás...',
+    mqtt_disconnected: 'MQTT Nincs kapcsolat',
+
     // Timers & Schedules
     timers_btn: 'Időzítők',
     timers_title: 'Időzített Töltés és Előfűtés (Timers 1–5)',
@@ -383,6 +399,22 @@ export const TRANSLATIONS = {
     ed_interactive_car: 'Enable interactive touch zones on car',
     ed_confirm_wifi: 'Require confirmation before Restart Wi-Fi',
     ed_invert_lock: 'Invert lock sensor polarity',
+
+    // Connection & MQTT
+    ed_sec_connection: 'Connection Mode & MQTT Broker',
+    ed_conn_mode: 'Operation & Connection Mode',
+    ed_conn_mode_auto: '⚡ Auto (HA MQTT / Direct Broker / Entities)',
+    ed_conn_mode_ha_mqtt: '🏠 Home Assistant Native MQTT Integration (WebSocket)',
+    ed_conn_mode_direct_mqtt: '🌐 Direct WebSocket MQTT Broker (ws:// or wss://)',
+    ed_conn_mode_entities: '📋 Home Assistant Entities Only (Legacy)',
+    ed_mqtt_prefix: 'MQTT Topic Prefix',
+    ed_mqtt_vin: 'Vehicle VIN (optional filter)',
+    ed_mqtt_url: 'Direct WebSocket MQTT URL (e.g. ws://192.168.1.82:8083/mqtt)',
+    ed_mqtt_user: 'MQTT Username (optional)',
+    ed_mqtt_pass: 'MQTT Password (optional)',
+    mqtt_connected: 'MQTT Connected',
+    mqtt_connecting: 'MQTT Connecting...',
+    mqtt_disconnected: 'MQTT Disconnected',
 
     // Timers & Schedules
     timers_btn: 'Timers',

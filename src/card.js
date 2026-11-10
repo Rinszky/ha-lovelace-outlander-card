@@ -25,6 +25,7 @@ import {
 import { renderOutlanderSvg, CAR_NOSE_Y, CAR_REAR_Y, CAR_BODY_LEN } from './car-svg.js';
 import { CARD_STYLES } from './styles.js';
 import { OutlanderPhevCardEditor } from './editor.js';
+import { PhevMqttManager, estimateRemainingChargingMins } from './mqtt.js';
 
 const ICONS = {
   mitsubishi: `<svg viewBox="0 0 24 24"><polygon points="12,2 16.2,9.3 12,16.6 7.8,9.3"/><polygon points="12,16.6 3.6,16.6 0,22.8 8.4,22.8"/><polygon points="12,16.6 20.4,16.6 24,22.8 15.6,22.8"/></svg>`,
@@ -112,12 +113,32 @@ export class OutlanderPhevCard extends HTMLElement {
     this._optimistic = new Map();
     this._sparkCache = new Map();
     this.$ = {};
+    this._mqtt = new PhevMqttManager(this);
+    this._mqttStatus = 'disconnected';
+  }
+
+  connectedCallback() {
+    if (this._config && this._mqtt) {
+      this._mqtt.updateConfig(this._config, this._hass);
+    }
   }
 
   disconnectedCallback() {
     clearTimeout(this._wifiConfirmTimer);
     clearTimeout(this._wifiSentTimer);
     clearTimeout(this._timerSentTimer);
+    if (this._mqtt) {
+      this._mqtt.disconnect();
+    }
+  }
+
+  _onMqttStateUpdated() {
+    this._updateState();
+  }
+
+  _updateMqttStatus(status) {
+    this._mqttStatus = status;
+    this._updateState();
   }
 
   setConfig(config) {
@@ -141,9 +162,19 @@ export class OutlanderPhevCard extends HTMLElement {
       interactive_car: true,
       confirm_wifi_restart: true,
       invert_lock: false,
+      connection_mode: 'auto',
+      mqtt_topic_prefix: 'phev',
+      mqtt_vin: '',
+      mqtt_broker_url: '',
+      mqtt_username: '',
+      mqtt_password: '',
       ...config,
     };
     this._autoDiscoveredCache = null;
+
+    if (this._mqtt) {
+      this._mqtt.updateConfig(this._config, this._hass);
+    }
 
     if (!this.$.card || prevLang !== this._config.language) {
       this._buildDom();
@@ -154,6 +185,9 @@ export class OutlanderPhevCard extends HTMLElement {
   set hass(hass) {
     const oldHass = this._hass;
     this._hass = hass;
+    if (this._mqtt) {
+      this._mqtt.setHass(hass);
+    }
     if (!this._config) return;
     if (!this.$.card) {
       this._buildDom();
@@ -268,31 +302,123 @@ export class OutlanderPhevCard extends HTMLElement {
     );
   }
 
-  _toggleEntity(entityId) {
-    if (!entityId || !this._hass) return;
-    const currentlyOn = this._isControlOn(entityId);
-    const nextState = !currentlyOn;
-    this._setOptimistic(entityId, nextState);
+  _isMqttActive() {
+    return Boolean(this._mqtt && this._mqtt.connected && this._config.connection_mode !== 'entities');
+  }
 
-    const domain = entityId.split('.')[0];
-    if (domain === 'light' || domain === 'switch' || domain === 'input_boolean') {
-      this._hass.callService(domain, nextState ? 'turn_on' : 'turn_off', { entity_id: entityId });
+  _toggleClimateMqtt(targetMode, turnOn) {
+    if (!this._mqtt) return;
+    const clim = this._mqtt.state.climate;
+    if (!turnOn) {
+      clim.mode = 'off';
+      clim.cool = false;
+      clim.heat = false;
+      clim.windscreen = false;
+      clim.remainingMins = 0;
+      clim.stopTime = '--:--';
+      clim.startedAt = null;
+
+      this._mqtt.publish('set/climate/state', 'off');
+      this._mqtt.publish('set/climate/mode', 'off');
+      this._mqtt.publish('set/climate/off', '0');
+      this._mqtt.publish(`set/climate/${targetMode}`, '0');
+      this._mqtt.publish('set/register/13', '01');
     } else {
-      this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
+      clim.mode = targetMode;
+      clim.cool = targetMode === 'cool';
+      clim.heat = targetMode === 'heat';
+      clim.windscreen = targetMode === 'windscreen';
+      clim.startedAt = Date.now();
+      const dur = parseInt(clim.duration || '10', 10);
+      clim.remainingMins = dur;
+      const finish = new Date(Date.now() + dur * 60 * 1000);
+      clim.stopTime = `~${finish.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}`;
+
+      this._mqtt.publish('set/climate/mode', targetMode);
+      this._mqtt.publish(`set/climate/${targetMode}`, String(dur));
+      this._mqtt.publish('set/climate/state', 'on');
+
+      const stateHex = targetMode === 'cool' ? '01' : (targetMode === 'windscreen' ? '03' : '02');
+      const durHex = dur === 30 ? '02' : (dur === 20 ? '01' : '00');
+      const delHex = clim.delay === '10' ? '02' : (clim.delay === '5' ? '01' : '00');
+      this._mqtt.publish('set/register/1b', `02${stateHex}${durHex}${delHex}`);
+    }
+    this._updateState();
+  }
+
+  _toggleEntity(entityId) {
+    const ents = this._resolveEntities();
+    const isMqtt = this._isMqttActive();
+
+    // Check if this is a known feature and dispatch MQTT command
+    let currentlyOn = false;
+    if (entityId) {
+      currentlyOn = this._isControlOn(entityId);
+    } else if (isMqtt) {
+      // Direct MQTT mode without configured HA entity
+      if (entityId === ents.cool_entity) currentlyOn = this._mqtt.state.climate.cool;
+      else if (entityId === ents.heat_entity) currentlyOn = this._mqtt.state.climate.heat;
+      else if (entityId === ents.windscreen_entity) currentlyOn = this._mqtt.state.climate.windscreen;
+      else if (entityId === ents.head_lights_entity) currentlyOn = this._mqtt.state.lights.headlights;
+      else if (entityId === ents.park_lights_entity) currentlyOn = this._mqtt.state.lights.parklights;
+    }
+
+    const nextState = !currentlyOn;
+    if (entityId) {
+      this._setOptimistic(entityId, nextState);
+    }
+
+    if (isMqtt) {
+      if (entityId === ents.cool_entity) {
+        this._toggleClimateMqtt('cool', nextState);
+      } else if (entityId === ents.heat_entity) {
+        this._toggleClimateMqtt('heat', nextState);
+      } else if (entityId === ents.windscreen_entity) {
+        this._toggleClimateMqtt('windscreen', nextState);
+      } else if (entityId === ents.head_lights_entity) {
+        this._mqtt.state.lights.headlights = nextState;
+        this._mqtt.publish('set/headlights', nextState ? 'on' : 'off');
+        this._mqtt.publish('headlights/set', nextState ? 'ON' : 'OFF');
+      } else if (entityId === ents.park_lights_entity) {
+        this._mqtt.state.lights.parklights = nextState;
+        this._mqtt.publish('set/parkinglights', nextState ? 'on' : 'off');
+        this._mqtt.publish('parkinglights/set', nextState ? 'ON' : 'OFF');
+      } else if (entityId === ents.hazard_lights_entity) {
+        this._mqtt.state.lights.hazard = nextState;
+        this._mqtt.publish('hazard/set', nextState ? 'ON' : 'OFF');
+      }
+    }
+
+    // Also call Home Assistant service if entity is configured in HA
+    if (entityId && this._hass?.states?.[entityId]) {
+      const domain = entityId.split('.')[0];
+      if (domain === 'light' || domain === 'switch' || domain === 'input_boolean') {
+        this._hass.callService(domain, nextState ? 'turn_on' : 'turn_off', { entity_id: entityId });
+      } else {
+        this._hass.callService('homeassistant', 'toggle', { entity_id: entityId });
+      }
     }
   }
 
   _handleDisableTimer() {
     const ents = this._resolveEntities();
     const entityId = ents.disable_charge_timer_entity;
-    if (!entityId || !this._hass) return;
-    const domain = entityId.split('.')[0];
-    if (domain === 'button') {
-      this._hass.callService('button', 'press', { entity_id: entityId });
-    } else {
-      // phev2mqtt listens on ~/set/cancelchargetimer when switch.turn_on is called
-      this._hass.callService('switch', 'turn_on', { entity_id: entityId });
+
+    if (this._isMqttActive()) {
+      this._mqtt.publish('set/cancelchargetimer', '1');
+      this._mqtt.publish('set/register/17', '01');
+      this._mqtt.publish('disable_charge_timer/set', 'PRESS');
     }
+
+    if (entityId && this._hass) {
+      const domain = entityId.split('.')[0];
+      if (domain === 'button') {
+        this._hass.callService('button', 'press', { entity_id: entityId });
+      } else {
+        this._hass.callService('switch', 'turn_on', { entity_id: entityId });
+      }
+    }
+
     this._timerSent = true;
     clearTimeout(this._timerSentTimer);
     this._updateState();
@@ -305,7 +431,6 @@ export class OutlanderPhevCard extends HTMLElement {
   _handleRestartWifi() {
     const ents = this._resolveEntities();
     const entityId = ents.restart_wifi_entity;
-    if (!entityId || !this._hass) return;
 
     if (this._config.confirm_wifi_restart !== false && !this._wifiConfirming) {
       this._wifiConfirming = true;
@@ -321,13 +446,21 @@ export class OutlanderPhevCard extends HTMLElement {
     this._wifiConfirming = false;
     clearTimeout(this._wifiConfirmTimer);
 
-    const domain = entityId.split('.')[0];
-    if (domain === 'button') {
-      this._hass.callService('button', 'press', { entity_id: entityId });
-    } else if (domain === 'script') {
-      this._hass.callService('script', 'turn_on', { entity_id: entityId });
-    } else {
-      this._hass.callService('homeassistant', 'turn_on', { entity_id: entityId });
+    if (this._isMqttActive()) {
+      this._mqtt.publish('connection', 'restart');
+      this._mqtt.publish('restart_wifi/set', 'PRESS');
+      this._mqtt.publish('reconnect_wifi/set', 'PRESS');
+    }
+
+    if (entityId && this._hass) {
+      const domain = entityId.split('.')[0];
+      if (domain === 'button') {
+        this._hass.callService('button', 'press', { entity_id: entityId });
+      } else if (domain === 'script') {
+        this._hass.callService('script', 'turn_on', { entity_id: entityId });
+      } else {
+        this._hass.callService('homeassistant', 'turn_on', { entity_id: entityId });
+      }
     }
 
     this._wifiSent = true;
@@ -1145,20 +1278,32 @@ export class OutlanderPhevCard extends HTMLElement {
     $.selClimateDuration.addEventListener('change', (e) => {
       const durEnt = ents().climate_duration_min_entity;
       const option = e.target.value;
-      if (!durEnt || !option || !this._hass) return;
-      const dom = durEnt.split('.')[0];
-      if (dom === 'select' || dom === 'input_select') {
-        this._hass.callService(dom, 'select_option', { entity_id: durEnt, option });
+      if (this._isMqttActive()) {
+        this._mqtt.state.climate.duration = String(option);
+        this._mqtt.publish('set/climate/duration', String(option));
+        this._mqtt.publish('climate_duration_min/set', String(option));
+      }
+      if (durEnt && option && this._hass) {
+        const dom = durEnt.split('.')[0];
+        if (dom === 'select' || dom === 'input_select') {
+          this._hass.callService(dom, 'select_option', { entity_id: durEnt, option });
+        }
       }
     });
 
     $.selClimateDelay.addEventListener('change', (e) => {
       const delayEnt = ents().climate_start_delay_min_entity;
       const option = e.target.value;
-      if (!delayEnt || !option || !this._hass) return;
-      const dom = delayEnt.split('.')[0];
-      if (dom === 'select' || dom === 'input_select') {
-        this._hass.callService(dom, 'select_option', { entity_id: delayEnt, option });
+      if (this._isMqttActive()) {
+        this._mqtt.state.climate.delay = String(option);
+        this._mqtt.publish('set/climate/delay', String(option));
+        this._mqtt.publish('climate_start_delay_min/set', String(option));
+      }
+      if (delayEnt && option && this._hass) {
+        const dom = delayEnt.split('.')[0];
+        if (dom === 'select' || dom === 'input_select') {
+          this._hass.callService(dom, 'select_option', { entity_id: delayEnt, option });
+        }
       }
     });
 
@@ -1332,8 +1477,14 @@ export class OutlanderPhevCard extends HTMLElement {
 
     $.btnToggleMasterTimer.addEventListener('click', () => {
       const e = this._resolveEntities();
-      if (this._activeTimerSubtab === 'climate' && e.climate_timer_master_entity) {
-        this._toggleEntity(e.climate_timer_master_entity);
+      if (this._activeTimerSubtab === 'climate') {
+        if (e.climate_timer_master_entity) {
+          this._toggleEntity(e.climate_timer_master_entity);
+        }
+        if (this._isMqttActive()) {
+          const cur = Boolean(this._mqttManager?.state?.timers?.climateMaster);
+          this._mqttManager?.setClimateTimerMaster(!cur);
+        }
       }
     });
 
@@ -1345,6 +1496,13 @@ export class OutlanderPhevCard extends HTMLElement {
           entity_id: e.climate_timer_mode_entity,
           option: opt,
         });
+      }
+      if (this._isMqttActive()) {
+        this._mqtt.publish('set/climate/timer/mode', opt);
+        this._mqtt.publish('climate_timer_mode/set', opt);
+        if (this._mqttManager?.state?.timers) {
+          this._mqttManager.state.timers.climateMode = opt;
+        }
       }
     });
 
@@ -1364,28 +1522,46 @@ export class OutlanderPhevCard extends HTMLElement {
     $.btnDiagLocate.addEventListener('click', () => {
       const e = this._resolveEntities();
       const ent = e.locate_car_entity;
-      if (!ent || !this._hass) return;
-      const dom = ent.split('.')[0];
-      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
-      else this._toggleEntity(ent);
+      if (this._isMqttActive()) {
+        this._mqtt.publish('set/lights/locate', 'press');
+        this._mqtt.publish('locate_car/set', 'PRESS');
+      }
+      if (ent && this._hass) {
+        const dom = ent.split('.')[0];
+        if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+        else this._toggleEntity(ent);
+      }
     });
 
     $.btnDiagSyncClock.addEventListener('click', () => {
       const e = this._resolveEntities();
       const ent = e.sync_car_clock_entity;
-      if (!ent || !this._hass) return;
-      const dom = ent.split('.')[0];
-      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
-      else this._toggleEntity(ent);
+      if (this._isMqttActive()) {
+        this._mqtt.publish('set/synctime', 'now');
+        this._mqtt.publish('sync_car_clock/set', 'PRESS');
+      }
+      if (ent && this._hass) {
+        const dom = ent.split('.')[0];
+        if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+        else this._toggleEntity(ent);
+      }
     });
 
     $.btnClearAlarm.addEventListener('click', () => {
       const e = this._resolveEntities();
       const ent = e.clear_alarm_entity;
-      if (!ent || !this._hass) return;
-      const dom = ent.split('.')[0];
-      if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
-      else this._toggleEntity(ent);
+      if (this._isMqttActive()) {
+        this._mqtt.state.diagnostics.alarm = 'disarmed';
+        this._mqtt.state.diagnostics.lastAlarmEvent = null;
+        this._mqtt.publish('set/alarm/clear', '1');
+        this._mqtt.publish('clear_alarm/set', 'PRESS');
+        this._updateState();
+      }
+      if (ent && this._hass) {
+        const dom = ent.split('.')[0];
+        if (dom === 'button') this._hass.callService('button', 'press', { entity_id: ent });
+        else this._toggleEntity(ent);
+      }
     });
   }
 
@@ -1416,12 +1592,25 @@ export class OutlanderPhevCard extends HTMLElement {
 
     // 2. Parse Entity States
     const battObj = this._getState(ents.battery_entity);
-    const socParsed = parseBatteryLevel(battObj, null);
+    let socParsed = parseBatteryLevel(battObj, null);
+
+    const m = this._mqtt?.state;
+    const isMqttActive = this._isMqttActive();
+
+    if (isMqttActive && m && m.battery.soc !== null) {
+      socParsed = m.battery.soc;
+    }
+
     if (socParsed !== null) this._lastValidSoc = socParsed;
     const soc = socParsed ?? this._lastValidSoc ?? 0;
 
-    const isCharging = isBinaryOn(this._getState(ents.charging_entity));
-    const isPlugged = isCharging || isBinaryOn(this._getState(ents.charger_connected_entity));
+    let isCharging = isBinaryOn(this._getState(ents.charging_entity));
+    let isPlugged = isCharging || isBinaryOn(this._getState(ents.charger_connected_entity));
+
+    if (isMqttActive && m) {
+      if (m.battery.charging) isCharging = true;
+      if (m.battery.plugged || isCharging) isPlugged = true;
+    }
 
     const battColors = getBatteryColors(soc, isCharging);
     $.card.style.setProperty('--batt-primary', battColors.primary);
@@ -1432,24 +1621,40 @@ export class OutlanderPhevCard extends HTMLElement {
     // Connection state & Offline Dimming
     const connObj = this._getState(ents.connected_entity);
     const battRawState = String(battObj?.state || '').toLowerCase();
-    const isOnline = connObj
+    let isOnline = connObj
       ? isBinaryOn(connObj)
       : battObj
         ? battRawState !== 'unavailable' && battRawState !== 'unknown'
         : true;
+
+    let connText = isOnline ? localize(lang, 'connected') : localize(lang, 'disconnected');
+
+    if (isMqttActive && m) {
+      isOnline = Boolean(m.connected || this._mqtt.connected);
+      connText = isOnline ? localize(lang, 'connected') : localize(lang, 'disconnected');
+    } else if (cfg.connection_mode === 'direct_mqtt' || cfg.connection_mode === 'ha_mqtt') {
+      if (this._mqttStatus === 'connecting') {
+        isOnline = false;
+        connText = localize(lang, 'mqtt_connecting');
+      } else if (!this._mqtt.connected) {
+        isOnline = false;
+        connText = localize(lang, 'mqtt_disconnected');
+      }
+    }
+
     const showOfflineDim = !isOnline && cfg.offline_dimming !== false;
     const lastSeenStr = formatLastSeen(connObj || battObj, lang);
 
     $.hdrConnWrap.className = `conn-pill ${isOnline ? 'online' : 'offline'}`;
     $.hdrConnDot.className = `conn-dot ${isOnline ? 'online' : 'offline'}`;
     $.hdrConnIcon.innerHTML = isOnline ? ICONS.wifiSync : ICONS.wifiOff;
-    $.hdrConnText.textContent = isOnline ? localize(lang, 'connected') : localize(lang, 'disconnected');
-    $.hdrConnWrap.title = isOnline ? localize(lang, 'connected') : lastSeenStr;
+    $.hdrConnText.textContent = connText;
+    $.hdrConnWrap.title = isOnline ? connText : lastSeenStr;
 
     $.card.classList.toggle('is-offline', showOfflineDim);
     stg.classList.toggle('is-offline', showOfflineDim);
     $.offlineHudSub.textContent = lastSeenStr;
-    $.btnOfflineReconnect.style.display = ents.restart_wifi_entity ? 'inline-flex' : 'none';
+    $.btnOfflineReconnect.style.display = ents.restart_wifi_entity || isMqttActive ? 'inline-flex' : 'none';
     $.btnOfflineReconnect.classList.toggle('confirming', Boolean(this._wifiConfirming));
     $.btnOfflineReconnect.classList.toggle('sent-ok', Boolean(this._wifiSent));
     if (this._wifiConfirming) {
@@ -1461,7 +1666,10 @@ export class OutlanderPhevCard extends HTMLElement {
     }
 
     // Lock & Doors
-    const isLocked = isCarLocked(this._getState(ents.locked_entity), cfg.invert_lock);
+    let isLocked = isCarLocked(this._getState(ents.locked_entity), cfg.invert_lock);
+    if (isMqttActive && m && m.doors.locked !== null) {
+      isLocked = m.doors.locked;
+    }
     $.pillLock.className = `status-pill ${isLocked ? 'ok' : 'warn'}`;
     $.pillLockIcon.innerHTML = isLocked ? ICONS.lockClosed : ICONS.lockOpen;
     $.pillLockText.textContent = localize(lang, isLocked ? 'locked' : 'unlocked');
@@ -1474,12 +1682,25 @@ export class OutlanderPhevCard extends HTMLElement {
     const bonnetObj = this._getState(ents.bonnet_entity);
     const bootObj = this._getState(ents.boot_entity);
 
-    const openFl = isDoorOpen(flObj);
-    const openFr = isDoorOpen(frObj);
-    const openRl = isDoorOpen(rlObj);
-    const openRr = isDoorOpen(rrObj);
-    const openBonnet = isDoorOpen(bonnetObj);
-    const openBoot = isDoorOpen(bootObj);
+    let openFl = isDoorOpen(flObj);
+    let openFr = isDoorOpen(frObj);
+    let openRl = isDoorOpen(rlObj);
+    let openRr = isDoorOpen(rrObj);
+    let openBonnet = isDoorOpen(bonnetObj);
+    let openBoot = isDoorOpen(bootObj);
+
+    if (isMqttActive && m) {
+      if (m.doors.driver) {
+        if (isRhd) openFr = true; else openFl = true;
+      }
+      if (m.doors.passenger) {
+        if (isRhd) openFl = true; else openFr = true;
+      }
+      if (m.doors.rearLeft) openRl = true;
+      if (m.doors.rearRight) openRr = true;
+      if (m.doors.bonnet) openBonnet = true;
+      if (m.doors.boot) openBoot = true;
+    }
 
     const openCount = [openFl, openFr, openRl, openRr, openBonnet, openBoot].filter(Boolean).length;
     $.pillDoors.className = `status-pill ${openCount > 0 ? 'danger' : ''}`;
@@ -1496,15 +1717,32 @@ export class OutlanderPhevCard extends HTMLElement {
     // Climate states
     const climateSelObj = this._getState(ents.climate_state_entity);
     const selVal = String(climateSelObj?.state || '').toLowerCase().trim();
-    const coolOn = this._isControlOn(ents.cool_entity) || selVal === 'cool';
-    const heatOn = this._isControlOn(ents.heat_entity) || selVal === 'heat';
-    const windscreenOn = this._isControlOn(ents.windscreen_entity) || selVal === 'windscreen';
+    let coolOn = this._isControlOn(ents.cool_entity) || selVal === 'cool';
+    let heatOn = this._isControlOn(ents.heat_entity) || selVal === 'heat';
+    let windscreenOn = this._isControlOn(ents.windscreen_entity) || selVal === 'windscreen';
+
+    if (isMqttActive && m) {
+      if (m.climate.cool) coolOn = true;
+      if (m.climate.heat) heatOn = true;
+      if (m.climate.windscreen) windscreenOn = true;
+      if (m.climate.mode === 'off' && !this._isControlOn(ents.cool_entity) && !this._isControlOn(ents.heat_entity) && !this._isControlOn(ents.windscreen_entity)) {
+        coolOn = false;
+        heatOn = false;
+        windscreenOn = false;
+      }
+    }
 
     // Lights states
-    const headOn = this._isControlOn(ents.head_lights_entity);
-    const parkOn = this._isControlOn(ents.park_lights_entity);
-    const hazardOn = this._isControlOn(ents.hazard_lights_entity);
-    const interiorOn = isBinaryOn(this._getState(ents.interior_lights_entity));
+    let headOn = this._isControlOn(ents.head_lights_entity);
+    let parkOn = this._isControlOn(ents.park_lights_entity);
+    let hazardOn = this._isControlOn(ents.hazard_lights_entity);
+    let interiorOn = isBinaryOn(this._getState(ents.interior_lights_entity));
+
+    if (isMqttActive && m) {
+      if (m.lights.headlights) headOn = true;
+      if (m.lights.parklights) parkOn = true;
+      if (m.lights.hazard) hazardOn = true;
+    }
 
     // Car Stage Classes
     stg.classList.toggle('rhd', isRhd);
@@ -1594,8 +1832,44 @@ export class OutlanderPhevCard extends HTMLElement {
     const remHrsObj = this._getState(ents.charge_remaining_hrs_entity);
     const estCompObj = this._getState(ents.estimated_completion_entity);
 
-    $.etaValue.textContent = formatRemainingTime(remObj, remHrsObj, lang);
-    const finishStr = formatEstimatedCompletion(estCompObj, remObj, isCharging, lang);
+    let etaStr = formatRemainingTime(remObj, remHrsObj, lang);
+    let finishStr = formatEstimatedCompletion(estCompObj, remObj, isCharging, lang);
+
+    if (isMqttActive && m) {
+      if (m.battery.remainingMins > 0) {
+        const total = m.battery.remainingMins;
+        const h = Math.floor(total / 60);
+        const min = total % 60;
+        etaStr = h > 0
+          ? `${h} ${localize(lang, 'hr_short')} ${min} ${localize(lang, 'min_short')}`
+          : `${min} ${localize(lang, 'min_short')}`;
+      }
+      if (m.battery.completionTime) {
+        finishStr = m.battery.completionTime;
+      } else if (isCharging && m.battery.remainingMins > 0) {
+        const dt = new Date(Date.now() + m.battery.remainingMins * 60 * 1000);
+        finishStr = `~${dt.toLocaleTimeString(lang === 'hu' ? 'hu-HU' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+      }
+    }
+
+    // CC-CV safeguard: if charging and still "0 perc" or "Nem tölt"
+    if (isCharging) {
+      if (etaStr === `0 ${localize(lang, 'min_short')}` || etaStr === '0 min') {
+        const estM = estimateRemainingChargingMins(soc);
+        const h = Math.floor(estM / 60);
+        const min = estM % 60;
+        etaStr = h > 0
+          ? `${h} ${localize(lang, 'hr_short')} ${min} ${localize(lang, 'min_short')}`
+          : `${min} ${localize(lang, 'min_short')}`;
+      }
+      if (finishStr === localize(lang, 'not_charging') || finishStr === '--:--' || !finishStr) {
+        const estM = estimateRemainingChargingMins(soc);
+        const dt = new Date(Date.now() + estM * 60 * 1000);
+        finishStr = `~${dt.toLocaleTimeString(lang === 'hu' ? 'hu-HU' : 'en-GB', { hour: '2-digit', minute: '2-digit' })}`;
+      }
+    }
+
+    $.etaValue.textContent = etaStr;
 
     if (isCharging && !showOfflineDim) {
       $.chargeBanner.className = 'charge-banner phev-dep active';
@@ -1753,12 +2027,21 @@ export class OutlanderPhevCard extends HTMLElement {
     const climRemObj = this._getState(ents.climate_remaining_entity);
     const climStopObj = this._getState(ents.climate_stop_time_entity);
 
-    const climRemFormatted = isClimateActive
+    let climRemFormatted = isClimateActive
       ? formatClimateRemaining(climRemObj, lang)
       : (climRemObj && Number(climRemObj.state) > 0 ? formatClimateRemaining(climRemObj, lang) : '--');
-    const climStopFormatted = isClimateActive
+    let climStopFormatted = isClimateActive
       ? formatClimateStopTime(climStopObj, climRemObj, isClimateActive, lang)
       : (climStopObj && climStopObj.state && climStopObj.state !== '--:--' && climStopObj.state !== 'unknown' ? formatClimateStopTime(climStopObj, null, false, lang) : '--:--');
+
+    if (isMqttActive && m && m.climate) {
+      if (m.climate.remainingMins > 0) {
+        climRemFormatted = `${m.climate.remainingMins} ${localize(lang, 'min_short')}`;
+      }
+      if (m.climate.stopTime && m.climate.stopTime !== '--:--') {
+        climStopFormatted = m.climate.stopTime;
+      }
+    }
 
     $.valClimateRemaining.textContent = climRemFormatted;
     $.valClimateStop.textContent = climStopFormatted;
@@ -1788,8 +2071,8 @@ export class OutlanderPhevCard extends HTMLElement {
     const durObj = this._getState(durEntId);
     const delayObj = this._getState(delayEntId);
 
-    const hasDur = Boolean(durObj);
-    const hasDelay = Boolean(delayObj);
+    const hasDur = Boolean(durObj) || isMqttActive;
+    const hasDelay = Boolean(delayObj) || isMqttActive;
 
     if (hasDur || hasDelay) {
       $.climateParamsWrap.style.display = 'grid';
@@ -1798,9 +2081,9 @@ export class OutlanderPhevCard extends HTMLElement {
 
       if (hasDur) {
         $.selClimateDuration.disabled = showOfflineDim;
-        const durOpts = Array.isArray(durObj.attributes?.options)
+        const durOpts = Array.isArray(durObj?.attributes?.options)
           ? durObj.attributes.options
-          : (durObj.state ? [durObj.state] : ['10', '20', '30']);
+          : (durObj?.state ? [durObj.state] : ['10', '20', '30']);
         const durSig = durOpts.join('|');
         if ($.selClimateDuration.dataset.sig !== durSig) {
           $.selClimateDuration.dataset.sig = durSig;
@@ -1811,16 +2094,17 @@ export class OutlanderPhevCard extends HTMLElement {
             })
             .join('');
         }
-        if (durOpts.includes(durObj.state)) {
-          $.selClimateDuration.value = durObj.state;
+        const activeDur = (isMqttActive && m?.climate?.duration) || durObj?.state || '10';
+        if (durOpts.includes(activeDur)) {
+          $.selClimateDuration.value = activeDur;
         }
       }
 
       if (hasDelay) {
         $.selClimateDelay.disabled = showOfflineDim;
-        const delayOpts = Array.isArray(delayObj.attributes?.options)
+        const delayOpts = Array.isArray(delayObj?.attributes?.options)
           ? delayObj.attributes.options
-          : (delayObj.state ? [delayObj.state] : ['0', '10', '20', '30']);
+          : (delayObj?.state ? [delayObj.state] : ['0', '5', '10', '20']);
         const delaySig = delayOpts.join('|');
         if ($.selClimateDelay.dataset.sig !== delaySig) {
           $.selClimateDelay.dataset.sig = delaySig;
@@ -1831,12 +2115,11 @@ export class OutlanderPhevCard extends HTMLElement {
             })
             .join('');
         }
-        if (delayOpts.includes(delayObj.state)) {
-          $.selClimateDelay.value = delayObj.state;
+        const activeDelay = (isMqttActive && m?.climate?.delay) || delayObj?.state || '0';
+        if (delayOpts.includes(activeDelay)) {
+          $.selClimateDelay.value = activeDelay;
         }
       }
-    } else {
-      $.climateParamsWrap.style.display = 'none';
     }
 
     // 6. Lights & System Controls
@@ -1965,7 +2248,21 @@ export class OutlanderPhevCard extends HTMLElement {
         $.selTimerMasterMode.style.display = 'none';
       }
 
-      const slots = getPhevClimateTimers(this._hass);
+      let slots = getPhevClimateTimers(this._hass);
+      if (this._isMqttActive() && this._mqttManager?.state?.timers?.climateSlots?.length) {
+        const mqttSlots = this._mqttManager.state.timers.climateSlots;
+        slots = slots.map((sl, idx) => {
+          const m = mqttSlots[idx];
+          if (!m) return sl;
+          return {
+            ...sl,
+            enabled: sl.enabledEntity ? sl.enabled : Boolean(m.enabled),
+            time: sl.timeEntity && sl.time !== '--:--' ? sl.time : (m.time || '07:30'),
+            duration: sl.durationEntity ? sl.duration : String(m.duration || '20'),
+            days: sl.daysEntity ? sl.days : (m.days || 'Everyday'),
+          };
+        });
+      }
       $.timerSlotsBar.innerHTML = slots
         .map(
           (sl) => `
@@ -2028,40 +2325,65 @@ export class OutlanderPhevCard extends HTMLElement {
       const btnSlotEnable = $.timerEditorCard.querySelector('#btn-slot-enable');
       btnSlotEnable?.addEventListener('click', () => {
         if (activeSlot?.enabledEntity) this._toggleEntity(activeSlot.enabledEntity);
+        if (this._isMqttActive()) {
+          const nextEn = !activeSlot?.enabled;
+          activeSlot.enabled = nextEn;
+          const curMode = $.selTimerMasterMode?.value || 'heat';
+          this._mqttManager.setClimateTimerSlot(slotNum, { enabled: nextEn }, curMode);
+          this._updateTimersPanel();
+        }
       });
 
       const inputSlotTime = $.timerEditorCard.querySelector('#input-slot-time');
       inputSlotTime?.addEventListener('change', (e) => {
-        if (!activeSlot?.timeEntity || !this._hass) return;
         const val = e.target.value;
-        const dom = activeSlot.timeEntity.split('.')[0];
-        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.timeEntity, time: val });
-        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.timeEntity, value: val });
-        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.timeEntity, time: val + ':00' });
+        if (activeSlot?.timeEntity && this._hass) {
+          const dom = activeSlot.timeEntity.split('.')[0];
+          if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.timeEntity, time: val });
+          else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.timeEntity, value: val });
+          else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.timeEntity, time: val + ':00' });
+        }
+        if (this._isMqttActive()) {
+          activeSlot.time = val;
+          const curMode = $.selTimerMasterMode?.value || 'heat';
+          this._mqttManager.setClimateTimerSlot(slotNum, { time: val }, curMode);
+        }
       });
 
       const selSlotDuration = $.timerEditorCard.querySelector('#sel-slot-duration');
       selSlotDuration?.addEventListener('change', (e) => {
-        if (!activeSlot?.durationEntity || !this._hass) return;
         const val = e.target.value;
-        const dom = activeSlot.durationEntity.split('.')[0];
-        if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.durationEntity, option: val });
-        else if (dom === 'number' || dom === 'input_number') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.durationEntity, value: Number(val) });
+        if (activeSlot?.durationEntity && this._hass) {
+          const dom = activeSlot.durationEntity.split('.')[0];
+          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.durationEntity, option: val });
+          else if (dom === 'number' || dom === 'input_number') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.durationEntity, value: Number(val) });
+        }
+        if (this._isMqttActive()) {
+          activeSlot.duration = val;
+          const curMode = $.selTimerMasterMode?.value || 'heat';
+          this._mqttManager.setClimateTimerSlot(slotNum, { duration: val }, curMode);
+        }
       });
 
       $.timerEditorCard.querySelectorAll('.preset-chip').forEach((pChip) => {
         pChip.addEventListener('click', () => {
-          if (!activeSlot?.daysEntity || !this._hass) return;
           const preset = pChip.dataset.preset;
-          const dom = activeSlot.daysEntity.split('.')[0];
-          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
-          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+          if (activeSlot?.daysEntity && this._hass) {
+            const dom = activeSlot.daysEntity.split('.')[0];
+            if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
+            else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+          }
+          if (this._isMqttActive()) {
+            activeSlot.days = preset;
+            const curMode = $.selTimerMasterMode?.value || 'heat';
+            this._mqttManager.setClimateTimerSlot(slotNum, { days: preset }, curMode);
+            this._updateTimersPanel();
+          }
         });
       });
 
       $.timerEditorCard.querySelectorAll('.day-chip').forEach((dChip) => {
         dChip.addEventListener('click', () => {
-          if (!activeSlot?.daysEntity || !this._hass) return;
           const clickedDay = dChip.dataset.day;
           let currentList = currentDays.toLowerCase() === 'everyday' ? [...daysArr] : currentDays.split(/[, ]+/).filter(Boolean);
           if (currentList.includes(clickedDay)) {
@@ -2070,15 +2392,38 @@ export class OutlanderPhevCard extends HTMLElement {
             currentList.push(clickedDay);
           }
           const nextVal = currentList.length === 7 ? 'Everyday' : currentList.join(', ');
-          const dom = activeSlot.daysEntity.split('.')[0];
-          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
-          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+          if (activeSlot?.daysEntity && this._hass) {
+            const dom = activeSlot.daysEntity.split('.')[0];
+            if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
+            else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+          }
+          if (this._isMqttActive()) {
+            activeSlot.days = nextVal;
+            const curMode = $.selTimerMasterMode?.value || 'heat';
+            this._mqttManager.setClimateTimerSlot(slotNum, { days: nextVal }, curMode);
+            this._updateTimersPanel();
+          }
         });
       });
     } else {
       $.timerMasterBanner.style.display = 'none';
 
-      const slots = getPhevChargeTimers(this._hass);
+      let slots = getPhevChargeTimers(this._hass);
+      if (this._isMqttActive() && this._mqttManager?.state?.timers?.chargeSlots?.length) {
+        const mqttSlots = this._mqttManager.state.timers.chargeSlots;
+        slots = slots.map((sl, idx) => {
+          const m = mqttSlots[idx];
+          if (!m) return sl;
+          return {
+            ...sl,
+            enabled: sl.enabledEntity ? sl.enabled : Boolean(m.enabled),
+            start: sl.startEntity && sl.start !== '--:--' ? sl.start : (m.start || '22:00'),
+            end: sl.endEntity && sl.end !== '--:--' ? sl.end : (m.end || '06:00'),
+            days: sl.daysEntity ? sl.days : (m.days || 'Everyday'),
+            fullCharge: sl.fullChargeEntity ? sl.fullCharge : (m.fullCharge !== false),
+          };
+        });
+      }
       $.timerSlotsBar.innerHTML = slots
         .map(
           (sl) => `
@@ -2137,41 +2482,62 @@ export class OutlanderPhevCard extends HTMLElement {
       const btnSlotEnable = $.timerEditorCard.querySelector('#btn-slot-enable');
       btnSlotEnable?.addEventListener('click', () => {
         if (activeSlot?.enabledEntity) this._toggleEntity(activeSlot.enabledEntity);
+        if (this._isMqttActive()) {
+          const nextEn = !activeSlot?.enabled;
+          activeSlot.enabled = nextEn;
+          this._mqttManager.setChargeTimerSlot(slotNum, { enabled: nextEn, start: activeSlot.start, end: activeSlot.end, days: activeSlot.days, fullCharge: activeSlot.fullCharge });
+          this._updateTimersPanel();
+        }
       });
 
       const inputSlotStart = $.timerEditorCard.querySelector('#input-slot-start');
       inputSlotStart?.addEventListener('change', (e) => {
-        if (!activeSlot?.startEntity || !this._hass) return;
         const val = e.target.value;
-        const dom = activeSlot.startEntity.split('.')[0];
-        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.startEntity, time: val });
-        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.startEntity, value: val });
-        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.startEntity, time: val + ':00' });
+        if (activeSlot?.startEntity && this._hass) {
+          const dom = activeSlot.startEntity.split('.')[0];
+          if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.startEntity, time: val });
+          else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.startEntity, value: val });
+          else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.startEntity, time: val + ':00' });
+        }
+        if (this._isMqttActive()) {
+          activeSlot.start = val;
+          this._mqttManager.setChargeTimerSlot(slotNum, { start: val });
+        }
       });
 
       const inputSlotEnd = $.timerEditorCard.querySelector('#input-slot-end');
       inputSlotEnd?.addEventListener('change', (e) => {
-        if (!activeSlot?.endEntity || !this._hass) return;
         const val = e.target.value;
-        const dom = activeSlot.endEntity.split('.')[0];
-        if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.endEntity, time: val });
-        else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.endEntity, value: val });
-        else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.endEntity, time: val + ':00' });
+        if (activeSlot?.endEntity && this._hass) {
+          const dom = activeSlot.endEntity.split('.')[0];
+          if (dom === 'time') this._hass.callService('time', 'set_value', { entity_id: activeSlot.endEntity, time: val });
+          else if (dom === 'text' || dom === 'input_text') this._hass.callService(dom, 'set_value', { entity_id: activeSlot.endEntity, value: val });
+          else if (dom === 'input_datetime') this._hass.callService('input_datetime', 'set_datetime', { entity_id: activeSlot.endEntity, time: val + ':00' });
+        }
+        if (this._isMqttActive()) {
+          activeSlot.end = val;
+          this._mqttManager.setChargeTimerSlot(slotNum, { end: val });
+        }
       });
 
       $.timerEditorCard.querySelectorAll('.preset-chip').forEach((pChip) => {
         pChip.addEventListener('click', () => {
-          if (!activeSlot?.daysEntity || !this._hass) return;
           const preset = pChip.dataset.preset;
-          const dom = activeSlot.daysEntity.split('.')[0];
-          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
-          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+          if (activeSlot?.daysEntity && this._hass) {
+            const dom = activeSlot.daysEntity.split('.')[0];
+            if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: preset });
+            else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: preset });
+          }
+          if (this._isMqttActive()) {
+            activeSlot.days = preset;
+            this._mqttManager.setChargeTimerSlot(slotNum, { days: preset });
+            this._updateTimersPanel();
+          }
         });
       });
 
       $.timerEditorCard.querySelectorAll('.day-chip').forEach((dChip) => {
         dChip.addEventListener('click', () => {
-          if (!activeSlot?.daysEntity || !this._hass) return;
           const clickedDay = dChip.dataset.day;
           let currentList = currentDays.toLowerCase() === 'everyday' ? [...daysArr] : currentDays.split(/[, ]+/).filter(Boolean);
           if (currentList.includes(clickedDay)) {
@@ -2180,28 +2546,37 @@ export class OutlanderPhevCard extends HTMLElement {
             currentList.push(clickedDay);
           }
           const nextVal = currentList.length === 7 ? 'Everyday' : currentList.join(', ');
-          const dom = activeSlot.daysEntity.split('.')[0];
-          if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
-          else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+          if (activeSlot?.daysEntity && this._hass) {
+            const dom = activeSlot.daysEntity.split('.')[0];
+            if (dom === 'select') this._hass.callService('select', 'select_option', { entity_id: activeSlot.daysEntity, option: nextVal });
+            else this._hass.callService(dom, 'set_value', { entity_id: activeSlot.daysEntity, value: nextVal });
+          }
+          if (this._isMqttActive()) {
+            activeSlot.days = nextVal;
+            this._mqttManager.setChargeTimerSlot(slotNum, { days: nextVal });
+            this._updateTimersPanel();
+          }
         });
       });
     }
   }
 
   _updateDiagPanel() {
-    if (!this._hass || !this.$.modalDiag) return;
+    if (!this.$.modalDiag) return;
     const $ = this.$;
     const lang = this._lang();
     const ents = this._resolveEntities();
+    const m = this._mqtt?.state;
+    const isMqtt = this._isMqttActive();
 
     const ignObj = this._getState(ents.ignition_state_entity);
-    const ignRaw = String(ignObj?.state || 'off').toLowerCase().trim();
+    let ignRaw = (isMqtt && m?.diagnostics?.ignition) || String(ignObj?.state || 'off').toLowerCase().trim();
     const ignVal = ['ready', 'on', 'acc', 'off'].includes(ignRaw) ? ignRaw : 'off';
     $.diagIgnitionBadge.className = `ignition-badge ${ignVal}`;
     $.diagIgnitionBadge.textContent = ignVal.toUpperCase();
 
     const alarmObj = this._getState(ents.theft_alarm_entity);
-    const alarmRaw = String(alarmObj?.state || 'disarmed').toLowerCase().trim();
+    const alarmRaw = (isMqtt && m?.diagnostics?.alarm) || String(alarmObj?.state || 'disarmed').toLowerCase().trim();
     const isAlarmTriggered = ['triggered', 'alarm', 'on', 'true'].includes(alarmRaw);
     const isAlarmArmed = ['armed', 'active'].includes(alarmRaw);
     let bannerCls = 'alarm-banner disarmed';
@@ -2215,55 +2590,54 @@ export class OutlanderPhevCard extends HTMLElement {
     }
     $.diagAlarmBanner.className = bannerCls;
     $.diagAlarmText.textContent = bannerTxt;
-    $.btnClearAlarm.style.display = isAlarmTriggered && ents.clear_alarm_entity ? 'inline-block' : 'none';
-    $.diagAlarmVal.textContent = alarmObj ? alarmObj.state : '--';
+    $.btnClearAlarm.style.display = (isAlarmTriggered && ents.clear_alarm_entity) || (isMqtt && isAlarmTriggered) ? 'inline-block' : 'none';
+    $.diagAlarmVal.textContent = alarmObj ? alarmObj.state : (isMqtt ? alarmRaw : '--');
 
     const lastAlarmObj = this._getState(ents.theft_alarm_last_event_entity);
-    if (lastAlarmObj && lastAlarmObj.state && lastAlarmObj.state !== 'unknown' && lastAlarmObj.state !== 'unavailable') {
+    const lastAlarmVal = (isMqtt && m?.diagnostics?.lastAlarmEvent) || lastAlarmObj?.state;
+    if (lastAlarmVal && lastAlarmVal !== 'unknown' && lastAlarmVal !== 'unavailable' && lastAlarmVal !== 'none') {
       $.diagLastAlarmRow.style.display = 'flex';
-      $.diagLastAlarmVal.textContent = lastAlarmObj.state;
+      $.diagLastAlarmVal.textContent = lastAlarmVal;
     } else {
       $.diagLastAlarmRow.style.display = 'none';
     }
 
     const clockObj = this._getState(ents.car_clock_entity);
-    $.diagClockVal.textContent = clockObj ? clockObj.state : '--:--:--';
+    $.diagClockVal.textContent = (isMqtt && m?.diagnostics?.carClock) || clockObj?.state || '--:--:--';
 
     const chObj = this._getState(ents.wifi_channel_entity);
-    $.diagWifiChannelVal.textContent = chObj ? `CH ${chObj.state}` : '--';
+    const chVal = (isMqtt && m?.diagnostics?.wifiChannel) || chObj?.state;
+    $.diagWifiChannelVal.textContent = chVal ? `CH ${chVal}` : '--';
 
     const awObj = this._getState(ents.wifi_always_on_entity);
-    $.diagWifiAlwaysVal.textContent = awObj
-      ? isBinaryOn(awObj)
-        ? localize(lang, 'active')
-        : localize(lang, 'inactive')
+    const awActive = isMqtt && m?.diagnostics?.wifiAlwaysOn !== undefined ? m.diagnostics.wifiAlwaysOn : (awObj ? isBinaryOn(awObj) : null);
+    $.diagWifiAlwaysVal.textContent = awActive !== null
+      ? (awActive ? localize(lang, 'active') : localize(lang, 'inactive'))
       : '--';
 
     const thObj = this._getState(ents.battery_thermal_entity);
-    $.diagThermalVal.textContent = thObj ? thObj.state : '--';
+    $.diagThermalVal.textContent = (isMqtt && m?.diagnostics?.batteryThermal) || thObj?.state || '--';
 
     const warmObj = this._getState(ents.battery_warming_entity);
-    $.diagWarmingVal.textContent = warmObj
-      ? isBinaryOn(warmObj)
-        ? localize(lang, 'active')
-        : localize(lang, 'inactive')
+    const warmActive = isMqtt && m?.diagnostics?.batteryWarming !== undefined ? m.diagnostics.batteryWarming : (warmObj ? isBinaryOn(warmObj) : null);
+    $.diagWarmingVal.textContent = warmActive !== null
+      ? (warmActive ? localize(lang, 'active') : localize(lang, 'inactive'))
       : '--';
 
     const warnObj = this._getState(ents.battery_warning_entity);
-    $.diagWarningVal.textContent = warnObj
-      ? isBinaryOn(warnObj)
-        ? localize(lang, 'active')
-        : localize(lang, 'inactive')
+    const warnActive = isMqtt && m?.diagnostics?.batteryWarning !== undefined ? m.diagnostics.batteryWarning : (warnObj ? isBinaryOn(warnObj) : null);
+    $.diagWarningVal.textContent = warnActive !== null
+      ? (warnActive ? localize(lang, 'active') : localize(lang, 'inactive'))
       : '--';
 
     const vinObj = this._getState(ents.vin_entity);
-    $.diagVinVal.textContent = vinObj ? vinObj.state : '--';
+    $.diagVinVal.textContent = (isMqtt && m?.diagnostics?.vin) || vinObj?.state || '--';
 
     const fwObj = this._getState(ents.ecu_version_entity);
-    $.diagFirmwareVal.textContent = fwObj ? fwObj.state : '--';
+    $.diagFirmwareVal.textContent = (isMqtt && m?.diagnostics?.ecuVersion) || fwObj?.state || '--';
 
     const phObj = this._getState(ents.registered_phones_entity);
-    $.diagPhonesVal.textContent = phObj ? `${phObj.state} / 2` : '--';
+    $.diagPhonesVal.textContent = (isMqtt && m?.diagnostics?.registeredPhones) || (phObj ? `${phObj.state} / 2` : '--');
   }
 
   _updateSettingsModal() {
@@ -2339,7 +2713,7 @@ export class OutlanderPhevCard extends HTMLElement {
           <span class="setting-cat-badge">${localize(lang, `cat_${s.cat}`) || s.cat}</span>
           <span class="setting-label">${s.label}</span>
         </div>
-        <select class="setting-select" data-ent="${s.entity_id}">
+        <select class="setting-select" data-ent="${s.entity_id}" data-slug="${s.slug}">
           ${s.options
             .map(
               (opt) => `<option value="${opt}" ${opt === s.state ? 'selected' : ''}>${opt}</option>`
@@ -2355,6 +2729,12 @@ export class OutlanderPhevCard extends HTMLElement {
       sel.addEventListener('change', (e) => {
         const ent = e.target.dataset.ent;
         const opt = e.target.value;
+        const slug = e.target.dataset.slug;
+        if (this._isMqttActive() && slug) {
+          this._mqtt.state.settings[slug] = opt;
+          this._mqtt.publish(`set/settings/${slug}`, opt);
+          this._mqtt.publish(`settings/${slug}`, opt, true);
+        }
         if (ent && opt && this._hass) {
           this._hass.callService('select', 'select_option', { entity_id: ent, option: opt });
         }

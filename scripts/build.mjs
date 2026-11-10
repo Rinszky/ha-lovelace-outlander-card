@@ -8,6 +8,7 @@ const rootDir = path.resolve(__dirname, '..');
 const filesInOrder = [
   'src/i18n.js',
   'src/helpers.js',
+  'src/mqtt.js',
   'src/car-svg.js',
   'src/styles.js',
   'src/editor.js',

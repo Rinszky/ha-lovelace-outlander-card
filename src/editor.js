@@ -296,6 +296,49 @@ export class OutlanderPhevCardEditor extends HTMLElement {
           <div class="auto-msg" id="auto-msg">${this._autoMsg}</div>
         </div>
 
+        <!-- Connection & MQTT Broker Configuration -->
+        <details class="ed-section" open>
+          <summary>${localize(lang, 'ed_sec_connection')}</summary>
+          <div class="sec-body">
+            <div class="field-row">
+              <label class="field-label">${localize(lang, 'ed_conn_mode')}</label>
+              <select class="ed-select" id="sel-conn-mode">
+                <option value="auto" ${(cfg.connection_mode || 'auto') === 'auto' ? 'selected' : ''}>${localize(lang, 'ed_conn_mode_auto')}</option>
+                <option value="ha_mqtt" ${cfg.connection_mode === 'ha_mqtt' ? 'selected' : ''}>${localize(lang, 'ed_conn_mode_ha_mqtt')}</option>
+                <option value="direct_mqtt" ${cfg.connection_mode === 'direct_mqtt' ? 'selected' : ''}>${localize(lang, 'ed_conn_mode_direct_mqtt')}</option>
+                <option value="entities" ${cfg.connection_mode === 'entities' ? 'selected' : ''}>${localize(lang, 'ed_conn_mode_entities')}</option>
+              </select>
+            </div>
+
+            <div class="field-grid-2">
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_mqtt_prefix')}</label>
+                <input class="ed-input" id="inp-mqtt-prefix" type="text" placeholder="phev" value="${cfg.mqtt_topic_prefix ?? 'phev'}" />
+              </div>
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_mqtt_vin')}</label>
+                <input class="ed-input" id="inp-mqtt-vin" type="text" placeholder="pl. JMBXDGG3WKZ..." value="${cfg.mqtt_vin ?? ''}" />
+              </div>
+            </div>
+
+            <div class="field-row" id="row-mqtt-url">
+              <label class="field-label">${localize(lang, 'ed_mqtt_url')}</label>
+              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="ws://192.168.1.82:8083/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
+            </div>
+
+            <div class="field-grid-2" id="grid-mqtt-auth">
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_mqtt_user')}</label>
+                <input class="ed-input" id="inp-mqtt-user" type="text" placeholder="username" value="${cfg.mqtt_username ?? ''}" />
+              </div>
+              <div class="field-row">
+                <label class="field-label">${localize(lang, 'ed_mqtt_pass')}</label>
+                <input class="ed-input" id="inp-mqtt-pass" type="password" placeholder="••••••••" value="${cfg.mqtt_password ?? ''}" />
+              </div>
+            </div>
+          </div>
+        </details>
+
         <!-- General & Appearance -->
         <details class="ed-section" open>
           <summary>${localize(lang, 'ed_sec_general')}</summary>
@@ -585,6 +628,31 @@ export class OutlanderPhevCardEditor extends HTMLElement {
     sr.getElementById('chk-invert-lock')?.addEventListener('change', (e) => {
       this._emitConfig({ invert_lock: e.target.checked });
     });
+
+    // Connection & MQTT fields
+    sr.getElementById('sel-conn-mode')?.addEventListener('change', (e) => {
+      this._emitConfig({ connection_mode: e.target.value });
+    });
+
+    sr.getElementById('inp-mqtt-prefix')?.addEventListener('change', (e) => {
+      this._emitConfig({ mqtt_topic_prefix: e.target.value.trim() });
+    });
+
+    sr.getElementById('inp-mqtt-vin')?.addEventListener('change', (e) => {
+      this._emitConfig({ mqtt_vin: e.target.value.trim() });
+    });
+
+    sr.getElementById('inp-mqtt-url')?.addEventListener('change', (e) => {
+      this._emitConfig({ mqtt_broker_url: e.target.value.trim() });
+    });
+
+    sr.getElementById('inp-mqtt-user')?.addEventListener('change', (e) => {
+      this._emitConfig({ mqtt_username: e.target.value.trim() });
+    });
+
+    sr.getElementById('inp-mqtt-pass')?.addEventListener('change', (e) => {
+      this._emitConfig({ mqtt_password: e.target.value });
+    });
   }
 
   _syncValues() {
@@ -616,6 +684,36 @@ export class OutlanderPhevCardEditor extends HTMLElement {
     const offDimChk = sr.getElementById('chk-offline-dim');
     if (offDimChk) {
       offDimChk.checked = this._config.offline_dimming !== false;
+    }
+
+    const connModeSel = sr.getElementById('sel-conn-mode');
+    if (connModeSel && connModeSel.value !== (this._config.connection_mode || 'auto')) {
+      connModeSel.value = this._config.connection_mode || 'auto';
+    }
+
+    const prefixInp = sr.getElementById('inp-mqtt-prefix');
+    if (prefixInp && prefixInp.value !== (this._config.mqtt_topic_prefix ?? 'phev')) {
+      prefixInp.value = this._config.mqtt_topic_prefix ?? 'phev';
+    }
+
+    const vinInp = sr.getElementById('inp-mqtt-vin');
+    if (vinInp && vinInp.value !== (this._config.mqtt_vin ?? '')) {
+      vinInp.value = this._config.mqtt_vin ?? '';
+    }
+
+    const urlInp = sr.getElementById('inp-mqtt-url');
+    if (urlInp && urlInp.value !== (this._config.mqtt_broker_url ?? '')) {
+      urlInp.value = this._config.mqtt_broker_url ?? '';
+    }
+
+    const userInp = sr.getElementById('inp-mqtt-user');
+    if (userInp && userInp.value !== (this._config.mqtt_username ?? '')) {
+      userInp.value = this._config.mqtt_username ?? '';
+    }
+
+    const passInp = sr.getElementById('inp-mqtt-pass');
+    if (passInp && passInp.value !== (this._config.mqtt_password ?? '')) {
+      passInp.value = this._config.mqtt_password ?? '';
     }
 
     for (const [key, entry] of this._selectors.entries()) {
