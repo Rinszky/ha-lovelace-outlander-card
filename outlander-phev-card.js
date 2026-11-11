@@ -151,11 +151,11 @@ const TRANSLATIONS = {
     ed_conn_mode: 'Működési és kapcsolódási mód',
     ed_conn_mode_auto: '⚡ Automatikus (HA MQTT / Közvetlen bróker / Entitások)',
     ed_conn_mode_ha_mqtt: '🏠 Home Assistant beépített MQTT integráció (WebSocket)',
-    ed_conn_mode_direct_mqtt: '🌐 Közvetlen WebSocket MQTT Bróker (ws:// vagy wss://)',
+    ed_conn_mode_direct_mqtt: '🌐 Közvetlen WebSocket MQTT Bróker (wss:// vagy ws://)',
     ed_conn_mode_entities: '📋 Csak Home Assistant entitások (Hagyományos mód)',
     ed_mqtt_prefix: 'MQTT téma előtag (Topic prefix)',
     ed_mqtt_vin: 'Jármű VIN alvázszám (opc. szűrés)',
-    ed_mqtt_url: 'Közvetlen WebSocket MQTT URL (pl. ws://192.168.1.82:8083/mqtt)',
+    ed_mqtt_url: 'Közvetlen WebSocket MQTT URL (pl. wss://mqtt.lorinszkym.synology.me/mqtt)',
     ed_mqtt_user: 'MQTT Felhasználónév (opcionális)',
     ed_mqtt_pass: 'MQTT Jelszó (opcionális)',
     mqtt_connected: 'MQTT Kapcsolódva',
@@ -415,11 +415,11 @@ const TRANSLATIONS = {
     ed_conn_mode: 'Operation & Connection Mode',
     ed_conn_mode_auto: '⚡ Auto (HA MQTT / Direct Broker / Entities)',
     ed_conn_mode_ha_mqtt: '🏠 Home Assistant Native MQTT Integration (WebSocket)',
-    ed_conn_mode_direct_mqtt: '🌐 Direct WebSocket MQTT Broker (ws:// or wss://)',
+    ed_conn_mode_direct_mqtt: '🌐 Direct WebSocket MQTT Broker (wss:// or ws://)',
     ed_conn_mode_entities: '📋 Home Assistant Entities Only (Legacy)',
     ed_mqtt_prefix: 'MQTT Topic Prefix',
     ed_mqtt_vin: 'Vehicle VIN (optional filter)',
-    ed_mqtt_url: 'Direct WebSocket MQTT URL (e.g. ws://192.168.1.82:8083/mqtt)',
+    ed_mqtt_url: 'Direct WebSocket MQTT URL (e.g. wss://mqtt.lorinszkym.synology.me/mqtt)',
     ed_mqtt_user: 'MQTT Username (optional)',
     ed_mqtt_pass: 'MQTT Password (optional)',
     mqtt_connected: 'MQTT Connected',
@@ -1640,9 +1640,11 @@ class NativeMqttWsClient {
     this.shouldReconnect = true;
 
     let url = (config.brokerUrl || '').trim();
-    if (!url) return;
+    const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
-      url = `ws://${url}`;
+      url = `${isHttps ? 'wss://' : 'ws://'}${url}`;
+    } else if (isHttps && url.startsWith('ws://')) {
+      url = 'wss://' + url.slice(5);
     }
 
     try {
@@ -6208,7 +6210,7 @@ class OutlanderPhevCardEditor extends HTMLElement {
 
             <div class="field-row" id="row-mqtt-url">
               <label class="field-label">${localize(lang, 'ed_mqtt_url')}</label>
-              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="ws://192.168.1.82:8083/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
+              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.lorinszkym.synology.me/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
             </div>
 
             <div class="field-grid-2" id="grid-mqtt-auth">

@@ -323,7 +323,7 @@ export class OutlanderPhevCardEditor extends HTMLElement {
 
             <div class="field-row" id="row-mqtt-url">
               <label class="field-label">${localize(lang, 'ed_mqtt_url')}</label>
-              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="ws://192.168.1.82:8083/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
+              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.lorinszkym.synology.me/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
             </div>
 
             <div class="field-grid-2" id="grid-mqtt-auth">

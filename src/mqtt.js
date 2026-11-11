@@ -84,9 +84,11 @@ export class NativeMqttWsClient {
     this.shouldReconnect = true;
 
     let url = (config.brokerUrl || '').trim();
-    if (!url) return;
+    const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
     if (!url.startsWith('ws://') && !url.startsWith('wss://')) {
-      url = `ws://${url}`;
+      url = `${isHttps ? 'wss://' : 'ws://'}${url}`;
+    } else if (isHttps && url.startsWith('ws://')) {
+      url = 'wss://' + url.slice(5);
     }
 
     try {
