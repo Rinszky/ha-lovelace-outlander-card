@@ -2361,6 +2361,11 @@ class PhevMqttManager {
     }
     const sub = parts.join('/');
 
+    // Ignore outgoing control commands and echoes (e.g. set/..., .../set)
+    if (sub.startsWith('set/') || sub.endsWith('/set') || rawTopic.includes('/set/')) {
+      return;
+    }
+
     d.lastSeen = new Date();
     d.connected = true;
 
@@ -2467,13 +2472,15 @@ class PhevMqttManager {
       if (d.climate.windscreen) d.climate.mode = 'windscreen';
     }
 
-    // Lights
-    else if (sub.includes('headlight')) {
+    // Lights (Strict mappings matching phev2mqtt /lights/head and /lights/parking)
+    else if (sub === 'lights/head' || sub === 'lights/headlights' || sub === 'headlights' || sub.endsWith('/lights/head')) {
       d.lights.headlights = parseBool(val);
-    } else if (sub.includes('parklight') || sub.includes('parkinglight')) {
+    } else if (sub === 'lights/parking' || sub === 'lights/park' || sub === 'lights/parkinglights' || sub === 'parkinglights' || sub === 'parklights' || sub.endsWith('/lights/parking')) {
       d.lights.parklights = parseBool(val);
-    } else if (sub.includes('hazard')) {
+    } else if (sub === 'lights/hazard' || sub === 'hazard' || sub === 'hazardlights' || sub.endsWith('/lights/hazard')) {
       d.lights.hazard = parseBool(val);
+    } else if (sub === 'lights/interior' || sub === 'interior' || sub === 'interiorlights' || sub.endsWith('/lights/interior')) {
+      d.diagnostics.interior = parseBool(val);
     }
 
     // Diagnostics & Clock
