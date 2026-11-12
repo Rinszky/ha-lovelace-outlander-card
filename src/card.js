@@ -318,11 +318,8 @@ export class OutlanderPhevCard extends HTMLElement {
       clim.stopTime = '--:--';
       clim.startedAt = null;
 
-      this._mqtt.publish('set/climate/state', 'off');
       this._mqtt.publish('set/climate/mode', 'off');
-      this._mqtt.publish('set/climate/off', '0');
-      this._mqtt.publish(`set/climate/${targetMode}`, '0');
-      this._mqtt.publish('set/register/13', '01');
+      this._mqtt.publish('set/climate/state', 'off');
     } else {
       clim.mode = targetMode;
       clim.cool = targetMode === 'cool';
@@ -334,14 +331,8 @@ export class OutlanderPhevCard extends HTMLElement {
       const finish = new Date(Date.now() + dur * 60 * 1000);
       clim.stopTime = `~${finish.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}`;
 
+      this._mqtt.publish('set/climate/duration', String(dur));
       this._mqtt.publish('set/climate/mode', targetMode);
-      this._mqtt.publish(`set/climate/${targetMode}`, String(dur));
-      this._mqtt.publish('set/climate/state', 'on');
-
-      const stateHex = targetMode === 'cool' ? '01' : (targetMode === 'windscreen' ? '03' : '02');
-      const durHex = dur === 30 ? '02' : (dur === 20 ? '01' : '00');
-      const delHex = clim.delay === '10' ? '02' : (clim.delay === '5' ? '01' : '00');
-      this._mqtt.publish('set/register/1b', `02${stateHex}${durHex}${delHex}`);
     }
     this._updateState();
   }

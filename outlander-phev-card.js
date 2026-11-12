@@ -2430,13 +2430,42 @@ class PhevMqttManager {
       d.doors.boot = parseBool(val);
     }
 
-    // Climate Mode
-    else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub.includes('climate_state') || sub === 'climate')) {
+    // Climate Mode & State
+    else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate/remaining' || sub === 'climate_remaining' || sub === 'climate/time_remaining')) {
+      const n = parseFloat(val);
+      if (Number.isFinite(n)) {
+        d.climate.remainingMins = Math.max(0, Math.round(n));
+      }
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate/stop_time' || sub === 'climate_stop_time' || sub === 'climate/completion_time')) {
+      d.climate.stopTime = val;
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate/duration' || sub === 'climate_duration')) {
+      const n = parseInt(val, 10);
+      if (n === 10 || n === 20 || n === 30) {
+        d.climate.duration = String(n);
+      }
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate/operating' || sub === 'climate_operating')) {
+      const isOp = parseBool(val);
+      d.climate.operating = isOp;
+      if (!isOp) {
+        d.climate.mode = 'off';
+        d.climate.cool = false;
+        d.climate.heat = false;
+        d.climate.windscreen = false;
+        d.climate.remainingMins = 0;
+        d.climate.stopTime = '--:--';
+        d.climate.startedAt = null;
+      }
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub.includes('climate_state') || sub === 'climate' || sub === 'climate/state' || sub === 'climate/mode')) {
       const m = val.toLowerCase();
       d.climate.mode = m === '0' || m === 'off' ? 'off' : m;
       d.climate.cool = d.climate.mode === 'cool';
       d.climate.heat = d.climate.mode === 'heat';
       d.climate.windscreen = d.climate.mode === 'windscreen';
+      if (d.climate.mode === 'off') {
+        d.climate.remainingMins = 0;
+        d.climate.stopTime = '--:--';
+        d.climate.startedAt = null;
+      }
     } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && sub.includes('cool')) {
       d.climate.cool = parseBool(val);
       if (d.climate.cool) d.climate.mode = 'cool';
@@ -6886,11 +6915,8 @@ class OutlanderPhevCard extends HTMLElement {
       clim.stopTime = '--:--';
       clim.startedAt = null;
 
-      this._mqtt.publish('set/climate/state', 'off');
       this._mqtt.publish('set/climate/mode', 'off');
-      this._mqtt.publish('set/climate/off', '0');
-      this._mqtt.publish(`set/climate/${targetMode}`, '0');
-      this._mqtt.publish('set/register/13', '01');
+      this._mqtt.publish('set/climate/state', 'off');
     } else {
       clim.mode = targetMode;
       clim.cool = targetMode === 'cool';
@@ -6902,14 +6928,8 @@ class OutlanderPhevCard extends HTMLElement {
       const finish = new Date(Date.now() + dur * 60 * 1000);
       clim.stopTime = `~${finish.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}`;
 
+      this._mqtt.publish('set/climate/duration', String(dur));
       this._mqtt.publish('set/climate/mode', targetMode);
-      this._mqtt.publish(`set/climate/${targetMode}`, String(dur));
-      this._mqtt.publish('set/climate/state', 'on');
-
-      const stateHex = targetMode === 'cool' ? '01' : (targetMode === 'windscreen' ? '03' : '02');
-      const durHex = dur === 30 ? '02' : (dur === 20 ? '01' : '00');
-      const delHex = clim.delay === '10' ? '02' : (clim.delay === '5' ? '01' : '00');
-      this._mqtt.publish('set/register/1b', `02${stateHex}${durHex}${delHex}`);
     }
     this._updateState();
   }
