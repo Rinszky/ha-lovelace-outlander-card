@@ -687,43 +687,13 @@ export class PhevMqttManager {
           d.climate.remainingMins = 0;
           d.climate.stopTime = '--:--';
           d.climate.startedAt = null;
-        } else if (st === 1 || st === 2) {
-          d.climate.mode = st === 1 ? 'cool' : 'heat';
-          d.climate.cool = st === 1;
-          d.climate.heat = st === 2;
-          if (d.climate.remainingMins <= 0 || !d.climate.startedAt) {
-            d.climate.startedAt = d.climate.startedAt || Date.now();
-            const dur = parseInt(d.climate.duration || '10', 10);
-            d.climate.remainingMins = dur;
-            const finish = new Date(Date.now() + dur * 60 * 1000);
-            d.climate.stopTime = `~${finish.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}`;
-          }
         }
       }
     }
 
     // Register 0x1c / 28: AC Mode
     else if (reg === '1c' || reg === '28') {
-      if (clean.length >= 2) {
-        const bytes = toBytes(clean);
-        const modeVal = bytes[0];
-        if (modeVal === 1) {
-          d.climate.mode = 'cool';
-          d.climate.cool = true;
-          d.climate.heat = false;
-          d.climate.windscreen = false;
-        } else if (modeVal === 2) {
-          d.climate.mode = 'heat';
-          d.climate.heat = true;
-          d.climate.cool = false;
-          d.climate.windscreen = false;
-        } else if (modeVal === 3) {
-          d.climate.mode = 'windscreen';
-          d.climate.windscreen = true;
-          d.climate.cool = false;
-          d.climate.heat = false;
-        }
-      }
+      // Vehicle ETACS memory mode setting; do not override live climate operational state
     }
 
     // Register 0x1e / 30: Charge Plug Status
@@ -832,10 +802,6 @@ export class PhevMqttManager {
       const n = parseFloat(val);
       if (Number.isFinite(n)) {
         d.climate.remainingMins = Math.max(0, Math.round(n));
-        if (d.climate.remainingMins > 0) {
-          const finish = new Date(Date.now() + d.climate.remainingMins * 60 * 1000);
-          d.climate.stopTime = `~${finish.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}`;
-        }
       }
     } else if (sub.includes('climate') && (sub.includes('stop') || sub.includes('completion'))) {
       d.climate.stopTime = val;
