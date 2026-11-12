@@ -662,20 +662,24 @@ export class PhevMqttManager {
       }
     }
 
-    // Register 0x1d / 29: Battery SOC & Park Lights
-    else if (reg === '1d' || reg === '29') {
+    // Register 0x1d: Battery SOC & Park Lights
+    else if (reg === '1d') {
       if (clean.length >= 2) {
         const bytes = toBytes(clean);
         const soc = bytes[0];
-        if (soc >= 0 && soc <= 100) d.battery.soc = soc;
+        if (soc > 0 && soc <= 100) {
+          d.battery.soc = soc;
+        } else if (soc === 0 && (!d.battery.soc || d.battery.soc <= 5)) {
+          d.battery.soc = 0;
+        }
         if (bytes.length >= 3) {
           d.lights.parklights = bytes[2] === 1;
         }
       }
     }
 
-    // Register 0x10 / 16: AC Status
-    else if (reg === '10' || reg === '16') {
+    // Register 0x10: AC Status
+    else if (reg === '10') {
       if (clean.length >= 2) {
         const bytes = toBytes(clean);
         const st = bytes[0];
@@ -691,13 +695,13 @@ export class PhevMqttManager {
       }
     }
 
-    // Register 0x1c / 28: AC Mode
-    else if (reg === '1c' || reg === '28') {
+    // Register 0x1c: AC Mode
+    else if (reg === '1c') {
       // Vehicle ETACS memory mode setting; do not override live climate operational state
     }
 
-    // Register 0x1e / 30: Charge Plug Status
-    else if (reg === '1e' || reg === '30') {
+    // Register 0x1e: Charge Plug Status
+    else if (reg === '1e') {
       if (clean.length >= 4) {
         const bytes = toBytes(clean);
         const connected = bytes[1] === 1 || bytes[1] === 2 || bytes[0] > 0;
@@ -712,8 +716,8 @@ export class PhevMqttManager {
       }
     }
 
-    // Register 0x1f / 31: Charging Status & Remaining Time
-    else if (reg === '1f' || reg === '31') {
+    // Register 0x1f: Charging Status & Remaining Time
+    else if (reg === '1f') {
       if (clean.length >= 2) {
         const bytes = toBytes(clean);
         d.battery.charging = bytes[0] > 0;
@@ -729,8 +733,8 @@ export class PhevMqttManager {
       }
     }
 
-    // Register 0x24 / 36: Door & Lock Status
-    else if (reg === '24' || reg === '36') {
+    // Register 0x24: Door & Lock Status
+    else if (reg === '24') {
       if (clean.length >= 2) {
         const bytes = toBytes(clean);
         const rawLocked = bytes[0] === 1;
@@ -747,8 +751,8 @@ export class PhevMqttManager {
       }
     }
 
-    // Register 0x15 / 21: VIN & Smartphone registrations
-    else if (reg === '15' || reg === '21') {
+    // Register 0x15: VIN & Smartphone registrations
+    else if (reg === '15') {
       if (clean.length >= 38) {
         const bytes = toBytes(clean);
         let ascii = '';
@@ -810,7 +814,13 @@ export class PhevMqttManager {
     // Battery & Charging
     else if ((sub.includes('battery') && (sub.includes('level') || sub.includes('soc'))) || sub === 'battery') {
       const n = parseFloat(val);
-      if (Number.isFinite(n)) d.battery.soc = Math.max(0, Math.min(100, Math.round(n)));
+      if (Number.isFinite(n) && n >= 0 && n <= 100) {
+        if (n === 0 && d.battery.soc > 15) {
+          // Ignore transient 0% drop
+        } else {
+          d.battery.soc = Math.round(n);
+        }
+      }
     } else if (sub === 'charge/charging' || sub === 'battery/charging' || sub === 'charging') {
       d.battery.charging = parseBool(val);
       if (d.battery.charging) d.battery.plugged = true;
