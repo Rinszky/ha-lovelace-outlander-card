@@ -257,9 +257,17 @@ export class OutlanderPhevCard extends HTMLElement {
       if (!this._autoDiscoveredCache) {
         this._autoDiscoveredCache = autoDiscoverPhevEntities(this._hass);
       }
-      return { ...this._autoDiscoveredCache, ...(this._config || {}) };
+      const resolved = { ...this._autoDiscoveredCache, ...(this._config || {}) };
+      if (String(resolved.battery_entity || '').toLowerCase().includes('raw')) {
+        resolved.battery_entity = this._autoDiscoveredCache.battery_entity;
+      }
+      return resolved;
     }
-    return this._config || {};
+    const resolved = { ...(this._config || {}) };
+    if (String(resolved.battery_entity || '').toLowerCase().includes('raw')) {
+      delete resolved.battery_entity;
+    }
+    return resolved;
   }
 
   _getState(entityId) {

@@ -475,6 +475,8 @@ export function autoDiscoverPhevEntities(hass) {
   const result = {
     battery_entity: pick(['sensor'], (id, fn, st) =>
       (id.includes('battery_level') || /\bbattery\b/.test(fn) || id.endsWith('_battery')) &&
+      !id.includes('raw') &&
+      !fn.includes('raw') &&
       !id.includes('charge') &&
       !id.includes('charging') &&
       (st.attributes?.unit_of_measurement === '%' || st.attributes?.device_class === 'battery')

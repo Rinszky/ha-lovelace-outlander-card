@@ -155,7 +155,7 @@ const TRANSLATIONS = {
     ed_conn_mode_entities: '📋 Csak Home Assistant entitások (Hagyományos mód)',
     ed_mqtt_prefix: 'MQTT téma előtag (Topic prefix)',
     ed_mqtt_vin: 'Jármű VIN alvázszám (opc. szűrés)',
-    ed_mqtt_url: 'Közvetlen WebSocket MQTT URL (pl. wss://mqtt.lorinszkym.synology.me/mqtt)',
+    ed_mqtt_url: 'Közvetlen WebSocket MQTT URL (pl. wss://mqtt.lorinszkym.synology.me:443/mqtt)',
     ed_mqtt_user: 'MQTT Felhasználónév (opcionális)',
     ed_mqtt_pass: 'MQTT Jelszó (opcionális)',
     mqtt_connected: 'MQTT Kapcsolódva',
@@ -419,7 +419,7 @@ const TRANSLATIONS = {
     ed_conn_mode_entities: '📋 Home Assistant Entities Only (Legacy)',
     ed_mqtt_prefix: 'MQTT Topic Prefix',
     ed_mqtt_vin: 'Vehicle VIN (optional filter)',
-    ed_mqtt_url: 'Direct WebSocket MQTT URL (e.g. wss://mqtt.lorinszkym.synology.me/mqtt)',
+    ed_mqtt_url: 'Direct WebSocket MQTT URL (e.g. wss://mqtt.lorinszkym.synology.me:443/mqtt)',
     ed_mqtt_user: 'MQTT Username (optional)',
     ed_mqtt_pass: 'MQTT Password (optional)',
     mqtt_connected: 'MQTT Connected',
@@ -1018,6 +1018,8 @@ function autoDiscoverPhevEntities(hass) {
   const result = {
     battery_entity: pick(['sensor'], (id, fn, st) =>
       (id.includes('battery_level') || /\bbattery\b/.test(fn) || id.endsWith('_battery')) &&
+      !id.includes('raw') &&
+      !fn.includes('raw') &&
       !id.includes('charge') &&
       !id.includes('charging') &&
       (st.attributes?.unit_of_measurement === '%' || st.attributes?.device_class === 'battery')
@@ -1893,6 +1895,7 @@ class PhevMqttManager {
       },
       climate: {
         mode: 'off',
+        state: 'off',
         cool: false,
         heat: false,
         windscreen: false,
@@ -2013,16 +2016,7 @@ class PhevMqttManager {
         this.connecting = false;
         this.card._updateMqttStatus?.('connected');
 
-        const prefix = (this.config.mqtt_topic_prefix || 'phev').replace(/\/+$/, '');
-        const patterns = new Set([`${prefix}/#`, 'phev/#']);
-        if (this.config.mqtt_vin) {
-          const vin = this.config.mqtt_vin.trim();
-          patterns.add(`${vin}/#`);
-          patterns.add(`phev/${vin}/#`);
-        }
-        for (const p of patterns) {
-          this.wsClient.subscribe(p);
-        }
+        this.wsClient.subscribe(`${this._topicPrefix()}/#`);
 
         // Trigger refresh
         setTimeout(() => {
@@ -2059,7 +2053,7 @@ class PhevMqttManager {
     this.connecting = true;
     this.card._updateMqttStatus?.('connecting');
 
-    const prefix = (this.config.mqtt_topic_prefix || 'phev').replace(/\/+$/, '');
+    const prefix = this._topicPrefix();
     const topicPattern = `${prefix}/#`;
 
     try {
@@ -2075,19 +2069,6 @@ class PhevMqttManager {
       this.connected = true;
       this.connecting = false;
       this.card._updateMqttStatus?.('connected');
-
-      // Also subscribe to VIN prefix if provided
-      if (this.config.mqtt_vin) {
-        const vin = this.config.mqtt_vin.trim();
-        if (vin !== prefix) {
-          try {
-            await this.hass.connection.subscribeMessage(
-              (msg) => this._handleMqttPacket(msg.topic, msg.payload),
-              { type: 'mqtt/subscribe', topic: `${vin}/#` }
-            );
-          } catch (_) {}
-        }
-      }
 
       // Request vehicle dump
       setTimeout(() => {
@@ -2120,16 +2101,13 @@ class PhevMqttManager {
   }
 
   publish(subTopic, payload, retain = false) {
-    const prefix = (this.config.mqtt_topic_prefix || this.config.mqtt_vin || 'phev').replace(/\/+$/, '');
+    const prefix = this._topicPrefix();
     const cleanSub = subTopic.replace(/^\/+/, '');
     const fullTopic = `${prefix}/${cleanSub}`;
     const payloadStr = typeof payload === 'object' ? JSON.stringify(payload) : String(payload);
 
     if (this.wsClient && this.wsClient.connected) {
       this.wsClient.publish(fullTopic, payloadStr, retain);
-      if (this.config.mqtt_vin && prefix === 'phev') {
-        this.wsClient.publish(`${this.config.mqtt_vin}/${cleanSub}`, payloadStr, retain);
-      }
       return;
     }
 
@@ -2140,15 +2118,13 @@ class PhevMqttManager {
         qos: 1,
         retain,
       });
-      if (this.config.mqtt_vin && prefix === 'phev') {
-        this.hass.callService('mqtt', 'publish', {
-          topic: `${this.config.mqtt_vin}/${cleanSub}`,
-          payload: payloadStr,
-          qos: 1,
-          retain,
-        });
-      }
     }
+  }
+
+  _topicPrefix() {
+    const configured = (this.config.mqtt_topic_prefix || 'phev').replace(/^\/+|\/+$/g, '');
+    const vin = String(this.config.mqtt_vin || '').trim();
+    return configured === 'phev' && vin ? `${configured}/${vin}` : configured;
   }
 
   _decodeRegister(regId, hexVal) {
@@ -2387,9 +2363,12 @@ class PhevMqttManager {
         d.battery.plugged = true;
       } else if (low.includes('connected')) {
         d.battery.plugged = true;
+        d.battery.charging = false;
+        d.diagnostics.waitingForTimer = low === 'connected_waiting';
       } else if (low === 'unplugged') {
         d.battery.plugged = false;
         d.battery.charging = false;
+        d.diagnostics.waitingForTimer = false;
         d.battery.remainingMins = 0;
         d.battery.completionTime = null;
       }
@@ -2446,7 +2425,7 @@ class PhevMqttManager {
     } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate/operating' || sub === 'climate_operating')) {
       const isOp = parseBool(val);
       d.climate.operating = isOp;
-      if (!isOp) {
+      if (!isOp && !['starting', 'delayed'].includes(d.climate.state)) {
         d.climate.mode = 'off';
         d.climate.cool = false;
         d.climate.heat = false;
@@ -2455,13 +2434,35 @@ class PhevMqttManager {
         d.climate.stopTime = '--:--';
         d.climate.startedAt = null;
       }
-    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub.includes('climate_state') || sub === 'climate' || sub === 'climate/state' || sub === 'climate/mode')) {
-      const m = val.toLowerCase();
-      d.climate.mode = m === '0' || m === 'off' ? 'off' : m;
-      d.climate.cool = d.climate.mode === 'cool';
-      d.climate.heat = d.climate.mode === 'heat';
-      d.climate.windscreen = d.climate.mode === 'windscreen';
-      if (d.climate.mode === 'off') {
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub.includes('climate_state') || sub === 'climate/state')) {
+      const state = val.toLowerCase();
+      d.climate.state = state;
+      if (['heat', 'cool', 'windscreen'].includes(state)) {
+        d.climate.mode = state;
+        d.climate.cool = state === 'cool';
+        d.climate.heat = state === 'heat';
+        d.climate.windscreen = state === 'windscreen';
+      } else if (['0', 'off', 'terminated', 'unknown'].includes(state)) {
+        d.climate.mode = 'off';
+        d.climate.cool = false;
+        d.climate.heat = false;
+        d.climate.windscreen = false;
+        d.climate.remainingMins = 0;
+        d.climate.stopTime = '--:--';
+        d.climate.startedAt = null;
+      }
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate' || sub === 'climate/mode')) {
+      const mode = val.toLowerCase();
+      if (['heat', 'cool', 'windscreen'].includes(mode)) {
+        d.climate.mode = mode;
+        d.climate.cool = mode === 'cool';
+        d.climate.heat = mode === 'heat';
+        d.climate.windscreen = mode === 'windscreen';
+      } else if (['0', 'off', 'terminated', 'unknown'].includes(mode)) {
+        d.climate.mode = 'off';
+        d.climate.cool = false;
+        d.climate.heat = false;
+        d.climate.windscreen = false;
         d.climate.remainingMins = 0;
         d.climate.stopTime = '--:--';
         d.climate.startedAt = null;
@@ -6222,7 +6223,7 @@ class OutlanderPhevCardEditor extends HTMLElement {
 
             <div class="field-row" id="row-mqtt-url">
               <label class="field-label">${localize(lang, 'ed_mqtt_url')}</label>
-              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.lorinszkym.synology.me/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
+              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.lorinszkym.synology.me:443/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
             </div>
 
             <div class="field-grid-2" id="grid-mqtt-auth">
@@ -6417,6 +6418,9 @@ class OutlanderPhevCardEditor extends HTMLElement {
           if (this._hass?.states) {
             Object.values(this._hass.states)
               .filter((st) => field.domains.includes(st.entity_id.split('.')[0]))
+              .filter((st) => field.key !== 'battery_entity' ||
+                (!st.entity_id.toLowerCase().includes('raw') &&
+                  !String(st.attributes?.friendly_name || '').toLowerCase().includes('raw')))
               .forEach((st) => {
                 const opt = document.createElement('option');
                 opt.value = st.entity_id;
@@ -6854,9 +6858,17 @@ class OutlanderPhevCard extends HTMLElement {
       if (!this._autoDiscoveredCache) {
         this._autoDiscoveredCache = autoDiscoverPhevEntities(this._hass);
       }
-      return { ...this._autoDiscoveredCache, ...(this._config || {}) };
+      const resolved = { ...this._autoDiscoveredCache, ...(this._config || {}) };
+      if (String(resolved.battery_entity || '').toLowerCase().includes('raw')) {
+        resolved.battery_entity = this._autoDiscoveredCache.battery_entity;
+      }
+      return resolved;
     }
-    return this._config || {};
+    const resolved = { ...(this._config || {}) };
+    if (String(resolved.battery_entity || '').toLowerCase().includes('raw')) {
+      delete resolved.battery_entity;
+    }
+    return resolved;
   }
 
   _getState(entityId) {

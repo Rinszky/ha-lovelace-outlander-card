@@ -337,6 +337,7 @@ export class PhevMqttManager {
       },
       climate: {
         mode: 'off',
+        state: 'off',
         cool: false,
         heat: false,
         windscreen: false,
@@ -457,16 +458,7 @@ export class PhevMqttManager {
         this.connecting = false;
         this.card._updateMqttStatus?.('connected');
 
-        const prefix = (this.config.mqtt_topic_prefix || 'phev').replace(/\/+$/, '');
-        const patterns = new Set([`${prefix}/#`, 'phev/#']);
-        if (this.config.mqtt_vin) {
-          const vin = this.config.mqtt_vin.trim();
-          patterns.add(`${vin}/#`);
-          patterns.add(`phev/${vin}/#`);
-        }
-        for (const p of patterns) {
-          this.wsClient.subscribe(p);
-        }
+        this.wsClient.subscribe(`${this._topicPrefix()}/#`);
 
         // Trigger refresh
         setTimeout(() => {
@@ -503,7 +495,7 @@ export class PhevMqttManager {
     this.connecting = true;
     this.card._updateMqttStatus?.('connecting');
 
-    const prefix = (this.config.mqtt_topic_prefix || 'phev').replace(/\/+$/, '');
+    const prefix = this._topicPrefix();
     const topicPattern = `${prefix}/#`;
 
     try {
@@ -519,19 +511,6 @@ export class PhevMqttManager {
       this.connected = true;
       this.connecting = false;
       this.card._updateMqttStatus?.('connected');
-
-      // Also subscribe to VIN prefix if provided
-      if (this.config.mqtt_vin) {
-        const vin = this.config.mqtt_vin.trim();
-        if (vin !== prefix) {
-          try {
-            await this.hass.connection.subscribeMessage(
-              (msg) => this._handleMqttPacket(msg.topic, msg.payload),
-              { type: 'mqtt/subscribe', topic: `${vin}/#` }
-            );
-          } catch (_) {}
-        }
-      }
 
       // Request vehicle dump
       setTimeout(() => {
@@ -564,16 +543,13 @@ export class PhevMqttManager {
   }
 
   publish(subTopic, payload, retain = false) {
-    const prefix = (this.config.mqtt_topic_prefix || this.config.mqtt_vin || 'phev').replace(/\/+$/, '');
+    const prefix = this._topicPrefix();
     const cleanSub = subTopic.replace(/^\/+/, '');
     const fullTopic = `${prefix}/${cleanSub}`;
     const payloadStr = typeof payload === 'object' ? JSON.stringify(payload) : String(payload);
 
     if (this.wsClient && this.wsClient.connected) {
       this.wsClient.publish(fullTopic, payloadStr, retain);
-      if (this.config.mqtt_vin && prefix === 'phev') {
-        this.wsClient.publish(`${this.config.mqtt_vin}/${cleanSub}`, payloadStr, retain);
-      }
       return;
     }
 
@@ -584,15 +560,13 @@ export class PhevMqttManager {
         qos: 1,
         retain,
       });
-      if (this.config.mqtt_vin && prefix === 'phev') {
-        this.hass.callService('mqtt', 'publish', {
-          topic: `${this.config.mqtt_vin}/${cleanSub}`,
-          payload: payloadStr,
-          qos: 1,
-          retain,
-        });
-      }
     }
+  }
+
+  _topicPrefix() {
+    const configured = (this.config.mqtt_topic_prefix || 'phev').replace(/^\/+|\/+$/g, '');
+    const vin = String(this.config.mqtt_vin || '').trim();
+    return configured === 'phev' && vin ? `${configured}/${vin}` : configured;
   }
 
   _decodeRegister(regId, hexVal) {
@@ -831,9 +805,12 @@ export class PhevMqttManager {
         d.battery.plugged = true;
       } else if (low.includes('connected')) {
         d.battery.plugged = true;
+        d.battery.charging = false;
+        d.diagnostics.waitingForTimer = low === 'connected_waiting';
       } else if (low === 'unplugged') {
         d.battery.plugged = false;
         d.battery.charging = false;
+        d.diagnostics.waitingForTimer = false;
         d.battery.remainingMins = 0;
         d.battery.completionTime = null;
       }
@@ -890,7 +867,7 @@ export class PhevMqttManager {
     } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate/operating' || sub === 'climate_operating')) {
       const isOp = parseBool(val);
       d.climate.operating = isOp;
-      if (!isOp) {
+      if (!isOp && !['starting', 'delayed'].includes(d.climate.state)) {
         d.climate.mode = 'off';
         d.climate.cool = false;
         d.climate.heat = false;
@@ -899,13 +876,35 @@ export class PhevMqttManager {
         d.climate.stopTime = '--:--';
         d.climate.startedAt = null;
       }
-    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub.includes('climate_state') || sub === 'climate' || sub === 'climate/state' || sub === 'climate/mode')) {
-      const m = val.toLowerCase();
-      d.climate.mode = m === '0' || m === 'off' ? 'off' : m;
-      d.climate.cool = d.climate.mode === 'cool';
-      d.climate.heat = d.climate.mode === 'heat';
-      d.climate.windscreen = d.climate.mode === 'windscreen';
-      if (d.climate.mode === 'off') {
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub.includes('climate_state') || sub === 'climate/state')) {
+      const state = val.toLowerCase();
+      d.climate.state = state;
+      if (['heat', 'cool', 'windscreen'].includes(state)) {
+        d.climate.mode = state;
+        d.climate.cool = state === 'cool';
+        d.climate.heat = state === 'heat';
+        d.climate.windscreen = state === 'windscreen';
+      } else if (['0', 'off', 'terminated', 'unknown'].includes(state)) {
+        d.climate.mode = 'off';
+        d.climate.cool = false;
+        d.climate.heat = false;
+        d.climate.windscreen = false;
+        d.climate.remainingMins = 0;
+        d.climate.stopTime = '--:--';
+        d.climate.startedAt = null;
+      }
+    } else if (!sub.startsWith('set/') && !sub.endsWith('/set') && (sub === 'climate' || sub === 'climate/mode')) {
+      const mode = val.toLowerCase();
+      if (['heat', 'cool', 'windscreen'].includes(mode)) {
+        d.climate.mode = mode;
+        d.climate.cool = mode === 'cool';
+        d.climate.heat = mode === 'heat';
+        d.climate.windscreen = mode === 'windscreen';
+      } else if (['0', 'off', 'terminated', 'unknown'].includes(mode)) {
+        d.climate.mode = 'off';
+        d.climate.cool = false;
+        d.climate.heat = false;
+        d.climate.windscreen = false;
         d.climate.remainingMins = 0;
         d.climate.stopTime = '--:--';
         d.climate.startedAt = null;

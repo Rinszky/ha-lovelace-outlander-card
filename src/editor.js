@@ -323,7 +323,7 @@ export class OutlanderPhevCardEditor extends HTMLElement {
 
             <div class="field-row" id="row-mqtt-url">
               <label class="field-label">${localize(lang, 'ed_mqtt_url')}</label>
-              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.lorinszkym.synology.me/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
+              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.lorinszkym.synology.me:443/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
             </div>
 
             <div class="field-grid-2" id="grid-mqtt-auth">
@@ -518,6 +518,9 @@ export class OutlanderPhevCardEditor extends HTMLElement {
           if (this._hass?.states) {
             Object.values(this._hass.states)
               .filter((st) => field.domains.includes(st.entity_id.split('.')[0]))
+              .filter((st) => field.key !== 'battery_entity' ||
+                (!st.entity_id.toLowerCase().includes('raw') &&
+                  !String(st.attributes?.friendly_name || '').toLowerCase().includes('raw')))
               .forEach((st) => {
                 const opt = document.createElement('option');
                 opt.value = st.entity_id;
