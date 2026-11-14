@@ -2395,7 +2395,7 @@ class PhevMqttManager {
       const low = val.toLowerCase().trim();
       let isL = low === 'closed' || low === 'locked' || low === '1' || low === 'off';
       d.doors.locked = Boolean(this.config.invert_lock ? !isL : isL);
-    } else if (sub.includes('door_driver') || sub.includes('driver_door')) {
+    } else if (sub === 'door/driver' || sub.includes('door_driver') || sub.includes('driver_door')) {
       d.doors.driver = parseBool(val);
     } else if (sub.includes('passenger')) {
       d.doors.passenger = parseBool(val);
