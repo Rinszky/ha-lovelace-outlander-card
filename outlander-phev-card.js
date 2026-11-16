@@ -145,6 +145,8 @@ const TRANSLATIONS = {
     ed_interactive_car: 'Interaktív érintési zónák engedélyezése az autón',
     ed_confirm_wifi: 'Megerősítés kérése Wi-Fi újraindítás előtt',
     ed_invert_lock: 'Zár állapotának megfordítása (ha ellentétesen jelez)',
+    ed_simulate_esp32: 'GPS & OBD2 Szimuláció (ESP32 demó adatok)',
+    ed_simulate_esp32_sub: 'Térkép pozíció és OBD2 akkumulátor diagnosztika megjelenítése teszt adatokkal (Raspberry Pi esetén is)',
 
     // Connection & MQTT
     ed_sec_connection: 'Kapcsolódási Mód és MQTT Bróker',
@@ -409,6 +411,8 @@ const TRANSLATIONS = {
     ed_interactive_car: 'Enable interactive touch zones on car',
     ed_confirm_wifi: 'Require confirmation before Restart Wi-Fi',
     ed_invert_lock: 'Invert lock sensor polarity',
+    ed_simulate_esp32: 'GPS & OBD2 Simulation (ESP32 Demo Data)',
+    ed_simulate_esp32_sub: 'Show vehicle map position and OBD2 battery diagnostics with simulated test data (even on Raspberry Pi)',
 
     // Connection & MQTT
     ed_sec_connection: 'Connection Mode & MQTT Broker',
@@ -6361,6 +6365,13 @@ class OutlanderPhevCardEditor extends HTMLElement {
               <span class="field-label">${localize(lang, 'ed_invert_lock')}</span>
               <input type="checkbox" id="chk-invert-lock" ${cfg.invert_lock === true ? 'checked' : ''} />
             </label>
+            <label class="toggle-row" style="background:rgba(14,165,233,0.12);padding:10px 12px;border-radius:10px;border:1px solid rgba(56,189,248,0.3);margin-top:8px;">
+              <div>
+                <span class="field-label" style="color:#38bdf8;font-weight:700;">🛰️ ${localize(lang, 'ed_simulate_esp32')}</span>
+                <span style="font-size:0.7rem;color:#94a3b8;display:block;margin-top:2px;">${localize(lang, 'ed_simulate_esp32_sub')}</span>
+              </div>
+              <input type="checkbox" id="chk-simulate-esp32" ${cfg.simulate_esp32 === true ? 'checked' : ''} />
+            </label>
           </div>
         </details>
 
@@ -6542,6 +6553,10 @@ class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ invert_lock: e.target.checked });
     });
 
+    sr.getElementById('chk-simulate-esp32')?.addEventListener('change', (e) => {
+      this._emitConfig({ simulate_esp32: e.target.checked });
+    });
+
     // Connection & MQTT fields
     sr.getElementById('sel-conn-mode')?.addEventListener('change', (e) => {
       this._emitConfig({ connection_mode: e.target.value });
@@ -6597,6 +6612,11 @@ class OutlanderPhevCardEditor extends HTMLElement {
     const offDimChk = sr.getElementById('chk-offline-dim');
     if (offDimChk) {
       offDimChk.checked = this._config.offline_dimming !== false;
+    }
+
+    const simChk = sr.getElementById('chk-simulate-esp32');
+    if (simChk) {
+      simChk.checked = this._config.simulate_esp32 === true;
     }
 
     const connModeSel = sr.getElementById('sel-conn-mode');

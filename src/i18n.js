@@ -135,6 +135,8 @@ export const TRANSLATIONS = {
     ed_interactive_car: 'Interaktív érintési zónák engedélyezése az autón',
     ed_confirm_wifi: 'Megerősítés kérése Wi-Fi újraindítás előtt',
     ed_invert_lock: 'Zár állapotának megfordítása (ha ellentétesen jelez)',
+    ed_simulate_esp32: 'GPS & OBD2 Szimuláció (ESP32 demó adatok)',
+    ed_simulate_esp32_sub: 'Térkép pozíció és OBD2 akkumulátor diagnosztika megjelenítése teszt adatokkal (Raspberry Pi esetén is)',
 
     // Connection & MQTT
     ed_sec_connection: 'Kapcsolódási Mód és MQTT Bróker',
@@ -399,6 +401,8 @@ export const TRANSLATIONS = {
     ed_interactive_car: 'Enable interactive touch zones on car',
     ed_confirm_wifi: 'Require confirmation before Restart Wi-Fi',
     ed_invert_lock: 'Invert lock sensor polarity',
+    ed_simulate_esp32: 'GPS & OBD2 Simulation (ESP32 Demo Data)',
+    ed_simulate_esp32_sub: 'Show vehicle map position and OBD2 battery diagnostics with simulated test data (even on Raspberry Pi)',
 
     // Connection & MQTT
     ed_sec_connection: 'Connection Mode & MQTT Broker',

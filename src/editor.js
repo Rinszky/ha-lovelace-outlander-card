@@ -451,6 +451,13 @@ export class OutlanderPhevCardEditor extends HTMLElement {
               <span class="field-label">${localize(lang, 'ed_invert_lock')}</span>
               <input type="checkbox" id="chk-invert-lock" ${cfg.invert_lock === true ? 'checked' : ''} />
             </label>
+            <label class="toggle-row" style="background:rgba(14,165,233,0.12);padding:10px 12px;border-radius:10px;border:1px solid rgba(56,189,248,0.3);margin-top:8px;">
+              <div>
+                <span class="field-label" style="color:#38bdf8;font-weight:700;">🛰️ ${localize(lang, 'ed_simulate_esp32')}</span>
+                <span style="font-size:0.7rem;color:#94a3b8;display:block;margin-top:2px;">${localize(lang, 'ed_simulate_esp32_sub')}</span>
+              </div>
+              <input type="checkbox" id="chk-simulate-esp32" ${cfg.simulate_esp32 === true ? 'checked' : ''} />
+            </label>
           </div>
         </details>
 
@@ -632,6 +639,10 @@ export class OutlanderPhevCardEditor extends HTMLElement {
       this._emitConfig({ invert_lock: e.target.checked });
     });
 
+    sr.getElementById('chk-simulate-esp32')?.addEventListener('change', (e) => {
+      this._emitConfig({ simulate_esp32: e.target.checked });
+    });
+
     // Connection & MQTT fields
     sr.getElementById('sel-conn-mode')?.addEventListener('change', (e) => {
       this._emitConfig({ connection_mode: e.target.value });
@@ -687,6 +698,11 @@ export class OutlanderPhevCardEditor extends HTMLElement {
     const offDimChk = sr.getElementById('chk-offline-dim');
     if (offDimChk) {
       offDimChk.checked = this._config.offline_dimming !== false;
+    }
+
+    const simChk = sr.getElementById('chk-simulate-esp32');
+    if (simChk) {
+      simChk.checked = this._config.simulate_esp32 === true;
     }
 
     const connModeSel = sr.getElementById('sel-conn-mode');
