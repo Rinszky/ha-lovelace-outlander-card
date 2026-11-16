@@ -290,8 +290,9 @@ export class NativeMqttWsClient {
           pIdx += 2; // skip Packet Identifier
         }
 
+        const isRetain = Boolean(flags & 0x01);
         const payloadStr = this._decodeUtf8(bytes.subarray(pIdx, packetEnd));
-        this.callbacks.onMessage(topic, payloadStr);
+        this.callbacks.onMessage(topic, payloadStr, isRetain);
       } else if (packetType === 13) {
         // PINGRESP — Keepalive OK
       }
@@ -467,8 +468,8 @@ export class PhevMqttManager {
           this.publish('set/register/06', '03');
         }, 300);
       },
-      onMessage: (topic, payload) => {
-        this._handleMqttPacket(topic, payload);
+      onMessage: (topic, payload, isRetain = false) => {
+        this._handleMqttPacket(topic, payload, isRetain);
       },
       onClose: () => {
         this.connected = false;
@@ -741,7 +742,7 @@ export class PhevMqttManager {
     }
   }
 
-  _handleMqttPacket(topic, payload) {
+  _handleMqttPacket(topic, payload, isRetain = false) {
     const rawTopic = topic.toLowerCase();
     const val = String(payload || '').trim();
     const d = this.state;
@@ -759,7 +760,21 @@ export class PhevMqttManager {
     }
 
     d.lastSeen = new Date();
-    d.connected = true;
+
+    // Connection & Availability topics
+    if (sub === 'connected' || sub === 'available' || sub === 'status') {
+      d.connected = parseBool(val);
+    } else if (!isRetain) {
+      // ONLY live, non-retained telemetry packets received over the air prove active car communication
+      const isCarTelemetry = sub.startsWith('register/') ||
+        sub.includes('battery') ||
+        sub.includes('door') ||
+        sub.includes('climate') ||
+        sub.includes('charge');
+      if (isCarTelemetry) {
+        d.connected = true;
+      }
+    }
 
     // Raw Register
     if (sub.startsWith('register/')) {
@@ -768,11 +783,6 @@ export class PhevMqttManager {
       d.battery.plugged = Boolean(d.battery.plugged || d.battery.charging);
       this.card._onMqttStateUpdated?.();
       return;
-    }
-
-    // Connection
-    if (sub === 'connected' || sub === 'available' || sub === 'status') {
-      d.connected = parseBool(val);
     }
 
     // Climate Remaining

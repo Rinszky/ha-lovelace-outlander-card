@@ -1629,7 +1629,7 @@ export class OutlanderPhevCard extends HTMLElement {
     let connText = isOnline ? localize(lang, 'connected') : localize(lang, 'disconnected');
 
     if (isMqttActive && m) {
-      isOnline = Boolean(m.connected || this._mqtt.connected);
+      isOnline = Boolean(m.connected);
       connText = isOnline ? localize(lang, 'connected') : localize(lang, 'disconnected');
     } else if (cfg.connection_mode === 'direct_mqtt' || cfg.connection_mode === 'ha_mqtt') {
       if (this._mqttStatus === 'connecting') {
