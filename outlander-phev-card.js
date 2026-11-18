@@ -157,7 +157,7 @@ const TRANSLATIONS = {
     ed_conn_mode_entities: '📋 Csak Home Assistant entitások (Hagyományos mód)',
     ed_mqtt_prefix: 'MQTT téma előtag (Topic prefix)',
     ed_mqtt_vin: 'Jármű VIN alvázszám (opc. szűrés)',
-    ed_mqtt_url: 'Közvetlen WebSocket MQTT URL (pl. wss://mqtt.lorinszkym.synology.me:443/mqtt)',
+    ed_mqtt_url: 'Közvetlen WebSocket MQTT URL (pl. wss://mqtt.outlanderconnect.eu/mqtt)',
     ed_mqtt_user: 'MQTT Felhasználónév (opcionális)',
     ed_mqtt_pass: 'MQTT Jelszó (opcionális)',
     mqtt_connected: 'MQTT Kapcsolódva',
@@ -423,7 +423,7 @@ const TRANSLATIONS = {
     ed_conn_mode_entities: '📋 Home Assistant Entities Only (Legacy)',
     ed_mqtt_prefix: 'MQTT Topic Prefix',
     ed_mqtt_vin: 'Vehicle VIN (optional filter)',
-    ed_mqtt_url: 'Direct WebSocket MQTT URL (e.g. wss://mqtt.lorinszkym.synology.me:443/mqtt)',
+    ed_mqtt_url: 'Direct WebSocket MQTT URL (e.g. wss://mqtt.outlanderconnect.eu/mqtt)',
     ed_mqtt_user: 'MQTT Username (optional)',
     ed_mqtt_pass: 'MQTT Password (optional)',
     mqtt_connected: 'MQTT Connected',
@@ -2928,12 +2928,8 @@ function renderOutlanderSvg(uid) {
     <path d="M 298,126 Q 276,118 264,129 Q 274,138 286,142" fill="none" stroke="url(#${uid}-chrome-grad)" stroke-width="2.6" stroke-linecap="round" />
     <!-- Front Silver Skid Plate Lip -->
     <path d="M 168,108 Q 210,104 252,108 L 246,113 Q 210,110 174,113 Z" fill="url(#${uid}-chrome-grad)" opacity="0.8" />
-    <!-- Mitsubishi Three-Diamond Nose Emblem -->
-    <g transform="translate(210, 118) scale(0.72)" fill="#e2e8f0">
-      <polygon points="0,-7 4,-1 0,5 -4,-1" />
-      <polygon points="-1,1 -8,1 -11,6 -4,6" />
-      <polygon points="1,1 8,1 11,6 4,6" />
-    </g>
+    <!-- Aerodynamic Center Nose Wing Accent -->
+    <path d="M 198,118 Q 210,121 222,118" fill="none" stroke="url(#${uid}-chrome-grad)" stroke-width="2.4" stroke-linecap="round" />
 
     <!-- Rear Silver Skid Diffuser -->
     <path d="M 156,670 Q 210,675 264,670 L 256,664 Q 210,668 164,664 Z" fill="url(#${uid}-chrome-grad)" opacity="0.65" />
@@ -6237,7 +6233,7 @@ class OutlanderPhevCardEditor extends HTMLElement {
 
             <div class="field-row" id="row-mqtt-url">
               <label class="field-label">${localize(lang, 'ed_mqtt_url')}</label>
-              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.lorinszkym.synology.me:443/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
+              <input class="ed-input" id="inp-mqtt-url" type="text" placeholder="wss://mqtt.outlanderconnect.eu/mqtt" value="${cfg.mqtt_broker_url ?? ''}" />
             </div>
 
             <div class="field-grid-2" id="grid-mqtt-auth">

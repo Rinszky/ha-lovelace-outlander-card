@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Outlander Connect PHEV — Összeszerelési és Üzembe Helyezési Útmutató</title>
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --accent-red: #dc2626;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --bg-card: #f8fafc;
+      --border-card: #cbd5e1;
+      --border-subtle: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--text-main);
+      background-color: #e2e8f0;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Print Controls (Screen Only) */
+    .screen-controls {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn-print {
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      color: #ffffff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-print:hover {
+      background: #0284c7;
+      transform: translateY(-1px);
+    }
+
+    /* A4 Page Container */
+    .document-container {
+      max-width: 210mm;
+      margin: 24px auto;
+      background: #ffffff;
+    }
+
+    .page {
+      width: 210mm;
+      min-height: 297mm;
+      padding: 18mm 16mm 16mm 16mm;
+      background: #ffffff;
+      position: relative;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      page-break-after: always;
+      break-after: page;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .page:last-child {
+      margin-bottom: 0;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+
+    /* Headers & Footers */
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 12px;
+      margin-bottom: 16px;
+    }
+
+    .brand-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: -0.5px;
+      color: var(--text-main);
+    }
+
+    .brand-title span {
+      color: var(--primary);
+    }
+
+    .brand-sub {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 2px;
+    }
+
+    .header-meta {
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    .page-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Typography */
+    h2.step-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      margin: 14px 0 8px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 50%;
+      font-size: 0.75rem;
+      font-weight: 800;
+    }
+
+    p {
+      font-size: 0.88rem;
+      color: #334155;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    /* Cards & Grids */
+    .info-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .alert-danger {
+      background: #fef2f2;
+      border: 1px solid #f87171;
+      border-left: 4px solid var(--accent-red);
+      color: #991b1b;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 0.84rem;
+    }
+
+    .alert-tip {
+      background: #eff6ff;
+      border: 1px solid #93c5fd;
+      border-left: 4px solid var(--primary);
+      color: #1e40af;
+      padding: 10px 14px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+      font-size: 0.84rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .option-card {
+      border-radius: 8px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-card);
+    }
+
+    .option-card.option-a {
+      background: #f0f9ff;
+      border-color: #bae6fd;
+    }
+
+    .option-card.option-b {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+    }
+
+    .option-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    /* Tables */
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 14px 0;
+      font-size: 0.82rem;
+    }
+
+    table.data-table th, table.data-table td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 10px;
+      text-align: left;
+    }
+
+    table.data-table th {
+      background: #0f172a;
+      color: #ffffff;
+      font-weight: 700;
+    }
+
+    table.data-table tr:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    ul.bullet-list {
+      padding-left: 18px;
+      margin-bottom: 8px;
+      font-size: 0.86rem;
+      color: #334155;
+    }
+
+    ul.bullet-list li {
+      margin-bottom: 4px;
+    }
+
+    .contact-box {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.84rem;
+    }
+
+    /* Print Stylesheet */
+    @media print {
+      body {
+        background: #ffffff;
+      }
+      .screen-controls {
+        display: none !important;
+      }
+      .document-container {
+        margin: 0;
+        max-width: 100%;
+      }
+      .page {
+        margin: 0;
+        box-shadow: none;
+        padding: 10mm 13mm 10mm 13mm;
+        width: 210mm;
+        height: 297mm;
+        max-height: 297mm;
+        overflow: hidden;
+        page-break-inside: avoid;
+        break-inside: avoid;
+      }
+      @page {
+        size: A4;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Screen-only Print Bar -->
+  <div class="screen-controls">
+    <div>
+      <strong>Outlander Connect PHEV</strong> &bull; Nyomtatható Összeszerelési Útmutató (PDF / A4)
+    </div>
+    <button type="button" class="btn-print" onclick="window.print()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+      <span>Nyomtatás / Mentés PDF-ként</span>
+    </button>
+  </div>
+
+  <div class="document-container">
+
+    <!-- ===================================================================
+         PAGE 1: CSOMAG TARTALMA & TÁPELLÁTÁS
+         =================================================================== -->
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div style="font-size: 0.72rem; font-weight: 800; color: var(--primary); letter-spacing: 1px; text-transform: uppercase;">Mitsubishi Outlander PHEV (2013–2022)</div>
+          <div style="display: flex; align-items: center; gap: 12px; margin-top: 4px;">
+            <img src="data:image/png;base64,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" style="width: 44px; height: 44px; border-radius: 11px; box-shadow: 0 4px 12px rgba(0,240,255,0.25); border: 1px solid rgba(56,189,248,0.3);" alt="Logo" />
+            <div>
+              <div class="brand-title" style="margin-bottom: 0;">OUTLANDER<span>CONNECT</span></div>
+              <div class="brand-sub">Gyors Üzembe Helyezési & Összeszerelési Útmutató</div>
+            </div>
+          </div>
+        </div>
+        <div class="header-meta">
+          <strong>Dokumentum:</strong> v1.3 HU<br>
+          <strong>Kiadás:</strong> 2026. November<br>
+          <strong>Támogatás:</strong> info@outlanderconnect.eu
+        </div>
+      </div>
+
+      <p>
+        <strong>Köszönjük, hogy az Outlander Connect rendszert választottad!</strong> Ez a használati útmutató lépésről lépésre végigvezet a modul fizikai elhelyezésén, az autó fedélzeti WiFi-jéhez és a vezeték nélküli Bluetooth-os OBD-II adapteréhez való csatlakoztatásán, valamint a mobilalkalmazással történő párosításon. A rendszer <strong>100%-ban vezeték nélkül és kábelvágás nélkül</strong> működik, szakszerviz nem szükséges a beüzemeléshez.
+      </p>
+
+      <div class="info-card">
+        <strong style="font-size: 0.92rem; color: #0f172a;">📦 A doboz tartalma:</strong>
+        <div style="margin-top: 6px; font-size: 0.85rem; line-height: 1.6;">
+          <strong>1.</strong> Outlander Connect intelligens fedélzeti modul (3D nyomtatott kompakt védőházban)<br>
+          <strong>2.</strong> 12V-os sarus tápkábel beépített lengőbiztosítékkal és akkuvédelemmel („A” opció)<br>
+          <strong>3.</strong> USB-C szivargyújtós / powerbank tápkábel („B” opció)<br>
+          <strong>4.</strong> Dobozcímke egyedi QR kóddal, alvázszámmal (VIN) és 6 jegyű párosítási kóddal<br>
+          <em style="color:#64748b;">Megjegyzés: A telemetria kiolvasásához egy szabványos Bluetooth-os OBD-II olvasó szükséges (részletek a 2. lépésnél).</em>
+        </div>
+      </div>
+
+      <div class="alert-danger">
+        <strong>⚠️ FONTOS BIZTONSÁGI TUDNIVALÓK:</strong><br>
+        &bull; A beszerelés és bekötés megkezdése előtt <strong>mindig kapcsold le a jármű gyújtását</strong> (a műszerfalon NE világítson a READY felirat)!<br>
+        &bull; Soha ne vágd el vagy bontsd meg az autó gyári kábelkorbácsát – a rendszer nem igényel semmilyen gyári megbontást.<br>
+        &bull; A modul kizárólag a 12V-os segédrendszert használja, a nagyfeszültségű hajtóakkumulátort közvetlenül nem érinti.
+      </div>
+
+      <h2 class="step-title">
+        <span class="step-badge">1</span>
+        1. LÉPÉS — Tápellátás kiválasztása és bekötése
+      </h2>
+      <p>Válassz az alábbi két tápellátási megoldás közül a használati szokásaidnak megfelelően:</p>
+
+      <div class="grid-2">
+        <div class="option-card option-a">
+          <div class="option-title" style="color: #0369a1;">„A” LEHETŐSÉG — Fix bekötés a 12V-os kisaksira<br><small style="color: #0284c7;">[AJÁNLOTT, VÉGLEGES MEGOLDÁS]</small></div>
+          <p style="font-size: 0.82rem; margin-bottom: 6px;"><strong>Hova csatlakozik?</strong> A csomagtartó jobb oldalán lévő fedél mögötti 12V-os segédakkumulátorra (nem a motortérbe!).</p>
+          <ul class="bullet-list" style="font-size: 0.8rem;">
+            <li>Vedd le a csomagtartó jobb oldali rekeszfedelét.</li>
+            <li>Lazítsd meg a 10-es kulccsal az akkumulátor saruinak anyáit.</li>
+            <li>Csatlakoztasd a <strong>PIROS (+)</strong> sarut az akkumulátor pozitív pólusára.</li>
+            <li>Csatlakoztasd a <strong>FEKETE (-)</strong> sarut a negatív pólusra vagy a testcsavarra.</li>
+            <li>Húzd meg az anyákat, és dugd be a tápkábelt a modul <strong>12V IN</strong> portjába.</li>
+          </ul>
+          <p style="font-size: 0.78rem; color: #0369a1; margin-top: 6px; font-weight: 600;">
+            ✓ 24/7 állandó elérés (előfűtés lakásból bármikor indítható)<br>
+            ✓ Beépített mélykisülés-védelem (11.8V alatt magától lekapcsol)
+          </p>
+        </div>
+
+        <div class="option-card option-b">
+          <div class="option-title" style="color: #065f46;">„B” LEHETŐSÉG — Szivargyújtó / Powerbank<br><small style="color: #059669;">[GYORS, HORDOZHATÓ MEGOLDÁS]</small></div>
+          <p style="font-size: 0.82rem; margin-bottom: 6px;"><strong>Hova csatlakozik?</strong> Bármelyik 12V-os szivargyújtó aljzathoz vagy USB powerbankhez.</p>
+          <ul class="bullet-list" style="font-size: 0.8rem;">
+            <li>Dugd be a mellékelt adaptert az autó szivargyújtójába (pl. középkonzol vagy csomagtartó).</li>
+            <li>Csatlakoztasd a mellékelt USB-C kábelt az Outlander Connect modul <strong>POWER</strong> portjához.</li>
+            <li>Powerbank használata esetén min. 10.000 mAh-s külső akkut javaslunk 5V/2A kimenettel.</li>
+          </ul>
+          <p style="font-size: 0.78rem; color: #991b1b; margin-top: 6px;">
+            <strong>Figyelem:</strong> Az Outlander szivargyújtó aljzatai alapból csak bekapcsolt gyújtásnál kapnak áramot! Álló helyzeti reggeli előfűtéshez az „A” opciót vagy powerbanket javaslunk.
+          </p>
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>Outlander Connect PHEV Használati Útmutató</span>
+        <span>1. oldal / 4</span>
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         PAGE 2: BLUETOOTH OBD CSATLAKOZÁS & AUTÓ WIFI BEÁLLÍTÁS
+         =================================================================== -->
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="brand-title">OUTLANDER<span>CONNECT</span></div>
+          <div class="brand-sub">Vezeték Nélküli Bluetooth OBD-II és Gyári WiFi</div>
+        </div>
+        <div class="header-meta">
+          <strong>Modul:</strong> Hardware V1.0<br>
+          <strong>Kapcsolat:</strong> BLE 4.0 / WiFi 802.11bgn
+        </div>
+      </div>
+
+      <h2 class="step-title">
+        <span class="step-badge">2</span>
+        2. LÉPÉS — Vezeték nélküli Bluetooth OBD-II csatlakozás
+      </h2>
+      <p>
+        A modul és az autó fedélzeti diagnosztikája között <strong>teljesen vezeték nélküli Bluetooth kapcsolat</strong> van. Nem kell semmilyen kábelt átvezetned az utastéren a műszerfal és a csomagtartó között!
+      </p>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <strong style="color: #0f172a;">1. Helyezd be az OBD olvasót az autóba:</strong>
+          <p style="font-size: 0.82rem; margin-top: 4px;">
+            A 16 tűs, trapéz alakú diagnosztikai aljzat a <strong>vezetőoldalon, a kormánykerék alatt balra</strong> található, a motorháztető-nyitó kar közvetlen közelében.<br>
+            Dugd be a Bluetooth-os OBD adaptert kattanásig a csatlakozóba. Az adapter visszajelző fénye felvillan.
+          </p>
+        </div>
+        <div class="info-card">
+          <strong style="color: #0f172a;">2. Hogyan kapcsolódik a modul az OBD-hez?</strong>
+          <p style="font-size: 0.82rem; margin-top: 4px;">
+            Az Outlander Connect modul beépített Bluetooth vezérlője automatikusan megkeresi és felismeri az autóba dugott OBD-II olvasót, így közvetlenül a levegőben kérdezi le az akkumulátor adatokat, töltöttségi szintet és fedélzeti állapotot.
+          </p>
+        </div>
+      </div>
+
+      <div class="alert-tip" style="background:#eff6ff;border-color:#60a5fa;margin-top:6px;">
+        <strong style="font-size:0.9rem;color:#1e40af;">🛒 AJÁNLOTT BLUETOOTH OBD-II ADAPTEREK OUTLANDER PHEV-HEZ:</strong>
+        <p style="font-size:0.83rem;color:#1e3a8a;margin-top:6px;line-height:1.5;">
+          A stabil és megbízható kommunikációhoz az alábbi, bevált adapterek valamelyikét javasoljuk beszerezni:<br><br>
+          &bull; <strong>Vgate iCar Pro Bluetooth 4.0 / BLE (Kifejezetten Ajánlott!):</strong> Kiváló ár/érték arány, hibátlan Outlander kompatibilitás és beépített automatikus energiatakarékos alvó funkció, így sosem meríti az akkut álló helyzetben.<br>
+          &bull; <strong>OBDLink LX vagy MX+ Bluetooth:</strong> Prémium minőség, villámgyors adatfrissítés, hivatalos energiagazdálkodás.<br>
+          &bull; <strong>ELM327 Bluetooth v1.5:</strong> Kedvező árú belépő megoldás.<br><br>
+          <span style="color:#b91c1c;">⚠️ <strong>Figyelem:</strong> Kérlek kerüld a piacon keringő olcsó 'ELM327 v2.1' klónokat, mert azok nem támogatják a Mitsubishi speciális CAN busz parancsait! Mindig v1.5 chipkészletű adaptert válassz.</span>
+        </p>
+      </div>
+
+      <h2 class="step-title" style="margin-top: 18px;">
+        <span class="step-badge">3</span>
+        3. LÉPÉS — Az autó fedélzeti WiFi-jének beállítása
+      </h2>
+      <p>
+        A modul az autó gyári WiFi moduljához kapcsolódik a biztonságos klíma- és fűtésvezérlés parancsainak továbbításához.
+      </p>
+
+      <div class="info-card">
+        <strong style="color: #0f172a;">1. Keresd elő az autó gyári WiFi adatait:</strong>
+        <p style="font-size: 0.82rem; margin-top: 4px;">
+          Az autóhoz tartozik egy fehér műanyag kártya (vagy a szervizkönyv belső oldalára ragasztott matrica):<br>
+          &bull; <strong>Hálózat neve (SSID):</strong> pl. <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-weight:700;">REMOTE49a8bc</code><br>
+          &bull; <strong>Jelszó (WPA password):</strong> 10 vagy 14 karakteres alfanumerikus kód (pl. <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;font-weight:700;">a7k9p2m4x1</code>).
+        </p>
+      </div>
+
+      <div class="info-card">
+        <strong style="color: #0f172a;">2. Csatlakozz az Outlander Connect beállító WiFi-jére:</strong>
+        <p style="font-size: 0.82rem; margin-top: 4px;">
+          Helyezd áram alá a modult. Első indításkor létrehoz egy ideiglenes WiFi hálózatot:<br>
+          &bull; Nyisd meg a telefonodon a WiFi beállításokat, és csatlakozz az <strong>Outlander-Setup-XXXX</strong> nevű hálózatra.<br>
+          &bull; A telefon felajánlja a bejelentkezési oldalt (ha nem, nyisd meg a böngésződben a <strong>http://192.168.4.1</strong> címet).
+        </p>
+      </div>
+
+      <div class="info-card">
+        <strong style="color: #0f172a;">3. Add meg az autó WiFi adatait:</strong>
+        <p style="font-size: 0.82rem; margin-top: 4px;">
+          A megjelenő felületen válaszd ki az autód <strong>REMOTE...</strong> hálózatát, írd be a gyári <strong>WPA jelszót</strong>, majd kattints a <strong>„Mentés és Csatlakozás”</strong> gombra.<br>
+          A modul újraindul, elmenti az adatokat a belső memóriájába, és automatikusan rákapcsolódik az autóra.
+        </p>
+      </div>
+
+      <div class="page-footer">
+        <span>Outlander Connect PHEV Használati Útmutató</span>
+        <span>2. oldal / 4</span>
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         PAGE 3: MOBIL APP PÁROSÍTÁS & LED ÁLLAPOTOK
+         =================================================================== -->
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="brand-title">OUTLANDER<span>CONNECT</span></div>
+          <div class="brand-sub">Mobilalkalmazás Párosítás és Állapotjelzők</div>
+        </div>
+        <div class="header-meta">
+          <strong>Felhő Platform:</strong> AWS / Hetzner Cloud<br>
+          <strong>Titkosítás:</strong> TLS 1.3 / AES-256
+        </div>
+      </div>
+
+      <h2 class="step-title">
+        <span class="step-badge">4</span>
+        4. LÉPÉS — Mobilalkalmazás és Felhős Párosítás (QR kód)
+      </h2>
+      <p>
+        A modul egyedi hardveres biztonsági azonosítóval rendelkezik. A párosítással az autód biztonságosan és kizárólag a te privát fiókodhoz kapcsolódik.
+      </p>
+
+      <div class="info-card">
+        <strong style="color: #0f172a;">1. Lépj be a felületre:</strong>
+        <p style="font-size: 0.82rem; margin-top: 4px;">
+          Töltsd le az Outlander Connect applikációt, vagy látogass el mobilod böngészőjéből a <strong>https://app.outlanderconnect.eu</strong> oldalra, és jelentkezz be (vagy regisztrálj új fiókot 1 perc alatt).
+        </p>
+      </div>
+
+      <div class="info-card">
+        <strong style="color: #0f172a;">2. Új jármű hozzáadása:</strong>
+        <p style="font-size: 0.82rem; margin-top: 4px;">
+          Kattints a Vezérlőpulton a <strong>„+ Új Jármű Párosítása”</strong> gombra. Engedélyezd a telefon kamerájának használatát.
+        </p>
+      </div>
+
+      <div class="info-card">
+        <strong style="color: #0f172a;">3. Olvasd be a QR kódot a dobozról:</strong>
+        <p style="font-size: 0.82rem; margin-top: 4px;">
+          Irányítsd a kamerát a doboz tetején vagy a modul hátoldalán lévő <strong>QR kódra</strong>. A rendszer azonnal beazonosítja a jármű alvázszámát és a titkosítási kulcsot.
+        </p>
+      </div>
+
+      <div class="info-card">
+        <strong style="color: #0f172a;">4. Kézi kódmegadás (Kamera nélkül):</strong>
+        <p style="font-size: 0.82rem; margin-top: 4px;">
+          Ha a kamera nem elérhető, válaszd a <em>„Kézi párosítás”</em> gombot, és írd be a dobozon szereplő 6 jegyű kódot (pl. <strong>849-210</strong>), majd kattints a <strong>Megerősítés</strong> gombra.
+        </p>
+      </div>
+
+      <h2 class="step-title" style="margin-top: 18px;">
+        <span class="step-badge">5</span>
+        5. LÉPÉS — Állapotjelző LED-ek értelmezése
+      </h2>
+      <p>A modul elején található többszínű LED azonnali visszajelzést ad a működésről:</p>
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th style="width: 25%;">LED Állapot</th>
+            <th style="width: 35%;">Jelentés</th>
+            <th style="width: 40%;">Magyarázat & Teendő</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong style="color: #0284c7;">🔵 Kék villogás</strong></td>
+            <td>Hálózati keresés folyamatban</td>
+            <td>Csatlakozás a WiFi-hez, Bluetooth OBD-hez vagy a felhőhöz. Bekapcsolás után normális.</td>
+          </tr>
+          <tr>
+            <td><strong style="color: #16a34a;">🟢 Folyamatos zöld</strong></td>
+            <td><strong>Online, aktív kapcsolat</strong></td>
+            <td>Minden rendben! A modul kommunikál az autóval és szinkronizál a felhővel.</td>
+          </tr>
+          <tr>
+            <td><strong style="color: #d97706;">🟠 Narancssárga</strong></td>
+            <td>Várakozás az autóra</td>
+            <td>Az autó alvó módban van. Parancs küldésekor a modul felébreszti a rendszert.</td>
+          </tr>
+          <tr>
+            <td><strong style="color: #dc2626;">🔴 Folyamatos piros</strong></td>
+            <td>OBD Bluetooth / WiFi hiba</td>
+            <td>Ellenőrizd, hogy az OBD olvasó megfelelően be van-e dugva a csatlakozóba!</td>
+          </tr>
+          <tr>
+            <td><strong>⚪ Nem világít (Sötét)</strong></td>
+            <td>Nincs tápellátás / Alvás</td>
+            <td>Ellenőrizd a tápkábelt, a szivargyújtót vagy a 12V-os lengőbiztosítékot.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="page-footer">
+        <span>Outlander Connect PHEV Használati Útmutató</span>
+        <span>3. oldal / 4</span>
+      </div>
+    </div>
+
+    <!-- ===================================================================
+         PAGE 4: FUNKCIÓK, FAQ & ÜGYFÉLSZOLGÁLAT
+         =================================================================== -->
+    <div class="page">
+      <div class="page-header">
+        <div>
+          <div class="brand-title">OUTLANDER<span>CONNECT</span></div>
+          <div class="brand-sub">Funkciók, Gyakori Kérdések és Ügyfélszolgálat</div>
+        </div>
+        <div class="header-meta">
+          <strong>Garancia:</strong> 2 Év Cseregarancia<br>
+          <strong>Web:</strong> outlanderconnect.eu
+        </div>
+      </div>
+
+      <h2 class="step-title">
+        <span class="step-badge">6</span>
+        6. LÉPÉS — Mindennapi funkciók és vezérlés
+      </h2>
+      <p>A sikeres üzembe helyezés után az alábbi funkciók azonnal elérhetővé válnak a telefonodról:</p>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <strong style="color: #0f172a;">🔥 Távoli Előfűtés / Hűtés</strong>
+          <p style="font-size: 0.8rem; margin-top: 4px;">
+            Indítsd el a fűtést a lakásból reggel indulás előtt 10 perccel. A jég leolvad a szélvédőről, a belső tér kellemes meleg lesz anélkül, hogy kimennél a hidegbe.
+          </p>
+        </div>
+        <div class="info-card">
+          <strong style="color: #0f172a;">🔋 Élő Akkuállapot & Hatótáv</strong>
+          <p style="font-size: 0.8rem; margin-top: 4px;">
+            Pontos százalékos hajtóakkumulátor töltöttség (SoC), becsült tisztán elektromos km hatótáv és a 12V-os segédakku feszültségének élő monitorozása.
+          </p>
+        </div>
+        <div class="info-card">
+          <strong style="color: #0f172a;">⚡ Töltésfelügyelet & Értesítések</strong>
+          <p style="font-size: 0.8rem; margin-top: 4px;">
+            Élő töltési állapot (kábel csatlakoztatva, töltés folyamatban), automatikus push értesítés telefonra, amint az akkumulátor eléri a 100%-ot.
+          </p>
+        </div>
+        <div class="info-card">
+          <strong style="color: #0f172a;">🏡 Home Assistant & Okosotthon</strong>
+          <p style="font-size: 0.8rem; margin-top: 4px;">
+            Közvetlen MQTT és Home Assistant integráció. Vezéreld az autó töltését a tetőn lévő napelemek aktuális termelése alapján!
+          </p>
+        </div>
+      </div>
+
+      <h2 class="step-title" style="margin-top: 14px;">Gyakran Ismételt Kérdések & Hibaelhárítás (FAQ)</h2>
+
+      <div class="info-card" style="margin-bottom: 8px;">
+        <strong style="color: #0369a1;">K: Lemerítheti a modul az autó 12V-os kisakkuját?</strong>
+        <p style="font-size: 0.82rem; margin-top: 2px;">
+          <strong>V: NEM.</strong> A modul intelligens energiamenedzsmenttel rendelkezik: nyugalmi állapotban alacsony fogyasztású alvó módba vált. Ezen kívül a hardverbe épített akkuőr automatikusan lekapcsolja a modult, ha a segédakku feszültsége 11.8V alá csökkenne.
+        </p>
+      </div>
+
+      <div class="info-card" style="margin-bottom: 8px;">
+        <strong style="color: #0369a1;">K: Befolyásolja az autó gyári garanciáját vagy a fedélzeti rendszereket?</strong>
+        <p style="font-size: 0.82rem; margin-top: 2px;">
+          <strong>V: NEM.</strong> A modul és a Bluetooth OBD olvasó csak a gyári szabványos diagnosztikai és klímaparancsokat küldi az autónak. Semmilyen kábelt nem kell elvágni, bármikor 10 másodperc alatt nyom nélkül eltávolítható.
+        </p>
+      </div>
+
+      <div class="info-card" style="margin-bottom: 8px;">
+        <strong style="color: #0369a1;">K: Miért Bluetooth OBD adaptert használ a rendszer a kábeles helyett?</strong>
+        <p style="font-size: 0.82rem; margin-top: 2px;">
+          <strong>V:</strong> A vezeték nélküli kapcsolat óriási kényelmet biztosít: nem kell megbontani a belső burkolatokat, és nem kell zavaró kábeleket végighúzni a pedálok és a kárpit mellett. Az adapter folyamatosan a kormány alatti portban maradhat.
+        </p>
+      </div>
+
+      <div class="info-card" style="margin-bottom: 8px;">
+        <strong style="color: #0369a1;">K: Hogyan kapok szoftverfrissítéseket a jövőben?</strong>
+        <p style="font-size: 0.82rem; margin-top: 2px;">
+          <strong>V:</strong> A modul automatikusan, vezeték nélkül frissül a felhőn keresztül (OTA). Nem kell sehova csatlakoztatnod, a legújabb funkciók (pl. DBCAM akkukalibráció) és javítások automatikusan települnek.
+        </p>
+      </div>
+
+      <div class="contact-box">
+        <strong style="color: #0f172a; font-size: 0.95rem;">KÉRDÉSED VAN, VAGY SEGÍTSÉGRE VAN SZÜKSÉGED?</strong><br>
+        <span style="color: var(--text-muted);">Ügyfélszolgálati csapatunk készséggel áll rendelkezésedre munkanapokon:</span><br>
+        <div style="margin-top: 6px;">
+          <strong>E-mail:</strong> <a href="mailto:info@outlanderconnect.eu" style="color: var(--primary); text-decoration: none; font-weight: 700;">info@outlanderconnect.eu</a> &nbsp;&bull;&nbsp;
+          <strong>Weboldal:</strong> <a href="https://outlanderconnect.eu" style="color: var(--primary); text-decoration: none; font-weight: 700;">outlanderconnect.eu</a> &nbsp;&bull;&nbsp;
+          <strong>WebApp:</strong> <a href="https://app.outlanderconnect.eu" style="color: var(--primary); text-decoration: none; font-weight: 700;">app.outlanderconnect.eu</a>
+        </div>
+      </div>
+
+      <div class="page-footer">
+        <span>© 2026 Outlander Connect &bull; Minden jog fenntartva</span>
+        <span>4. oldal / 4</span>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
