@@ -70,7 +70,13 @@ export const CARD_STYLES = `
   }
 
   ha-card.ophev-card.frameless .mitsu-badge {
-    background: rgba(20, 29, 45, 0.92);
+    width: 44px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 6px rgba(0, 216, 255, 0.35));
   }
 
   ha-card.ophev-card.frameless .status-pill:not(.ok):not(.warn):not(.danger) {
@@ -122,15 +128,13 @@ export const CARD_STYLES = `
   }
 
   .mitsu-badge {
-    width: 36px;
-    height: 36px;
-    border-radius: 11px;
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02));
-    border: 1px solid var(--ophev-border-strong);
-    display: grid;
-    place-items: center;
+    width: 44px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex-shrink: 0;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    filter: drop-shadow(0 2px 6px rgba(0, 216, 255, 0.35));
   }
 
   .mitsu-badge svg {
